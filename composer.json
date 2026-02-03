@@ -39,7 +39,7 @@
         "analyse": "vendor/bin/phpstan analyse",
         "format": "vendor/bin/pint"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
         "allow-plugins": {
