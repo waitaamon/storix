@@ -76,7 +76,7 @@ final class DispatchImporter extends Importer
         try {
             $userId = auth()->id();
 
-            return self::importRow((array) $this->data, is_numeric($userId) ? (int) $userId : null);
+            return self::importRow($this->data, is_numeric($userId) ? (int) $userId : null);
         } catch (StorixException $exception) {
             $this->fail('container_serial', $exception->getMessage());
         }

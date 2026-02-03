@@ -6,10 +6,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
-        Schema::create((string)config('storix.tables.containers', 'containers'), function (Blueprint $table): void {
+        Schema::create((string) config('storix.tables.containers', 'containers'), function (Blueprint $table): void {
             $table->id();
             $table->string('name')->nullable();
             $table->string('serial')->unique()->index();
@@ -22,6 +23,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists((string)config('storix.tables.containers', 'containers'));
+        Schema::dropIfExists((string) config('storix.tables.containers', 'containers'));
     }
 };

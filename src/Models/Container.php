@@ -19,6 +19,7 @@ final class Container extends Model
 
     /**
      * The attributes that are mass assignable.
+     *
      * @var list<string>
      */
     protected $fillable = ['name', 'serial', 'is_active', 'description'];
@@ -26,7 +27,7 @@ final class Container extends Model
     /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string)config('storix.tables.containers', 'containers');
+        return (string) config('storix.tables.containers', 'containers');
     }
 
     /**
@@ -68,7 +69,7 @@ final class Container extends Model
     #[Scope]
     public function withCustomers(Builder $query): Builder
     {
-        return $query->whereHas('dispatchItems', static fn(Builder $query): Builder => $query->whereDoesntHave('returnItem')
+        return $query->whereHas('dispatchItems', static fn (Builder $query): Builder => $query->whereDoesntHave('returnItem')
         );
     }
 
@@ -80,7 +81,7 @@ final class Container extends Model
     #[Scope]
     public function availableForDispatch(Builder $query): Builder
     {
-        return $query->active()->whereDoesntHave('dispatchItems', static fn(Builder $query): Builder => $query->whereDoesntHave('returnItem'));
+        return $query->active()->whereDoesntHave('dispatchItems', static fn (Builder $query): Builder => $query->whereDoesntHave('returnItem'));
     }
 
     /** @return array<string, string> */

@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Storix\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ContainerReturnItemFactory extends Factory
+final class ContainerReturnItemFactory extends Factory
 {
     public function definition(): array
     {

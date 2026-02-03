@@ -22,7 +22,7 @@ final class ContainerDispatchItem extends Model
     /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string)config('storix.tables.dispatch_items', 'container_dispatch_items');
+        return (string) config('storix.tables.dispatch_items', 'container_dispatch_items');
     }
 
     /**

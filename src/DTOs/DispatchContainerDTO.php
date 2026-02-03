@@ -30,7 +30,7 @@ final readonly class DispatchContainerDTO
     public static function fromArray(array $payload): self
     {
         /** @var list<string> $serials */
-        $serials = array_values(array_unique(array_filter(array_map('trim', (array) ($payload['container_serials'] ?? [])))));
+        $serials = array_values(array_unique(array_filter(array_map(trim(...), (array) ($payload['container_serials'] ?? [])))));
 
         return new self(
             customerId: (int) $payload['customer_id'],

@@ -112,7 +112,7 @@ final class ContainerReturnResource extends Resource
         ];
     }
 
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string
     {
         return 'Storix';
     }

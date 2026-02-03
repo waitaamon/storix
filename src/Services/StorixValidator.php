@@ -55,11 +55,9 @@ final class StorixValidator
         $query = ContainerDispatchItem::query()
             ->where('container_id', $container->getKey())
             ->whereDoesntHave('returnItem')
-            ->whereHas('dispatch', static function (Builder $dispatchQuery) use ($customerId): Builder {
-                return $customerId === null
-                    ? $dispatchQuery
-                    : $dispatchQuery->where('customer_id', $customerId);
-            })
+            ->whereHas('dispatch', static fn (Builder $dispatchQuery): Builder => $customerId === null
+                ? $dispatchQuery
+                : $dispatchQuery->where('customer_id', $customerId))
             ->with('dispatch')
             ->latest('id');
 

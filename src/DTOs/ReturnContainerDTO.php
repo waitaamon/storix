@@ -32,7 +32,7 @@ final readonly class ReturnContainerDTO
         $rawItems = array_values((array) ($payload['items'] ?? []));
 
         $items = array_map(
-            static fn (array $item): ReturnContainerItemDTO => ReturnContainerItemDTO::fromArray($item),
+            ReturnContainerItemDTO::fromArray(...),
             $rawItems,
         );
 

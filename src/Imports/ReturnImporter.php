@@ -36,47 +36,47 @@ final class ReturnImporter extends Importer
     /**
      * Import a single return row by looking up the container's open dispatch and recording the return.
      *
-     * @param array<string, mixed> $row
+     * @param  array<string, mixed>  $row
      *
      * @throws StorixException
      */
     public static function importRow(array $row, ?int $userId = null): ContainerReturn
     {
         $container = Container::query()
-            ->where('serial', mb_trim((string)($row['container_serial'] ?? '')))
+            ->where('serial', mb_trim((string) ($row['container_serial'] ?? '')))
             ->first();
 
-        if (!$container instanceof Container) {
+        if (! $container instanceof Container) {
             throw new StorixException(sprintf('Container [%s] does not exist.', $row['container_serial'] ?? ''));
         }
 
-        $customerClass = (string)config('storix.customer_model');
-        $titleAttribute = (string)config('storix.customer_title_attribute', 'name');
+        $customerClass = (string) config('storix.customer_model');
+        $titleAttribute = (string) config('storix.customer_title_attribute', 'name');
 
         /** @var Model|null $customer */
-        $customer = $customerClass::query()->where($titleAttribute, mb_trim((string)($row['customer_name'] ?? '')))->first();
+        $customer = $customerClass::query()->where($titleAttribute, mb_trim((string) ($row['customer_name'] ?? '')))->first();
 
-        if (!$customer instanceof Model) {
+        if (! $customer instanceof Model) {
             throw new StorixException(sprintf('Customer [%s] does not exist.', $row['customer_name'] ?? ''));
         }
 
-        if (!is_numeric($customer)) {
+        if (! is_numeric($customer)) {
             throw new StorixException(sprintf('Container [%s] is not currently dispatched.', $container->serial));
         }
 
         $service = app(ContainerReturnService::class);
 
         return $service->return(new ReturnContainerDTO(
-            customerId: (int)$customer->getKey(),
-            transactionDate: CarbonImmutable::parse((string)($row['return_date'] ?? '')),
+            customerId: (int) $customer->getKey(),
+            transactionDate: CarbonImmutable::parse((string) ($row['return_date'] ?? '')),
             items: [
                 new ReturnContainerItemDTO(
                     containerSerial: $container->serial,
-                    conditionStatus: ContainerConditionStatus::from((string)($row['condition_status'] ?? ContainerConditionStatus::Good->value)),
-                    notes: isset($row['notes']) ? (string)$row['notes'] : null,
+                    conditionStatus: ContainerConditionStatus::from((string) ($row['condition_status'] ?? ContainerConditionStatus::Good->value)),
+                    notes: isset($row['notes']) ? (string) $row['notes'] : null,
                 ),
             ],
-            notes: isset($row['notes']) ? (string)$row['notes'] : null,
+            notes: isset($row['notes']) ? (string) $row['notes'] : null,
             userId: $userId,
         ));
     }
@@ -93,7 +93,7 @@ final class ReturnImporter extends Importer
         try {
             $userId = auth()->id();
 
-            return self::importRow($this->data, is_numeric($userId) ? (int)$userId : null);
+            return self::importRow($this->data, is_numeric($userId) ? (int) $userId : null);
         } catch (StorixException $exception) {
             $this->fail('container_serial', $exception->getMessage());
         }

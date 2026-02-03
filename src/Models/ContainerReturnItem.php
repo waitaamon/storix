@@ -21,7 +21,7 @@ final class ContainerReturnItem extends Model
     /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string)config('storix.tables.return_items', 'container_return_items');
+        return (string) config('storix.tables.return_items', 'container_return_items');
     }
 
     /**
@@ -43,7 +43,6 @@ final class ContainerReturnItem extends Model
     {
         return $this->belongsTo(Container::class, 'container_id');
     }
-
 
     /** @return array<string, string|class-string> */
     protected function casts(): array

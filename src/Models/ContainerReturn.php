@@ -22,7 +22,7 @@ final class ContainerReturn extends Model
     /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string)config('storix.tables.returns', 'container_returns');
+        return (string) config('storix.tables.returns', 'container_returns');
     }
 
     /** The customer who returned containers. */

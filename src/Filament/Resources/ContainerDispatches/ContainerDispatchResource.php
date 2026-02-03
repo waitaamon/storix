@@ -40,7 +40,7 @@ final class ContainerDispatchResource extends Resource
                 Select::make('customer_id')
                     ->searchable(self::customerSearchColumns())
                     ->preload()
-                    ->relationship(name: 'customer', titleAttribute: self::customerTitleAttribute(), modifyQueryUsing: static fn(Builder $query): Builder => $query->orderBy(self::customerTitleAttribute()))
+                    ->relationship(name: 'customer', titleAttribute: self::customerTitleAttribute(), modifyQueryUsing: static fn (Builder $query): Builder => $query->orderBy(self::customerTitleAttribute()))
                     ->required(),
 
                 TextInput::make('delivery_note_code')
@@ -61,8 +61,8 @@ final class ContainerDispatchResource extends Resource
                     ->multiple()
                     ->searchable()
                     ->required()
-                    ->getSearchResultsUsing(static fn(string $search): array => self::searchDispatchableContainers($search))
-                    ->getOptionLabelsUsing(static fn(array $values): array => self::containerLabels($values))
+                    ->getSearchResultsUsing(static fn (string $search): array => self::searchDispatchableContainers($search))
+                    ->getOptionLabelsUsing(static fn (array $values): array => self::containerLabels($values))
                     ->helperText('Only active containers not currently dispatched are shown.'),
             ]);
     }
@@ -76,7 +76,7 @@ final class ContainerDispatchResource extends Resource
 
                 TextColumn::make('delivery_note_code')->searchable()->sortable(),
 
-                TextColumn::make('customer.' . self::customerTitleAttribute())->label('Customer')->searchable(),
+                TextColumn::make('customer.'.self::customerTitleAttribute())->label('Customer')->searchable(),
 
                 TextColumn::make('items.container.serial')
                     ->label('Container Serials')
@@ -102,7 +102,7 @@ final class ContainerDispatchResource extends Resource
         ];
     }
 
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string
     {
         return 'Storix';
     }
@@ -118,13 +118,13 @@ final class ContainerDispatchResource extends Resource
             ->availableForDispatch()
             ->where(static function (Builder $query) use ($search): void {
                 $query
-                    ->where('serial', 'like', '%' . $search . '%')
-                    ->orWhere('name', 'like', '%' . $search . '%');
+                    ->where('serial', 'like', '%'.$search.'%')
+                    ->orWhere('name', 'like', '%'.$search.'%');
             })
             ->limit(50)
             ->get(['id', 'serial', 'name'])
-            ->mapWithKeys(static fn(Container $container): array => [
-                (int)$container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
+            ->mapWithKeys(static fn (Container $container): array => [
+                (int) $container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
             ])
             ->all();
     }
@@ -132,12 +132,12 @@ final class ContainerDispatchResource extends Resource
     /**
      * Resolve display labels for selected container IDs.
      *
-     * @param array<int|string, mixed> $values
+     * @param  array<int|string, mixed>  $values
      * @return array<int, string>
      */
     private static function containerLabels(array $values): array
     {
-        $ids = array_values(array_filter(array_map('intval', $values)));
+        $ids = array_values(array_filter(array_map(intval(...), $values)));
 
         if ($ids === []) {
             return [];
@@ -146,8 +146,8 @@ final class ContainerDispatchResource extends Resource
         return Container::query()
             ->whereIn('id', $ids)
             ->get(['id', 'serial', 'name'])
-            ->mapWithKeys(static fn(Container $container): array => [
-                (int)$container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
+            ->mapWithKeys(static fn (Container $container): array => [
+                (int) $container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
             ])
             ->all();
     }
