@@ -65,7 +65,7 @@ Column Type
   ----------------- ------------------
 id Primary
 customer_id FK
-sale_order_code String (Indexed)
+delivery_note_code String (Indexed)
 transaction_date Date
 user_id User FK Nullable
 notes Text Nullable
@@ -170,7 +170,7 @@ Export support
 
 ### Dispatch Import Columns
 
-container_serial customer_name sale_order_code
+container_serial customer_name delivery_note_code
 dispatch_date notes (optional)
 
 ------------------------------------------------------------------------

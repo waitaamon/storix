@@ -14,7 +14,7 @@ final readonly class DispatchContainerDTO
      */
     public function __construct(
         public int $customerId,
-        public string $saleOrderCode,
+        public string $deliveryNoteCode,
         public CarbonImmutable $transactionDate,
         public array $containerSerials,
         public ?string $notes = null,
@@ -34,7 +34,7 @@ final readonly class DispatchContainerDTO
 
         return new self(
             customerId: (int) $payload['customer_id'],
-            saleOrderCode: (string) $payload['sale_order_code'],
+            deliveryNoteCode: (string) $payload['delivery_note_code'],
             transactionDate: CarbonImmutable::parse((string) $payload['transaction_date']),
             containerSerials: $serials,
             notes: isset($payload['notes']) ? (string) $payload['notes'] : null,

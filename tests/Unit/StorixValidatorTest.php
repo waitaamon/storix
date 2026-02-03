@@ -35,7 +35,7 @@ it('resolves open dispatch items by customer', function (): void {
 
     app(ContainerDispatchService::class)->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-2002',
+        deliveryNoteCode: 'SO-2002',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: [$container->serial],
     ));

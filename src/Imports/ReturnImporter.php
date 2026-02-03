@@ -9,7 +9,6 @@ use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Storix\DTOs\ReturnContainerDTO;
 use Storix\DTOs\ReturnContainerItemDTO;
 use Storix\Enums\ContainerConditionStatus;
@@ -26,8 +25,9 @@ final class ReturnImporter extends Importer
     public static function getColumns(): array
     {
         return [
+            ImportColumn::make('customer_name')->requiredMapping()->rules(['required', 'string']),
+            ImportColumn::make('transaction_date')->requiredMapping()->rules(['required', 'date']),
             ImportColumn::make('container_serial')->requiredMapping()->rules(['required', 'string']),
-            ImportColumn::make('return_date')->requiredMapping()->rules(['required', 'date']),
             ImportColumn::make('condition_status')->requiredMapping()->rules(['required', 'string']),
             ImportColumn::make('notes')->rules(['nullable', 'string']),
         ];
@@ -36,45 +36,47 @@ final class ReturnImporter extends Importer
     /**
      * Import a single return row by looking up the container's open dispatch and recording the return.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      *
      * @throws StorixException
      */
     public static function importRow(array $row, ?int $userId = null): ContainerReturn
     {
         $container = Container::query()
-            ->where('serial', mb_trim((string) ($row['container_serial'] ?? '')))
+            ->where('serial', mb_trim((string)($row['container_serial'] ?? '')))
             ->first();
 
-        if (! $container instanceof Container) {
-            throw new StorixException(sprintf('Container [%s] does not exist.', (string) ($row['container_serial'] ?? '')));
+        if (!$container instanceof Container) {
+            throw new StorixException(sprintf('Container [%s] does not exist.', $row['container_serial'] ?? ''));
         }
 
-        $customerId = DB::table((string) config('storix.tables.dispatch_items', 'container_dispatch_items').' as i')
-            ->join((string) config('storix.tables.dispatches', 'container_dispatches').' as d', 'd.id', '=', 'i.dispatch_id')
-            ->leftJoin((string) config('storix.tables.return_items', 'container_return_items').' as r', 'r.dispatch_item_id', '=', 'i.id')
-            ->whereNull('r.id')
-            ->where('i.container_id', $container->getKey())
-            ->orderByDesc('i.id')
-            ->value('d.customer_id');
+        $customerClass = (string)config('storix.customer_model');
+        $titleAttribute = (string)config('storix.customer_title_attribute', 'name');
 
-        if (! is_numeric($customerId)) {
+        /** @var Model|null $customer */
+        $customer = $customerClass::query()->where($titleAttribute, mb_trim((string)($row['customer_name'] ?? '')))->first();
+
+        if (!$customer instanceof Model) {
+            throw new StorixException(sprintf('Customer [%s] does not exist.', $row['customer_name'] ?? ''));
+        }
+
+        if (!is_numeric($customer)) {
             throw new StorixException(sprintf('Container [%s] is not currently dispatched.', $container->serial));
         }
 
         $service = app(ContainerReturnService::class);
 
         return $service->return(new ReturnContainerDTO(
-            customerId: (int) $customerId,
-            transactionDate: CarbonImmutable::parse((string) ($row['return_date'] ?? '')),
+            customerId: (int)$customer->getKey(),
+            transactionDate: CarbonImmutable::parse((string)($row['return_date'] ?? '')),
             items: [
                 new ReturnContainerItemDTO(
                     containerSerial: $container->serial,
-                    conditionStatus: ContainerConditionStatus::from((string) ($row['condition_status'] ?? ContainerConditionStatus::Good->value)),
-                    notes: isset($row['notes']) ? (string) $row['notes'] : null,
+                    conditionStatus: ContainerConditionStatus::from((string)($row['condition_status'] ?? ContainerConditionStatus::Good->value)),
+                    notes: isset($row['notes']) ? (string)$row['notes'] : null,
                 ),
             ],
-            notes: isset($row['notes']) ? (string) $row['notes'] : null,
+            notes: isset($row['notes']) ? (string)$row['notes'] : null,
             userId: $userId,
         ));
     }
@@ -91,7 +93,7 @@ final class ReturnImporter extends Importer
         try {
             $userId = auth()->id();
 
-            return self::importRow((array) $this->data, is_numeric($userId) ? (int) $userId : null);
+            return self::importRow($this->data, is_numeric($userId) ? (int)$userId : null);
         } catch (StorixException $exception) {
             $this->fail('container_serial', $exception->getMessage());
         }

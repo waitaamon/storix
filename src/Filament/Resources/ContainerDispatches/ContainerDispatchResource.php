@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Storix\Filament\Resources\ContainerDispatches;
 
 use BackedEnum;
-use Filament\Actions\Exports\ExportAction;
-use Filament\Actions\Imports\ImportAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,32 +33,36 @@ final class ContainerDispatchResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
 
     /** Define the dispatch creation form. */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Select::make('customer_id')
-                    ->relationship('customer', self::customerTitleAttribute(), modifyQueryUsing: static fn (Builder $query): Builder => $query
-                        ->orderBy(self::customerTitleAttribute()))
                     ->searchable(self::customerSearchColumns())
                     ->preload()
+                    ->relationship(name: 'customer', titleAttribute: self::customerTitleAttribute(), modifyQueryUsing: static fn(Builder $query): Builder => $query->orderBy(self::customerTitleAttribute()))
                     ->required(),
-                TextInput::make('sale_order_code')
+
+                TextInput::make('delivery_note_code')
                     ->required()
                     ->maxLength(255),
+
                 DatePicker::make('transaction_date')
                     ->default(now())
                     ->native(false)
                     ->required(),
+
                 Textarea::make('notes')
+                    ->columnSpanFull()
                     ->rows(3),
+
                 Select::make('container_ids')
                     ->label('Containers')
                     ->multiple()
                     ->searchable()
                     ->required()
-                    ->getSearchResultsUsing(static fn (string $search): array => self::searchDispatchableContainers($search))
-                    ->getOptionLabelsUsing(static fn (array $values): array => self::containerLabels($values))
+                    ->getSearchResultsUsing(static fn(string $search): array => self::searchDispatchableContainers($search))
+                    ->getOptionLabelsUsing(static fn(array $values): array => self::containerLabels($values))
                     ->helperText('Only active containers not currently dispatched are shown.'),
             ]);
     }
@@ -69,13 +73,18 @@ final class ContainerDispatchResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('transaction_date')->date()->sortable(),
-                TextColumn::make('sale_order_code')->searchable()->sortable(),
-                TextColumn::make('customer.'.self::customerTitleAttribute())->label('Customer')->searchable(),
+
+                TextColumn::make('delivery_note_code')->searchable()->sortable(),
+
+                TextColumn::make('customer.' . self::customerTitleAttribute())->label('Customer')->searchable(),
+
                 TextColumn::make('items.container.serial')
                     ->label('Container Serials')
                     ->listWithLineBreaks()
                     ->limitList(3),
+
                 TextColumn::make('items_count')->counts('items')->label('Containers'),
+
                 TextColumn::make('created_at')->dateTime()->since(),
             ])
             ->defaultSort('transaction_date', 'desc')
@@ -109,13 +118,13 @@ final class ContainerDispatchResource extends Resource
             ->availableForDispatch()
             ->where(static function (Builder $query) use ($search): void {
                 $query
-                    ->where('serial', 'like', '%'.$search.'%')
-                    ->orWhere('name', 'like', '%'.$search.'%');
+                    ->where('serial', 'like', '%' . $search . '%')
+                    ->orWhere('name', 'like', '%' . $search . '%');
             })
             ->limit(50)
             ->get(['id', 'serial', 'name'])
-            ->mapWithKeys(static fn (Container $container): array => [
-                (int) $container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
+            ->mapWithKeys(static fn(Container $container): array => [
+                (int)$container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
             ])
             ->all();
     }
@@ -123,7 +132,7 @@ final class ContainerDispatchResource extends Resource
     /**
      * Resolve display labels for selected container IDs.
      *
-     * @param  array<int|string, mixed>  $values
+     * @param array<int|string, mixed> $values
      * @return array<int, string>
      */
     private static function containerLabels(array $values): array
@@ -137,8 +146,8 @@ final class ContainerDispatchResource extends Resource
         return Container::query()
             ->whereIn('id', $ids)
             ->get(['id', 'serial', 'name'])
-            ->mapWithKeys(static fn (Container $container): array => [
-                (int) $container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
+            ->mapWithKeys(static fn(Container $container): array => [
+                (int)$container->getKey() => sprintf('%s - %s', $container->serial, $container->name),
             ])
             ->all();
     }

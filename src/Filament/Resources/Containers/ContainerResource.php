@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Storix\Filament\Resources\Containers;
 
 use BackedEnum;
-use Filament\Actions\Exports\ExportAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ExportAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -28,10 +27,10 @@ final class ContainerResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
     /** Define the container create/edit form. */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -58,11 +57,8 @@ final class ContainerResource extends Resource
             ->headerActions([
                 ExportAction::make()->exporter(ContainerExporter::class),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
-            ])
-            ->bulkActions([
-                DeleteBulkAction::make(),
             ]);
     }
 

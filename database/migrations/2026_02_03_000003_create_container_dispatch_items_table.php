@@ -16,13 +16,11 @@ return new class extends Migration
 
         Schema::create($tableName, function (Blueprint $table) use ($dispatchesTable, $containersTable): void {
             $table->id();
-            $table->foreignId('dispatch_id')->constrained($dispatchesTable)->cascadeOnDelete();
-            $table->foreignId('container_id')->constrained($containersTable);
+            $table->foreignId('dispatch_id')->index()->constrained($dispatchesTable);
+            $table->foreignId('container_id')->index()->constrained($containersTable);
+            $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
-            $table->index('container_id');
-            $table->index(['dispatch_id', 'container_id']);
         });
     }
 

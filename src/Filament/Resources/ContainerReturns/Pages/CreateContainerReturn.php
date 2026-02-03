@@ -13,6 +13,7 @@ use Storix\DTOs\ReturnContainerItemDTO;
 use Storix\Enums\ContainerConditionStatus;
 use Storix\Exceptions\StorixException;
 use Storix\Filament\Resources\ContainerReturns\ContainerReturnResource;
+use Storix\Models\ContainerReturn;
 use Storix\Services\ContainerReturnService;
 
 final class CreateContainerReturn extends CreateRecord
@@ -57,7 +58,7 @@ final class CreateContainerReturn extends CreateRecord
 
             $this->halt();
 
-            return new \Storix\Models\ContainerReturn();
+            return new ContainerReturn();
         }
     }
 }

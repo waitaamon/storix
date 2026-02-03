@@ -10,14 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Storix\Concerns\ResolvesConfiguredModels;
+use Storix\Database\Factories\ContainerDispatchFactory;
 
 final class ContainerDispatch extends Model
 {
-    use HasFactory;
-    use ResolvesConfiguredModels;
-    use SoftDeletes;
+    /** @use HasFactory<ContainerDispatchFactory> */
+    use HasFactory, ResolvesConfiguredModels, SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = ['customer_id', 'user_id', 'delivery_note_code', 'transaction_date', 'notes', 'attachments'];
 
     /** Get the table name from config. */
     public function getTable(): string
@@ -25,7 +25,9 @@ final class ContainerDispatch extends Model
         return (string) config('storix.tables.dispatches', 'container_dispatches');
     }
 
-    /** The customer this dispatch was sent to. */
+    /**
+     * The customer this dispatch was sent to.
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(self::configuredModel('customer_model'), 'customer_id');
@@ -37,7 +39,11 @@ final class ContainerDispatch extends Model
         return $this->belongsTo(self::configuredModel('user_model'), 'user_id');
     }
 
-    /** Individual container line items in this dispatch. */
+    /**
+     * Individual container line items in this dispatch.
+     *
+     * @return HasMany<ContainerDispatchItem, self>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(ContainerDispatchItem::class, 'dispatch_id');

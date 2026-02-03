@@ -9,7 +9,7 @@ use Storix\Enums\ContainerConditionStatus;
 it('maps dispatch dto payloads cleanly', function (): void {
     $dto = DispatchContainerDTO::fromArray([
         'customer_id' => 99,
-        'sale_order_code' => 'SO-3001',
+        'delivery_note_code' => 'SO-3001',
         'transaction_date' => '2026-02-03',
         'container_serials' => [' A ', 'A', 'B '],
         'notes' => 'note',

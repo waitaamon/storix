@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Storix\Filament\Resources\ContainerReturns;
 
 use BackedEnum;
-use Filament\Actions\Exports\ExportAction;
-use Filament\Actions\Imports\ImportAction;
+use Filament\Actions\ExportAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,12 +37,12 @@ final class ContainerReturnResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
 
     /** Define the return creation form with customer auto-fill. */
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                 Select::make('customer_id')
-                    ->relationship('customer', self::customerTitleAttribute(), modifyQueryUsing: static fn (Builder $query): Builder => $query
+                    ->relationship(name: 'customer', titleAttribute: self::customerTitleAttribute(), modifyQueryUsing: static fn (Builder $query): Builder => $query
                         ->orderBy(self::customerTitleAttribute()))
                     ->searchable(self::customerSearchColumns())
                     ->preload()

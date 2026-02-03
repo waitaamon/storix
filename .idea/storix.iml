@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/database/factories" isTestSource="true" packagePrefix="Storix\Database\Factories\" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" packagePrefix="Storix\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" packagePrefix="Storix\Tests\" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/_laravel_idea" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

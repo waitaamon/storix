@@ -13,21 +13,16 @@ return new class extends Migration
     {
         $tableName = (string) config('storix.tables.return_items', 'container_return_items');
         $returnsTable = (string) config('storix.tables.returns', 'container_returns');
-        $dispatchItemsTable = (string) config('storix.tables.dispatch_items', 'container_dispatch_items');
         $containersTable = (string) config('storix.tables.containers', 'containers');
 
-        Schema::create($tableName, function (Blueprint $table) use ($returnsTable, $dispatchItemsTable, $containersTable): void {
+        Schema::create($tableName, function (Blueprint $table) use ($returnsTable, $containersTable): void {
             $table->id();
-            $table->foreignId('return_id')->constrained($returnsTable)->cascadeOnDelete();
-            $table->foreignId('dispatch_item_id')->unique()->constrained($dispatchItemsTable);
-            $table->foreignId('container_id')->constrained($containersTable);
-            $table->string('condition_status')->default(ContainerConditionStatus::Good->value);
+            $table->foreignId('return_id')->constrained($returnsTable);
+            $table->foreignId('container_id')->index()->constrained($containersTable);
+            $table->string('condition_status')->index()->default(ContainerConditionStatus::Good->value);
             $table->text('notes')->nullable();
-            $table->timestamp('returned_at')->nullable();
             $table->timestamps();
-
-            $table->index('container_id');
-            $table->index('condition_status');
+            $table->softDeletes();
         });
     }
 

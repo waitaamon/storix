@@ -106,7 +106,7 @@ return [
 
 - `container_serial`
 - `customer_name`
-- `sale_order_code`
+- `delivery_note_code`
 - `dispatch_date`
 - `notes` (optional)
 

@@ -9,15 +9,17 @@ use Storix\DTOs\ReturnContainerDTO;
 use Storix\Events\ContainerReturned;
 use Storix\Exceptions\StorixException;
 use Storix\Models\ContainerReturn;
+use Throwable;
 
-final class ContainerReturnService
+final readonly class ContainerReturnService
 {
-    public function __construct(private readonly StorixValidator $validator) {}
+    public function __construct(private StorixValidator $validator) {}
 
     /**
      * Record the return of one or more containers from a customer.
      *
      * @throws StorixException
+     * @throws Throwable
      */
     public function return(ReturnContainerDTO $dto): ContainerReturn
     {
@@ -37,14 +39,11 @@ final class ContainerReturnService
 
             foreach ($dto->items as $item) {
                 $container = $this->validator->resolveContainerBySerial($item->containerSerial);
-                $openDispatchItem = $this->validator->resolveOpenDispatchItem($container, $dto->customerId);
 
                 $return->items()->create([
                     'container_id' => $container->getKey(),
-                    'dispatch_item_id' => $openDispatchItem->getKey(),
                     'condition_status' => $item->conditionStatus->value,
                     'notes' => $item->notes,
-                    'returned_at' => $dto->transactionDate,
                 ]);
             }
 

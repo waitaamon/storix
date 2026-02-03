@@ -40,7 +40,7 @@ final class CreateContainerDispatch extends CreateRecord
         try {
             return $service->dispatch(new DispatchContainerDTO(
                 customerId: (int) $data['customer_id'],
-                saleOrderCode: (string) $data['sale_order_code'],
+                deliveryNoteCode: (string) $data['delivery_note_code'],
                 transactionDate: CarbonImmutable::parse((string) $data['transaction_date']),
                 containerSerials: array_values(array_map(static fn (mixed $serial): string => (string) $serial, $serials)),
                 notes: isset($data['notes']) ? (string) $data['notes'] : null,

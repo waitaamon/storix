@@ -10,19 +10,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Storix\Concerns\ResolvesConfiguredModels;
+use Storix\Database\Factories\ContainerReturnFactory;
 
 final class ContainerReturn extends Model
 {
-    use HasFactory;
-    use ResolvesConfiguredModels;
-    use SoftDeletes;
+    /** @use HasFactory<ContainerReturnFactory> */
+    use HasFactory, ResolvesConfiguredModels, SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = ['customer_id', 'user_id', 'transaction_date', 'notes', 'attachments'];
 
     /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string) config('storix.tables.returns', 'container_returns');
+        return (string)config('storix.tables.returns', 'container_returns');
     }
 
     /** The customer who returned containers. */
@@ -37,7 +37,11 @@ final class ContainerReturn extends Model
         return $this->belongsTo(self::configuredModel('user_model'), 'user_id');
     }
 
-    /** Individual container line items in this return. */
+    /**
+     * Individual container line items in this return.
+     *
+     * @return HasMany<ContainerReturnItem, self>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(ContainerReturnItem::class, 'return_id');

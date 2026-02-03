@@ -22,10 +22,10 @@ final class DispatchImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            ImportColumn::make('container_serial')->requiredMapping()->rules(['required', 'string']),
             ImportColumn::make('customer_name')->requiredMapping()->rules(['required', 'string']),
-            ImportColumn::make('sale_order_code')->requiredMapping()->rules(['required', 'string']),
-            ImportColumn::make('dispatch_date')->requiredMapping()->rules(['required', 'date']),
+            ImportColumn::make('delivery_note_code')->requiredMapping()->rules(['required', 'string']),
+            ImportColumn::make('transaction_date')->requiredMapping()->rules(['required', 'date']),
+            ImportColumn::make('container_serial')->requiredMapping()->rules(['required', 'string']),
             ImportColumn::make('notes')->rules(['nullable', 'string']),
         ];
     }
@@ -56,8 +56,8 @@ final class DispatchImporter extends Importer
 
         return $service->dispatch(new DispatchContainerDTO(
             customerId: (int) $customer->getKey(),
-            saleOrderCode: (string) ($row['sale_order_code'] ?? ''),
-            transactionDate: CarbonImmutable::parse((string) ($row['dispatch_date'] ?? '')),
+            deliveryNoteCode: (string) ($row['delivery_note_code'] ?? ''),
+            transactionDate: CarbonImmutable::parse((string) ($row['transaction_date'] ?? '')),
             containerSerials: [(string) ($row['container_serial'] ?? '')],
             notes: isset($row['notes']) ? (string) $row['notes'] : null,
             userId: $userId,

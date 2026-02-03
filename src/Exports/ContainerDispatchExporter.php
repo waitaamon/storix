@@ -18,7 +18,7 @@ final class ContainerDispatchExporter extends Exporter
     {
         return [
             ExportColumn::make('transaction_date'),
-            ExportColumn::make('sale_order_code'),
+            ExportColumn::make('delivery_note_code'),
             ExportColumn::make('customer.'.(string) config('storix.customer_title_attribute', 'name'))->label('Customer'),
             ExportColumn::make('items_count')->counts('items')->label('Containers'),
             ExportColumn::make('notes'),

@@ -41,14 +41,14 @@ it('dispatches a container to a customer', function (): void {
 
     $dispatch = app(ContainerDispatchService::class)->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1001',
+        deliveryNoteCode: 'SO-1001',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000002'],
         userId: (int) $user->getKey(),
     ));
 
     expect($dispatch->items)->toHaveCount(1)
-        ->and($dispatch->sale_order_code)->toBe('SO-1001')
+        ->and($dispatch->delivery_note_code)->toBe('SO-1001')
         ->and(app(StorixValidator::class)->hasOpenDispatch(Container::query()->firstOrFail()))->toBeTrue();
 });
 
@@ -65,14 +65,14 @@ it('prevents duplicate dispatch for an unreturned container', function (): void 
 
     $service->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1002',
+        deliveryNoteCode: 'SO-1002',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000003'],
     ));
 
     expect(fn (): mixed => $service->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1003',
+        deliveryNoteCode: 'SO-1003',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000003'],
     )))->toThrow(StorixException::class);
@@ -89,7 +89,7 @@ it('returns a dispatched container', function (): void {
 
     app(ContainerDispatchService::class)->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1004',
+        deliveryNoteCode: 'SO-1004',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000004'],
     ));
@@ -120,7 +120,7 @@ it('prevents duplicate return for same dispatch item', function (): void {
 
     app(ContainerDispatchService::class)->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1005',
+        deliveryNoteCode: 'SO-1005',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000005'],
     ));

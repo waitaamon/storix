@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 return [
-    'customer_model' => App\Models\Customer::class,
+    'customer_model' => App\Models\Accounts\Account::class,
     'user_model' => App\Models\User::class,
-    'customer_table' => 'customers',
+    'customer_table' => 'accounts',
     'user_table' => 'users',
     'customer_title_attribute' => 'name',
     'customer_search_columns' => ['name'],

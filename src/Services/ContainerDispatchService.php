@@ -10,9 +10,9 @@ use Storix\Events\ContainerDispatched;
 use Storix\Exceptions\StorixException;
 use Storix\Models\ContainerDispatch;
 
-final class ContainerDispatchService
+final readonly class ContainerDispatchService
 {
-    public function __construct(private readonly StorixValidator $validator) {}
+    public function __construct(private StorixValidator $validator) {}
 
     /**
      * Dispatch one or more containers to a customer.
@@ -29,7 +29,7 @@ final class ContainerDispatchService
         $dispatch = DB::transaction(function () use ($dto): ContainerDispatch {
             $dispatch = ContainerDispatch::query()->create([
                 'customer_id' => $dto->customerId,
-                'sale_order_code' => $dto->saleOrderCode,
+                'delivery_note_code' => $dto->deliveryNoteCode,
                 'transaction_date' => $dto->transactionDate->toDateString(),
                 'user_id' => $dto->userId,
                 'notes' => $dto->notes,

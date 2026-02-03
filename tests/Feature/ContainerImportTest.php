@@ -26,13 +26,13 @@ it('imports dispatch rows from excel-like payloads', function (): void {
     $dispatch = DispatchImporter::importRow([
         'container_serial' => 'BIN-000006',
         'customer_name' => 'Acme Import',
-        'sale_order_code' => 'SO-1006',
+        'delivery_note_code' => 'SO-1006',
         'dispatch_date' => '2026-02-03',
         'notes' => 'Imported dispatch',
     ]);
 
     expect($dispatch->items)->toHaveCount(1)
-        ->and($dispatch->sale_order_code)->toBe('SO-1006');
+        ->and($dispatch->delivery_note_code)->toBe('SO-1006');
 });
 
 it('imports return rows from excel-like payloads', function (): void {
@@ -46,7 +46,7 @@ it('imports return rows from excel-like payloads', function (): void {
 
     app(ContainerDispatchService::class)->dispatch(new DispatchContainerDTO(
         customerId: (int) $customer->getKey(),
-        saleOrderCode: 'SO-1007',
+        deliveryNoteCode: 'SO-1007',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000007'],
     ));
