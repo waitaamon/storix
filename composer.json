@@ -4,7 +4,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.5",
+        "php": "^8.3",
         "filament/filament": "^4.0",
         "laravel/framework": "^12.0"
     },
@@ -39,12 +39,6 @@
         "analyse": "vendor/bin/phpstan analyse",
         "format": "vendor/bin/pint"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "git@github.com:waitaamon/storix.git"
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
