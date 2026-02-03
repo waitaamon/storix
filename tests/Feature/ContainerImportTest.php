@@ -27,7 +27,7 @@ it('imports dispatch rows from excel-like payloads', function (): void {
         'container_serial' => 'BIN-000006',
         'customer_name' => 'Acme Import',
         'delivery_note_code' => 'SO-1006',
-        'dispatch_date' => '2026-02-03',
+        'transaction_date' => '2026-02-03',
         'notes' => 'Imported dispatch',
     ]);
 
@@ -52,12 +52,13 @@ it('imports return rows from excel-like payloads', function (): void {
     ));
 
     $return = ReturnImporter::importRow([
+        'customer_name' => 'Acme Return',
         'container_serial' => 'BIN-000007',
         'return_date' => '2026-02-03',
-        'condition_status' => ContainerConditionStatus::Excellent->value,
+        'condition_status' => ContainerConditionStatus::Good->value,
         'notes' => 'Imported return',
     ]);
 
     expect($return->items)->toHaveCount(1)
-        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Excellent);
+        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Good);
 });

@@ -60,10 +60,6 @@ final class ReturnImporter extends Importer
             throw new StorixException(sprintf('Customer [%s] does not exist.', $row['customer_name'] ?? ''));
         }
 
-        if (! is_numeric($customer)) {
-            throw new StorixException(sprintf('Container [%s] is not currently dispatched.', $container->serial));
-        }
-
         $service = app(ContainerReturnService::class);
 
         return $service->return(new ReturnContainerDTO(

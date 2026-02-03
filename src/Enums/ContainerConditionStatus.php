@@ -6,7 +6,6 @@ namespace Storix\Enums;
 
 enum ContainerConditionStatus: string
 {
-    case Excellent = 'excellent';
     case Good = 'good';
     case Damaged = 'damaged';
     case Lost = 'lost';

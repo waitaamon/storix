@@ -47,7 +47,7 @@ final readonly class ContainerReturnService
                 ]);
             }
 
-            return $return->fresh(['items.container', 'items.dispatchItem.dispatch']) ?? $return;
+            return $return->fresh(['items.container']) ?? $return;
         });
 
         ContainerReturned::dispatch($return);
