@@ -1,5 +1,5 @@
 {
-    "name": "storix/filament-container-movement",
+    "name": "storix/storix",
     "description": "ERP-grade Filament plugin for reusable container lifecycle and movement tracking.",
     "type": "library",
     "license": "MIT",
@@ -17,19 +17,19 @@
     },
     "autoload": {
         "psr-4": {
-            "Storix\\ContainerMovement\\": "src/"
+            "Storix\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Storix\\ContainerMovement\\Tests\\": "tests/",
-            "Storix\\ContainerMovement\\Database\\Factories\\": "database/factories/"
+            "Storix\\Tests\\": "tests/",
+            "Storix\\Database\\Factories\\": "database/factories/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Storix\\ContainerMovement\\ContainerMovementServiceProvider"
+                "Storix\\StorixServiceProvider"
             ]
         }
     },
@@ -39,5 +39,10 @@
         "format": "vendor/bin/pint"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

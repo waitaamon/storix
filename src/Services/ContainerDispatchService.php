@@ -2,22 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Services;
+namespace Storix\Services;
 
 use Illuminate\Support\Facades\DB;
-use Storix\ContainerMovement\DTOs\DispatchContainerDTO;
-use Storix\ContainerMovement\Events\ContainerDispatched;
-use Storix\ContainerMovement\Exceptions\ContainerMovementException;
-use Storix\ContainerMovement\Models\ContainerDispatch;
+use Storix\DTOs\DispatchContainerDTO;
+use Storix\Events\ContainerDispatched;
+use Storix\Exceptions\StorixException;
+use Storix\Models\ContainerDispatch;
 
 final class ContainerDispatchService
 {
-    public function __construct(private readonly ContainerMovementValidator $validator) {}
+    public function __construct(private readonly StorixValidator $validator) {}
 
+    /**
+     * Dispatch one or more containers to a customer.
+     *
+     * @throws StorixException
+     */
     public function dispatch(DispatchContainerDTO $dto): ContainerDispatch
     {
         if ($dto->containerSerials === []) {
-            throw new ContainerMovementException('At least one container serial is required for dispatch.');
+            throw new StorixException('At least one container serial is required for dispatch.');
         }
 
         /** @var ContainerDispatch $dispatch */

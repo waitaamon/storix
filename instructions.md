@@ -1,4 +1,4 @@
-# Filament Container Movement Plugin
+# Filament Storix Plugin
 
 ## Laravel 12 + Filament v4 + Livewire v3 + PestPHP v4
 
@@ -198,7 +198,7 @@ Implementation: - Filament ExportAction - Queueable exports recommended
 ### Service Classes
 
 ContainerDispatchService ContainerReturnService
-ContainerMovementValidator
+StorixValidator
 
 ------------------------------------------------------------------------
 

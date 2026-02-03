@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Models;
+namespace Storix\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Storix\ContainerMovement\Database\Factories\ContainerFactory;
+use Storix\Database\Factories\ContainerFactory;
 
 final class Container extends Model
 {
@@ -19,41 +20,43 @@ final class Container extends Model
 
     protected $guarded = [];
 
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'bool',
-        ];
-    }
-
+    /** Get the table name from config. */
     public function getTable(): string
     {
-        return (string) config('container-movement.tables.containers', 'containers');
+        return (string) config('storix.tables.containers', 'containers');
     }
 
+    /** Dispatch items linked to this container. */
     public function dispatchItems(): HasMany
     {
         return $this->hasMany(ContainerDispatchItem::class, 'container_id');
     }
 
+    /** Return items linked to this container. */
     public function returnItems(): HasMany
     {
         return $this->hasMany(ContainerReturnItem::class, 'container_id');
     }
 
-    public function scopeActive(Builder $query): Builder
+    /** Scope to only active containers. */
+    #[Scope]
+    public function active(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeWithCustomers(Builder $query): Builder
+    /** Scope to containers currently dispatched to customers (not yet returned). */
+    #[Scope]
+    public function withCustomers(Builder $query): Builder
     {
         return $query->whereHas('dispatchItems', static fn (Builder $dispatchItems): Builder => $dispatchItems
             ->whereDoesntHave('returnItem')
         );
     }
 
-    public function scopeAvailableForDispatch(Builder $query): Builder
+    /** Scope to active containers with no open (unreturned) dispatch. */
+    #[Scope]
+    public function availableForDispatch(Builder $query): Builder
     {
         return $query
             ->active()
@@ -62,8 +65,17 @@ final class Container extends Model
             );
     }
 
+    /** Create a new factory instance for the model. */
     protected static function newFactory(): Factory
     {
         return ContainerFactory::new();
+    }
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'bool',
+        ];
     }
 }

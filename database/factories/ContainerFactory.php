@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Database\Factories;
+namespace Storix\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Storix\ContainerMovement\Models\Container;
+use Storix\Models\Container;
 
 /**
  * @extends Factory<Container>
@@ -19,7 +19,7 @@ final class ContainerFactory extends Factory
     {
         return [
             'name' => 'Container '.$this->faker->numerify('####'),
-            'serial' => strtoupper(Str::random(12)),
+            'serial' => mb_strtoupper(Str::random(12)),
             'is_active' => true,
         ];
     }

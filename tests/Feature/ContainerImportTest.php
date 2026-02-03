@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Storix\ContainerMovement\DTOs\DispatchContainerDTO;
-use Storix\ContainerMovement\Enums\ContainerConditionStatus;
-use Storix\ContainerMovement\Imports\DispatchImporter;
-use Storix\ContainerMovement\Imports\ReturnImporter;
-use Storix\ContainerMovement\Models\Container;
-use Storix\ContainerMovement\Services\ContainerDispatchService;
-use Storix\ContainerMovement\Tests\Fixtures\Models\Customer;
+use Storix\DTOs\DispatchContainerDTO;
+use Storix\Enums\ContainerConditionStatus;
+use Storix\Imports\DispatchImporter;
+use Storix\Imports\ReturnImporter;
+use Storix\Models\Container;
+use Storix\Services\ContainerDispatchService;
+use Storix\Tests\Fixtures\Models\Customer;
 
 uses(RefreshDatabase::class);
 
@@ -59,5 +59,5 @@ it('imports return rows from excel-like payloads', function (): void {
     ]);
 
     expect($return->items)->toHaveCount(1)
-        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Excellent->value);
+        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Excellent);
 });

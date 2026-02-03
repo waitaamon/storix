@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
-use Storix\ContainerMovement\Models\ContainerDispatchItem;
+use Storix\Models\ContainerDispatchItem;
 
 final class OverdueReturnsWidget extends StatsOverviewWidget
 {
+    /** @return array<int, Stat> */
     protected function getStats(): array
     {
-        $overdueAfterDays = (int) config('container-movement.overdue_after_days', 30);
+        $overdueAfterDays = (int) config('storix.overdue_after_days', 30);
         $cutoff = now()->subDays($overdueAfterDays)->toDateString();
 
         $count = ContainerDispatchItem::query()

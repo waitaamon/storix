@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\Containers\Pages;
+namespace Storix\Filament\Resources\Containers\Pages;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Storix\ContainerMovement\Filament\Resources\Containers\ContainerResource;
+use Storix\Filament\Resources\Containers\ContainerResource;
 
 final class ListContainers extends ListRecords
 {

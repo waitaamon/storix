@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\ContainerReturns\Pages;
+namespace Storix\Filament\Resources\ContainerReturns\Pages;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Storix\ContainerMovement\Filament\Resources\ContainerReturns\ContainerReturnResource;
+use Storix\Filament\Resources\ContainerReturns\ContainerReturnResource;
 
 final class ListContainerReturns extends ListRecords
 {

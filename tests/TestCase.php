@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Tests;
+namespace Storix\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Storix\ContainerMovement\ContainerMovementServiceProvider;
-use Storix\ContainerMovement\Tests\Fixtures\Models\Customer;
-use Storix\ContainerMovement\Tests\Fixtures\Models\User;
+use Storix\StorixServiceProvider;
+use Storix\Tests\Fixtures\Models\Customer;
+use Storix\Tests\Fixtures\Models\User;
 
 abstract class TestCase extends Orchestra
 {
     protected function getPackageProviders($app): array
     {
         return [
-            ContainerMovementServiceProvider::class,
+            StorixServiceProvider::class,
         ];
     }
 
@@ -29,10 +29,10 @@ abstract class TestCase extends Orchestra
             'prefix' => '',
         ]);
 
-        $app['config']->set('container-movement.customer_model', Customer::class);
-        $app['config']->set('container-movement.user_model', User::class);
-        $app['config']->set('container-movement.customer_table', 'customers');
-        $app['config']->set('container-movement.user_table', 'users');
+        $app['config']->set('storix.customer_model', Customer::class);
+        $app['config']->set('storix.user_model', User::class);
+        $app['config']->set('storix.customer_table', 'customers');
+        $app['config']->set('storix.user_table', 'users');
     }
 
     protected function defineDatabaseMigrations(): void

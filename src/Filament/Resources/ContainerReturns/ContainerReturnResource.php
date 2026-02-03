@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\ContainerReturns;
+namespace Storix\Filament\Resources\ContainerReturns;
 
+use BackedEnum;
 use Filament\Actions\Exports\ExportAction;
 use Filament\Actions\Imports\ImportAction;
 use Filament\Forms\Components\DatePicker;
@@ -18,20 +19,24 @@ use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Storix\ContainerMovement\Enums\ContainerConditionStatus;
-use Storix\ContainerMovement\Exports\ContainerReturnExporter;
-use Storix\ContainerMovement\Filament\Resources\ContainerReturns\Pages\CreateContainerReturn;
-use Storix\ContainerMovement\Filament\Resources\ContainerReturns\Pages\ListContainerReturns;
-use Storix\ContainerMovement\Imports\ReturnImporter;
-use Storix\ContainerMovement\Models\ContainerDispatchItem;
-use Storix\ContainerMovement\Models\ContainerReturn;
+use Storix\Concerns\ResolvesCustomerConfig;
+use Storix\Enums\ContainerConditionStatus;
+use Storix\Exports\ContainerReturnExporter;
+use Storix\Filament\Resources\ContainerReturns\Pages\CreateContainerReturn;
+use Storix\Filament\Resources\ContainerReturns\Pages\ListContainerReturns;
+use Storix\Imports\ReturnImporter;
+use Storix\Models\ContainerDispatchItem;
+use Storix\Models\ContainerReturn;
 
 final class ContainerReturnResource extends Resource
 {
+    use ResolvesCustomerConfig;
+
     protected static ?string $model = ContainerReturn::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
 
+    /** Define the return creation form with customer auto-fill. */
     public static function form(Form $form): Form
     {
         return $form
@@ -63,7 +68,7 @@ final class ContainerReturnResource extends Resource
                         TextInput::make('container_serial')
                             ->required()
                             ->maxLength(255)
-                            ->datalist(static fn (Get $get): array => self::openContainerSerialsForCustomer($get('customer_id'))),
+                            ->datalist(static fn (Get $get): array => self::openContainerSerialsForCustomer($get('../../customer_id'))),
                         Select::make('condition_status')
                             ->options(array_combine(ContainerConditionStatus::values(), ContainerConditionStatus::values()))
                             ->default(ContainerConditionStatus::Good->value)
@@ -78,6 +83,7 @@ final class ContainerReturnResource extends Resource
             ]);
     }
 
+    /** Define the return listing table. */
     public static function table(Table $table): Table
     {
         return $table
@@ -108,10 +114,12 @@ final class ContainerReturnResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Container Movement';
+        return 'Storix';
     }
 
     /**
+     * Pre-fill the repeater with all open dispatch items for a customer.
+     *
      * @return list<array{container_serial: string, condition_status: string, notes: null}>
      */
     private static function defaultItemsForCustomer(int $customerId): array
@@ -133,6 +141,8 @@ final class ContainerReturnResource extends Resource
     }
 
     /**
+     * Get serials of containers currently dispatched to a customer, for the datalist.
+     *
      * @return list<string>
      */
     private static function openContainerSerialsForCustomer(mixed $customerId): array
@@ -152,24 +162,5 @@ final class ContainerReturnResource extends Resource
             ->unique()
             ->values()
             ->all();
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function customerSearchColumns(): array
-    {
-        $columns = config('container-movement.customer_search_columns', ['name']);
-
-        if (! is_array($columns) || $columns === []) {
-            return ['name'];
-        }
-
-        return array_values(array_filter(array_map(static fn (mixed $column): string => (string) $column, $columns)));
-    }
-
-    private static function customerTitleAttribute(): string
-    {
-        return (string) config('container-movement.customer_title_attribute', 'name');
     }
 }

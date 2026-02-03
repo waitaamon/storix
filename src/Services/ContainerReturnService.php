@@ -2,22 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Services;
+namespace Storix\Services;
 
 use Illuminate\Support\Facades\DB;
-use Storix\ContainerMovement\DTOs\ReturnContainerDTO;
-use Storix\ContainerMovement\Events\ContainerReturned;
-use Storix\ContainerMovement\Exceptions\ContainerMovementException;
-use Storix\ContainerMovement\Models\ContainerReturn;
+use Storix\DTOs\ReturnContainerDTO;
+use Storix\Events\ContainerReturned;
+use Storix\Exceptions\StorixException;
+use Storix\Models\ContainerReturn;
 
 final class ContainerReturnService
 {
-    public function __construct(private readonly ContainerMovementValidator $validator) {}
+    public function __construct(private readonly StorixValidator $validator) {}
 
+    /**
+     * Record the return of one or more containers from a customer.
+     *
+     * @throws StorixException
+     */
     public function return(ReturnContainerDTO $dto): ContainerReturn
     {
         if ($dto->items === []) {
-            throw new ContainerMovementException('At least one container is required for return.');
+            throw new StorixException('At least one container is required for return.');
         }
 
         /** @var ContainerReturn $return */

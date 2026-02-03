@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+/.idea/
+/.vscode/
+/.phpunit.result.cache
+/.php-cs-fixer.cache
+/.phpstan.cache
+/.DS_Store
+/.env
+/.env.*
+!/env.example

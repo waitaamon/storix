@@ -2,22 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\ContainerDispatches\Pages;
+namespace Storix\Filament\Resources\ContainerDispatches\Pages;
 
 use Carbon\CarbonImmutable;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
-use Throwable;
-use Storix\ContainerMovement\DTOs\DispatchContainerDTO;
-use Storix\ContainerMovement\Filament\Resources\ContainerDispatches\ContainerDispatchResource;
-use Storix\ContainerMovement\Models\Container;
-use Storix\ContainerMovement\Services\ContainerDispatchService;
+use Storix\DTOs\DispatchContainerDTO;
+use Storix\Exceptions\StorixException;
+use Storix\Filament\Resources\ContainerDispatches\ContainerDispatchResource;
+use Storix\Models\Container;
+use Storix\Services\ContainerDispatchService;
 
 final class CreateContainerDispatch extends CreateRecord
 {
     protected static string $resource = ContainerDispatchResource::class;
 
+    /**
+     * Convert selected container IDs to serials and dispatch via the service layer.
+     *
+     * @param  array<string, mixed>  $data
+     */
     protected function handleRecordCreation(array $data): Model
     {
         $service = app(ContainerDispatchService::class);
@@ -41,14 +46,16 @@ final class CreateContainerDispatch extends CreateRecord
                 notes: isset($data['notes']) ? (string) $data['notes'] : null,
                 userId: is_numeric(auth()->id()) ? (int) auth()->id() : null,
             ));
-        } catch (Throwable $exception) {
+        } catch (StorixException $exception) {
             Notification::make()
                 ->title('Dispatch failed')
                 ->body($exception->getMessage())
                 ->danger()
                 ->send();
 
-            throw $exception;
+            $this->halt();
+
+            return new \Storix\Models\ContainerDispatch();
         }
     }
 }

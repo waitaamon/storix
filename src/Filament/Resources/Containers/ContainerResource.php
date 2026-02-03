@@ -2,30 +2,32 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\Containers;
+namespace Storix\Filament\Resources\Containers;
 
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use BackedEnum;
 use Filament\Actions\Exports\ExportAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Storix\ContainerMovement\Exports\ContainerExporter;
-use Storix\ContainerMovement\Filament\Resources\Containers\Pages\CreateContainer;
-use Storix\ContainerMovement\Filament\Resources\Containers\Pages\EditContainer;
-use Storix\ContainerMovement\Filament\Resources\Containers\Pages\ListContainers;
-use Storix\ContainerMovement\Models\Container;
+use Storix\Exports\ContainerExporter;
+use Storix\Filament\Resources\Containers\Pages\CreateContainer;
+use Storix\Filament\Resources\Containers\Pages\EditContainer;
+use Storix\Filament\Resources\Containers\Pages\ListContainers;
+use Storix\Models\Container;
 
 final class ContainerResource extends Resource
 {
     protected static ?string $model = Container::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
 
+    /** Define the container create/edit form. */
     public static function form(Form $form): Form
     {
         return $form
@@ -43,6 +45,7 @@ final class ContainerResource extends Resource
             ]);
     }
 
+    /** Define the container listing table. */
     public static function table(Table $table): Table
     {
         return $table
@@ -74,6 +77,6 @@ final class ContainerResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Container Movement';
+        return 'Storix';
     }
 }

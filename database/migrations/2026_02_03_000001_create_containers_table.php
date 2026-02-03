@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create((string) config('container-movement.tables.containers', 'containers'), function (Blueprint $table): void {
+        Schema::create((string) config('storix.tables.containers', 'containers'), function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('serial')->unique();
@@ -22,6 +22,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists((string) config('container-movement.tables.containers', 'containers'));
+        Schema::dropIfExists((string) config('storix.tables.containers', 'containers'));
     }
 };

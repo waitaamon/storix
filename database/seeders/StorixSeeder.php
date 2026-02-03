@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Database\Seeders;
+namespace Storix\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Storix\ContainerMovement\Models\Container;
+use Storix\Models\Container;
 
-final class ContainerMovementSeeder extends Seeder
+final class StorixSeeder extends Seeder
 {
     public function run(): void
     {

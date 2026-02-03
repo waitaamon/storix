@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Concerns;
+namespace Storix\Concerns;
 
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
@@ -10,11 +10,15 @@ use InvalidArgumentException;
 trait ResolvesConfiguredModels
 {
     /**
+     * Resolve a model class from the storix config.
+     *
      * @return class-string<Model>
+     *
+     * @throws InvalidArgumentException
      */
     protected static function configuredModel(string $configKey): string
     {
-        $value = config('container-movement.'.$configKey);
+        $value = config('storix.'.$configKey);
 
         if (! is_string($value) || $value === '') {
             throw new InvalidArgumentException(sprintf('Invalid model configured for key [%s].', $configKey));

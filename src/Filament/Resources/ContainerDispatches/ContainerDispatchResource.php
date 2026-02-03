@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\ContainerDispatches;
+namespace Storix\Filament\Resources\ContainerDispatches;
 
+use BackedEnum;
 use Filament\Actions\Exports\ExportAction;
 use Filament\Actions\Imports\ImportAction;
 use Filament\Forms\Components\DatePicker;
@@ -15,19 +16,23 @@ use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Storix\ContainerMovement\Exports\ContainerDispatchExporter;
-use Storix\ContainerMovement\Filament\Resources\ContainerDispatches\Pages\CreateContainerDispatch;
-use Storix\ContainerMovement\Filament\Resources\ContainerDispatches\Pages\ListContainerDispatches;
-use Storix\ContainerMovement\Imports\DispatchImporter;
-use Storix\ContainerMovement\Models\Container;
-use Storix\ContainerMovement\Models\ContainerDispatch;
+use Storix\Concerns\ResolvesCustomerConfig;
+use Storix\Exports\ContainerDispatchExporter;
+use Storix\Filament\Resources\ContainerDispatches\Pages\CreateContainerDispatch;
+use Storix\Filament\Resources\ContainerDispatches\Pages\ListContainerDispatches;
+use Storix\Imports\DispatchImporter;
+use Storix\Models\Container;
+use Storix\Models\ContainerDispatch;
 
 final class ContainerDispatchResource extends Resource
 {
+    use ResolvesCustomerConfig;
+
     protected static ?string $model = ContainerDispatch::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-truck';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
 
+    /** Define the dispatch creation form. */
     public static function form(Form $form): Form
     {
         return $form
@@ -58,6 +63,7 @@ final class ContainerDispatchResource extends Resource
             ]);
     }
 
+    /** Define the dispatch listing table. */
     public static function table(Table $table): Table
     {
         return $table
@@ -89,29 +95,12 @@ final class ContainerDispatchResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Container Movement';
+        return 'Storix';
     }
 
     /**
-     * @return list<string>
-     */
-    private static function customerSearchColumns(): array
-    {
-        $columns = config('container-movement.customer_search_columns', ['name']);
-
-        if (! is_array($columns) || $columns === []) {
-            return ['name'];
-        }
-
-        return array_values(array_filter(array_map(static fn (mixed $column): string => (string) $column, $columns)));
-    }
-
-    private static function customerTitleAttribute(): string
-    {
-        return (string) config('container-movement.customer_title_attribute', 'name');
-    }
-
-    /**
+     * Search for containers available for dispatch by serial or name.
+     *
      * @return array<int, string>
      */
     private static function searchDispatchableContainers(string $search): array
@@ -132,7 +121,9 @@ final class ContainerDispatchResource extends Resource
     }
 
     /**
-     * @param array<int|string, mixed> $values
+     * Resolve display labels for selected container IDs.
+     *
+     * @param  array<int|string, mixed>  $values
      * @return array<int, string>
      */
     private static function containerLabels(array $values): array

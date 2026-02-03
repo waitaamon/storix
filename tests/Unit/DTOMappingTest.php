@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Storix\ContainerMovement\DTOs\DispatchContainerDTO;
-use Storix\ContainerMovement\DTOs\ReturnContainerDTO;
-use Storix\ContainerMovement\Enums\ContainerConditionStatus;
+use Storix\DTOs\DispatchContainerDTO;
+use Storix\DTOs\ReturnContainerDTO;
+use Storix\Enums\ContainerConditionStatus;
 
 it('maps dispatch dto payloads cleanly', function (): void {
     $dto = DispatchContainerDTO::fromArray([

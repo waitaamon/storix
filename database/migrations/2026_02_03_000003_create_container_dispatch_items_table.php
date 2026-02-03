@@ -10,9 +10,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = (string) config('container-movement.tables.dispatch_items', 'container_dispatch_items');
-        $dispatchesTable = (string) config('container-movement.tables.dispatches', 'container_dispatches');
-        $containersTable = (string) config('container-movement.tables.containers', 'containers');
+        $tableName = (string) config('storix.tables.dispatch_items', 'container_dispatch_items');
+        $dispatchesTable = (string) config('storix.tables.dispatches', 'container_dispatches');
+        $containersTable = (string) config('storix.tables.containers', 'containers');
 
         Schema::create($tableName, function (Blueprint $table) use ($dispatchesTable, $containersTable): void {
             $table->id();
@@ -28,6 +28,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists((string) config('container-movement.tables.dispatch_items', 'container_dispatch_items'));
+        Schema::dropIfExists((string) config('storix.tables.dispatch_items', 'container_dispatch_items'));
     }
 };

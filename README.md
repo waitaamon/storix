@@ -1,4 +1,4 @@
-# Filament Container Movement Plugin
+# Filament Storix Plugin
 
 ERP-grade Filament plugin for tracking reusable container lifecycle:
 
@@ -19,13 +19,13 @@ ERP-grade Filament plugin for tracking reusable container lifecycle:
 ## Installation
 
 ```bash
-composer require storix/filament-container-movement
+composer require waitaamon/storix
 ```
 
 Publish config (optional):
 
 ```bash
-php artisan vendor:publish --tag=container-movement-config
+php artisan vendor:publish --tag=storix-config
 ```
 
 Run migrations:
@@ -37,7 +37,7 @@ php artisan migrate
 (Optional) seed sample containers:
 
 ```bash
-php artisan db:seed --class="Storix\\ContainerMovement\\Database\\Seeders\\ContainerMovementSeeder"
+php artisan db:seed --class="Storix\\Database\\Seeders\\StorixSeeder"
 ```
 
 ## Register Plugin In Filament Panel
@@ -46,17 +46,17 @@ php artisan db:seed --class="Storix\\ContainerMovement\\Database\\Seeders\\Conta
 <?php
 
 use Filament\Panel;
-use Storix\ContainerMovement\ContainerMovementPlugin;
+use Storix\StorixPlugin;
 
 return Panel::make()
     ->plugins([
-        ContainerMovementPlugin::make(),
+        StorixPlugin::make(),
     ]);
 ```
 
 ## Configuration
 
-`config/container-movement.php`
+`config/storix.php`
 
 ```php
 return [

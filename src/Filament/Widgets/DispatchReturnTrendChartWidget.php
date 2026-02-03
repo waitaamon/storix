@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Carbon\CarbonImmutable;
 use Filament\Widgets\ChartWidget;
-use Storix\ContainerMovement\Models\ContainerDispatch;
-use Storix\ContainerMovement\Models\ContainerReturn;
+use Storix\Models\ContainerDispatch;
+use Storix\Models\ContainerReturn;
 
 final class DispatchReturnTrendChartWidget extends ChartWidget
 {
@@ -15,6 +15,7 @@ final class DispatchReturnTrendChartWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    /** Build the 14-day dispatch vs return trend chart data. */
     protected function getData(): array
     {
         $start = CarbonImmutable::now()->subDays(13)->startOfDay();
@@ -31,13 +32,15 @@ final class DispatchReturnTrendChartWidget extends ChartWidget
 
         $dispatchCounts = ContainerDispatch::query()
             ->whereBetween('transaction_date', [$start->toDateString(), $end->toDateString()])
-            ->get(['transaction_date'])
-            ->countBy(static fn (ContainerDispatch $dispatch): string => $dispatch->transaction_date->toDateString());
+            ->selectRaw('transaction_date, count(*) as aggregate')
+            ->groupBy('transaction_date')
+            ->pluck('aggregate', 'transaction_date');
 
         $returnCounts = ContainerReturn::query()
             ->whereBetween('transaction_date', [$start->toDateString(), $end->toDateString()])
-            ->get(['transaction_date'])
-            ->countBy(static fn (ContainerReturn $return): string => $return->transaction_date->toDateString());
+            ->selectRaw('transaction_date, count(*) as aggregate')
+            ->groupBy('transaction_date')
+            ->pluck('aggregate', 'transaction_date');
 
         return [
             'datasets' => [
@@ -58,6 +61,7 @@ final class DispatchReturnTrendChartWidget extends ChartWidget
         ];
     }
 
+    /** @return 'line' */
     protected function getType(): string
     {
         return 'line';

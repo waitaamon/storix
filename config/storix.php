@@ -18,11 +18,4 @@ return [
         'returns' => 'container_returns',
         'return_items' => 'container_return_items',
     ],
-
-    'return_condition_statuses' => [
-        'excellent',
-        'good',
-        'damaged',
-        'lost',
-    ],
 ];

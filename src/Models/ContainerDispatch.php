@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Models;
+namespace Storix\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Storix\ContainerMovement\Concerns\ResolvesConfiguredModels;
+use Storix\Concerns\ResolvesConfiguredModels;
 
 final class ContainerDispatch extends Model
 {
@@ -19,31 +19,36 @@ final class ContainerDispatch extends Model
 
     protected $guarded = [];
 
+    /** Get the table name from config. */
+    public function getTable(): string
+    {
+        return (string) config('storix.tables.dispatches', 'container_dispatches');
+    }
+
+    /** The customer this dispatch was sent to. */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(self::configuredModel('customer_model'), 'customer_id');
+    }
+
+    /** The user who created this dispatch. */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(self::configuredModel('user_model'), 'user_id');
+    }
+
+    /** Individual container line items in this dispatch. */
+    public function items(): HasMany
+    {
+        return $this->hasMany(ContainerDispatchItem::class, 'dispatch_id');
+    }
+
+    /** @return array<string, string> */
     protected function casts(): array
     {
         return [
             'transaction_date' => 'date',
             'attachments' => 'array',
         ];
-    }
-
-    public function getTable(): string
-    {
-        return (string) config('container-movement.tables.dispatches', 'container_dispatches');
-    }
-
-    public function customer(): BelongsTo
-    {
-        return $this->belongsTo(static::configuredModel('customer_model'), 'customer_id');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(static::configuredModel('user_model'), 'user_id');
-    }
-
-    public function items(): HasMany
-    {
-        return $this->hasMany(ContainerDispatchItem::class, 'dispatch_id');
     }
 }

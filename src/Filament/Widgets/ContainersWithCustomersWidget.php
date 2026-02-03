@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Storix\ContainerMovement\Models\Container;
+use Storix\Models\Container;
 
 final class ContainersWithCustomersWidget extends StatsOverviewWidget
 {
+    /** @return array<int, Stat> */
     protected function getStats(): array
     {
         $count = Container::query()

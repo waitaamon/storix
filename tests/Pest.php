@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-use Storix\ContainerMovement\Tests\TestCase;
+use Storix\Tests\TestCase;
 
 uses(TestCase::class)->in('Feature', 'Unit');

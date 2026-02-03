@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Enums;
+namespace Storix\Enums;
 
 enum ContainerConditionStatus: string
 {
@@ -12,6 +12,8 @@ enum ContainerConditionStatus: string
     case Lost = 'lost';
 
     /**
+     * Get all backed string values.
+     *
      * @return list<string>
      */
     public static function values(): array

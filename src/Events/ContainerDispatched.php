@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Events;
+namespace Storix\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Storix\ContainerMovement\Models\ContainerDispatch;
+use Storix\Models\ContainerDispatch;
 
+/** Fired after containers are dispatched to a customer. */
 final class ContainerDispatched
 {
     use Dispatchable;

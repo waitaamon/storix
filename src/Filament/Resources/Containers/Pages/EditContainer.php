@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\Filament\Resources\Containers\Pages;
+namespace Storix\Filament\Resources\Containers\Pages;
 
 use Filament\Resources\Pages\EditRecord;
-use Storix\ContainerMovement\Filament\Resources\Containers\ContainerResource;
+use Storix\Filament\Resources\Containers\ContainerResource;
 
 final class EditContainer extends EditRecord
 {

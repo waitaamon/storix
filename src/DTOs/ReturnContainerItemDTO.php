@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\DTOs;
+namespace Storix\DTOs;
 
-use Storix\ContainerMovement\Enums\ContainerConditionStatus;
+use Storix\Enums\ContainerConditionStatus;
 
 final readonly class ReturnContainerItemDTO
 {
@@ -15,12 +15,14 @@ final readonly class ReturnContainerItemDTO
     ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * Build a DTO from a raw array payload.
+     *
+     * @param  array<string, mixed>  $payload
      */
     public static function fromArray(array $payload): self
     {
         return new self(
-            containerSerial: trim((string) $payload['container_serial']),
+            containerSerial: mb_trim((string) $payload['container_serial']),
             conditionStatus: ContainerConditionStatus::from((string) $payload['condition_status']),
             notes: isset($payload['notes']) ? (string) $payload['notes'] : null,
         );

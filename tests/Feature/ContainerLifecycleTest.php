@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Storix\ContainerMovement\DTOs\DispatchContainerDTO;
-use Storix\ContainerMovement\DTOs\ReturnContainerDTO;
-use Storix\ContainerMovement\DTOs\ReturnContainerItemDTO;
-use Storix\ContainerMovement\Enums\ContainerConditionStatus;
-use Storix\ContainerMovement\Exceptions\ContainerMovementException;
-use Storix\ContainerMovement\Models\Container;
-use Storix\ContainerMovement\Services\ContainerDispatchService;
-use Storix\ContainerMovement\Services\ContainerReturnService;
-use Storix\ContainerMovement\Services\ContainerMovementValidator;
-use Storix\ContainerMovement\Tests\Fixtures\Models\Customer;
-use Storix\ContainerMovement\Tests\Fixtures\Models\User;
+use Storix\DTOs\DispatchContainerDTO;
+use Storix\DTOs\ReturnContainerDTO;
+use Storix\DTOs\ReturnContainerItemDTO;
+use Storix\Enums\ContainerConditionStatus;
+use Storix\Exceptions\StorixException;
+use Storix\Models\Container;
+use Storix\Services\ContainerDispatchService;
+use Storix\Services\ContainerReturnService;
+use Storix\Services\StorixValidator;
+use Storix\Tests\Fixtures\Models\Customer;
+use Storix\Tests\Fixtures\Models\User;
 
 uses(RefreshDatabase::class);
 
@@ -49,7 +49,7 @@ it('dispatches a container to a customer', function (): void {
 
     expect($dispatch->items)->toHaveCount(1)
         ->and($dispatch->sale_order_code)->toBe('SO-1001')
-        ->and(app(ContainerMovementValidator::class)->hasOpenDispatch(Container::query()->firstOrFail()))->toBeTrue();
+        ->and(app(StorixValidator::class)->hasOpenDispatch(Container::query()->firstOrFail()))->toBeTrue();
 });
 
 it('prevents duplicate dispatch for an unreturned container', function (): void {
@@ -75,7 +75,7 @@ it('prevents duplicate dispatch for an unreturned container', function (): void 
         saleOrderCode: 'SO-1003',
         transactionDate: CarbonImmutable::parse('2026-02-03'),
         containerSerials: ['BIN-000003'],
-    )))->toThrow(ContainerMovementException::class);
+    )))->toThrow(StorixException::class);
 });
 
 it('returns a dispatched container', function (): void {
@@ -106,7 +106,7 @@ it('returns a dispatched container', function (): void {
     ));
 
     expect($return->items)->toHaveCount(1)
-        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Good->value);
+        ->and($return->items->first()?->condition_status)->toBe(ContainerConditionStatus::Good);
 });
 
 it('prevents duplicate return for same dispatch item', function (): void {
@@ -147,5 +147,5 @@ it('prevents duplicate return for same dispatch item', function (): void {
                 conditionStatus: ContainerConditionStatus::Good,
             ),
         ],
-    )))->toThrow(ContainerMovementException::class);
+    )))->toThrow(StorixException::class);
 });

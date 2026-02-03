@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Storix\ContainerMovement\DTOs;
+namespace Storix\DTOs;
 
 use Carbon\CarbonImmutable;
 
 final readonly class ReturnContainerDTO
 {
     /**
-     * @param list<ReturnContainerItemDTO> $items
-     * @param array<string, mixed>|null $attachments
+     * @param  list<ReturnContainerItemDTO>  $items
+     * @param  array<string, mixed>|null  $attachments
      */
     public function __construct(
         public int $customerId,
@@ -22,7 +22,9 @@ final readonly class ReturnContainerDTO
     ) {}
 
     /**
-     * @param array<string, mixed> $payload
+     * Build a DTO from a raw array payload, mapping nested items.
+     *
+     * @param  array<string, mixed>  $payload
      */
     public static function fromArray(array $payload): self
     {
