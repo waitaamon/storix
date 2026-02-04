@@ -34,18 +34,12 @@
             ]
         }
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/waitaamon/storix"
-        }
-    ],
     "scripts": {
         "test": "vendor/bin/pest",
         "analyse": "vendor/bin/phpstan analyse",
         "format": "vendor/bin/pint"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "config": {
         "allow-plugins": {
