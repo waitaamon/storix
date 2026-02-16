@@ -1,0 +1,48 @@
+{
+    "name": "waitaamon/storix",
+    "description": "Storix Filament v4 plugin for reusable container lifecycle tracking.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.5",
+        "filament/filament": "^4.0",
+        "illuminate/contracts": "^12.0",
+        "illuminate/database": "^12.0",
+        "illuminate/support": "^12.0",
+        "spatie/laravel-package-tools": "^1.20",
+        "spatie/laravel-permission": "^7.0",
+        "pxlrbt/filament-excel": "^3.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.21",
+        "nunomaduro/larastan": "^3.0",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WaitAmon\\Storix\\": "src/",
+            "WaitAmon\\Storix\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WaitAmon\\Storix\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "WaitAmon\\Storix\\StorixServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
