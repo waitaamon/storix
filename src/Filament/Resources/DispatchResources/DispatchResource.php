@@ -10,8 +10,8 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Config;
 use Override;
-use Storix\Filament\Resources\DispatchResources\Pages;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchForm;
 use Storix\Filament\Resources\DispatchResources\Tables\DispatchesTable;
 use Storix\Models\Dispatch;
@@ -24,6 +24,12 @@ final class DispatchResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
+
+    #[Override]
+    public static function getModelLabel(): string
+    {
+        return Config::string('storix.labels.dispatch');
+    }
 
     #[Override]
     public static function form(Schema $schema): Schema

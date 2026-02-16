@@ -10,8 +10,8 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Config;
 use Override;
-use Storix\Filament\Resources\ContainerResources\Pages;
 use Storix\Filament\Resources\ContainerResources\RelationManagers\DispatchesRelationManager;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerForm;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerInfolist;
@@ -26,6 +26,12 @@ final class ContainerResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-stack';
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
+
+    #[Override]
+    public static function getModelLabel(): string
+    {
+        return Config::string('storix.labels.container');
+    }
 
     #[Override]
     public static function form(Schema $schema): Schema

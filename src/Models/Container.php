@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,6 +37,16 @@ final class Container extends Model
     protected static function newFactory(): ContainerFactory
     {
         return ContainerFactory::new();
+    }
+
+    /**
+     * Scope a query to only include containers that are active and not currently dispatched.
+     */
+    #[Scope]
+    protected function availableForDispatch(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->whereDoesntHave('dispatches', fn (Builder $query) => $query->whereNull('return_date'));
     }
 
     /**

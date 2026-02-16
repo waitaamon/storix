@@ -15,6 +15,11 @@ return [
 
     'dispatches_table' => 'dispatches',
 
+    'labels' => [
+        'container' => env('STORIX_CONTAINER_LABEL', 'container'),
+        'dispatch' => env('STORIX_DISPATCH_LABEL', 'dispatch'),
+    ],
+
     'register_permissions' => true,
 
     'permissions' => [

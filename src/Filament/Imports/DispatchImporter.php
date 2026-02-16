@@ -7,6 +7,7 @@ namespace Storix\Filament\Imports;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
+use Illuminate\Support\Number;
 use Storix\Models\Dispatch;
 use Storix\Support\TableNames;
 
@@ -21,39 +22,33 @@ final class DispatchImporter extends Importer
     {
         $containersTable = TableNames::containers();
         $customersTable = TableNames::customers();
-        $usersTable = TableNames::users();
 
         return [
-            ImportColumn::make('container_id')
+            ImportColumn::make('serial')
                 ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.$containersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$containersTable.',serial']),
 
-            ImportColumn::make('customer_id')
+            ImportColumn::make('customer')
                 ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.$customersTable.',id']),
-
-            ImportColumn::make('dispatched_by')
-                ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.$usersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$customersTable.',name']),
 
             ImportColumn::make('delivery_note')
                 ->rules(['required', 'string']),
 
             ImportColumn::make('dispatched_note')
                 ->rules(['nullable', 'string']),
-
-            ImportColumn::make('dispatched_at')
-                ->rules(['required', 'date']),
         ];
     }
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return sprintf(
-            'Dispatch import finished: %d successful rows, %d failed rows.',
-            $import->successful_rows,
-            $import->getFailedRowsCount(),
-        );
+        $body = 'Your dispatch import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
+
+        if (($failedRowsCount = $import->getFailedRowsCount()) !== 0) {
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
+        }
+
+        return $body;
     }
 
     public function resolveRecord(): Dispatch

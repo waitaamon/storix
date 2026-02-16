@@ -28,6 +28,16 @@ final class Dispatch extends Model
         'received_by', 'return_date', 'return_condition', 'return_note', 'metadata',
     ];
 
+    public static function booted(): void
+    {
+        parent::booted();
+
+        self::creating(function (self $dispatch): void {
+            $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
+            $dispatch->dispatched_at = $dispatch->dispatched_at ?? now();
+        });
+    }
+
     /** @return BelongsTo<Container, self> */
     public function container(): BelongsTo
     {

@@ -49,14 +49,6 @@ final class DispatchesTable
 
                 TrashedFilter::make(),
             ])
-            ->headerActions([
-                ImportAction::make()
-                    ->label('Import Dispatches')
-                    ->importer(DispatchImporter::class),
-                ImportAction::make('importReturns')
-                    ->label('Import Returns')
-                    ->importer(DispatchReturnImporter::class),
-            ])
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
@@ -66,6 +58,18 @@ final class DispatchesTable
                     ->authorize(fn (Dispatch $record) => auth()->user()->can('update', $record)),
             ])
             ->toolbarActions([
+                ImportAction::make()
+                    ->label('Bulk Dispatches')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->outlined()
+                    ->importer(DispatchImporter::class),
+                ImportAction::make('importReturns')
+                    ->label('Bulk Returns')
+                    ->color('success')
+                    ->outlined()
+                    ->icon('heroicon-o-arrow-down-on-square-stack')
+                    ->importer(DispatchReturnImporter::class),
                 BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exporter(DispatchExporter::class),

@@ -10,6 +10,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 final class DispatchForm
 {
@@ -21,13 +22,21 @@ final class DispatchForm
                 ->columnSpanFull()
                 ->schema([
                     Select::make('container_id')
-                        ->relationship('container', 'serial')
+                        ->relationship(
+                            name: 'container',
+                            titleAttribute: 'serial',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->availableForDispatch()
+                        )
                         ->searchable()
                         ->preload()
                         ->required(),
 
                     Select::make('customer_id')
-                        ->relationship('customer', 'name')
+                        ->relationship(
+                            name: 'customer',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true)->whereRelation('category', 'slug', 'accounts-receivable')
+                        )
                         ->searchable()
                         ->preload()
                         ->required(),
