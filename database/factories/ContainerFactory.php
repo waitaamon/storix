@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Database\Factories;
+namespace Storix\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use WaitAmon\Storix\Models\Container;
+use Storix\Models\Container;
 
 /**
  * @extends Factory<Container>
@@ -20,8 +20,8 @@ final class ContainerFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => strtoupper($this->faker->bothify('BIN-####')),
-            'serial' => strtoupper($this->faker->unique()->bothify('STRX-########')),
+            'name' => mb_strtoupper($this->faker->bothify('BIN-####')),
+            'serial' => mb_strtoupper($this->faker->unique()->bothify('STRX-########')),
             'is_active' => true,
             'description' => $this->faker->optional()->sentence(),
             'metadata' => [

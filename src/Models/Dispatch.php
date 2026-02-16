@@ -2,45 +2,76 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Models;
+namespace Storix\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use WaitAmon\Storix\Database\Factories\DispatchFactory;
-use WaitAmon\Storix\Enums\DispatchStatus;
-use WaitAmon\Storix\Enums\ReturnCondition;
-use WaitAmon\Storix\Support\TableNames;
+use Illuminate\Support\Facades\Config;
+use Storix\Database\Factories\DispatchFactory;
+use Storix\Enums\DispatchStatus;
+use Storix\Enums\ReturnCondition;
+use Storix\Support\TableNames;
 
 final class Dispatch extends Model
 {
-    use HasFactory;
-    use HasUuids;
-    use SoftDeletes;
+    /** @use HasFactory<DispatchFactory> */
+    use HasFactory, SoftDeletes;
 
     /**
      * @var list<string>
      */
     protected $fillable = [
-        'customer_id',
-        'container_id',
-        'dispatched_by',
-        'delivery_note',
-        'received_by',
-        'dispatched_at',
-        'dispatched_note',
-        'return_date',
-        'return_condition',
-        'return_note',
-        'metadata',
+        'customer_id', 'container_id', 'dispatched_by', 'delivery_note', 'dispatched_at', 'dispatched_note',
+        'received_by', 'return_date', 'return_condition', 'return_note', 'metadata',
     ];
 
-    /**
-     * @return array<string, string>
-     */
+    /** @return BelongsTo<Container, self> */
+    public function container(): BelongsTo
+    {
+        return $this->belongsTo(Container::class);
+    }
+
+    /** @return BelongsTo<Model, self> */
+    public function customer(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.customer_model', 'App\\Models\\Accounts\\Account');
+
+        return $this->belongsTo($model, 'customer_id');
+    }
+
+    /** @return BelongsTo<Model, self> */
+    public function dispatchedBy(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.user_model', 'App\\Models\\User');
+
+        return $this->belongsTo($model, 'dispatched_by');
+    }
+
+    /** @return BelongsTo<Model, self> */
+    public function receivedBy(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.user_model', 'App\\Models\\User');
+
+        return $this->belongsTo($model, 'received_by');
+    }
+
+    public function getTable(): string
+    {
+        return TableNames::dispatches();
+    }
+
+    protected static function newFactory(): DispatchFactory
+    {
+        return DispatchFactory::new();
+    }
+
+    /** @return array<string, string> */
     protected function casts(): array
     {
         return [
@@ -51,50 +82,9 @@ final class Dispatch extends Model
         ];
     }
 
-    public function container(): BelongsTo
-    {
-        return $this->belongsTo(Container::class);
-    }
-
-    public function getTable(): string
-    {
-        return TableNames::dispatches();
-    }
-
-    public function customer(): BelongsTo
-    {
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> $model */
-        $model = (string) config('storix.customer_model', 'App\\Models\\Customer');
-
-        return $this->belongsTo($model, 'customer_id');
-    }
-
-    public function dispatchedBy(): BelongsTo
-    {
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> $model */
-        $model = (string) config('storix.user_model', 'App\\Models\\User');
-
-        return $this->belongsTo($model, 'dispatched_by');
-    }
-
-    public function receivedBy(): BelongsTo
-    {
-        /** @var class-string<\Illuminate\Database\Eloquent\Model> $model */
-        $model = (string) config('storix.user_model', 'App\\Models\\User');
-
-        return $this->belongsTo($model, 'received_by');
-    }
-
-    /**
-     * @return Attribute<DispatchStatus, never>
-     */
+    /** @return Attribute<DispatchStatus, never> */
     protected function status(): Attribute
     {
         return Attribute::get(fn (): DispatchStatus => DispatchStatus::fromReturnCondition($this->return_condition));
-    }
-
-    protected static function newFactory(): DispatchFactory
-    {
-        return DispatchFactory::new();
     }
 }

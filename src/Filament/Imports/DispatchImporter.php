@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Imports;
+namespace Storix\Filament\Imports;
 
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use WaitAmon\Storix\Models\Dispatch;
-use WaitAmon\Storix\Support\TableNames;
+use Storix\Models\Dispatch;
+use Storix\Support\TableNames;
 
 final class DispatchImporter extends Importer
 {
@@ -26,25 +26,25 @@ final class DispatchImporter extends Importer
         return [
             ImportColumn::make('container_id')
                 ->requiredMapping()
-                ->rules(['required', 'uuid', 'exists:'.$containersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$containersTable.',id']),
+
             ImportColumn::make('customer_id')
                 ->requiredMapping()
-                ->rules(['required', 'uuid', 'exists:'.$customersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$customersTable.',id']),
+
             ImportColumn::make('dispatched_by')
                 ->requiredMapping()
-                ->rules(['required', 'uuid', 'exists:'.$usersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$usersTable.',id']),
+
             ImportColumn::make('delivery_note')
-                ->rules(['nullable', 'string']),
+                ->rules(['required', 'string']),
+
             ImportColumn::make('dispatched_note')
                 ->rules(['nullable', 'string']),
+
             ImportColumn::make('dispatched_at')
                 ->rules(['required', 'date']),
         ];
-    }
-
-    public function resolveRecord(): Dispatch
-    {
-        return new Dispatch();
     }
 
     public static function getCompletedNotificationBody(Import $import): string
@@ -54,5 +54,10 @@ final class DispatchImporter extends Importer
             $import->successful_rows,
             $import->getFailedRowsCount(),
         );
+    }
+
+    public function resolveRecord(): Dispatch
+    {
+        return new Dispatch();
     }
 }

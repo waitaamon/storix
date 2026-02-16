@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Exports;
+namespace Storix\Filament\Exports;
 
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
-use WaitAmon\Storix\Models\Dispatch;
+use Filament\Actions\Exports\Models\Export;
+use Storix\Models\Dispatch;
 
 final class DispatchExporter extends Exporter
 {
@@ -18,7 +19,6 @@ final class DispatchExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('id'),
             ExportColumn::make('container.serial'),
             ExportColumn::make('customer_id'),
             ExportColumn::make('dispatched_by'),
@@ -31,8 +31,12 @@ final class DispatchExporter extends Exporter
         ];
     }
 
-    public static function getCompletedNotificationBody($export): string
+    public static function getCompletedNotificationBody(Export $export): string
     {
-        return sprintf('Dispatch export completed with %d successful rows.', $export->successful_rows);
+        return sprintf(
+            'Dispatch export finished: %d successful rows, %d failed rows.',
+            $export->successful_rows,
+            $export->getFailedRowsCount(),
+        );
     }
 }

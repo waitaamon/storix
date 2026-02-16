@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Database\Seeders;
+namespace Storix\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use WaitAmon\Storix\Models\Container;
+use Storix\Models\Container;
 
 final class StorixDatabaseSeeder extends Seeder
 {

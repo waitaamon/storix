@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Support;
+namespace Storix\Support;
 
 final class TableNames
 {

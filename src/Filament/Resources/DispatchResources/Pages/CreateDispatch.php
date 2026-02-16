@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Resources\DispatchResource\Pages;
+namespace Storix\Filament\Resources\DispatchResources\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
-use WaitAmon\Storix\Filament\Resources\DispatchResource;
+use Storix\Filament\Resources\DispatchResources\DispatchResource;
 
 final class CreateDispatch extends CreateRecord
 {

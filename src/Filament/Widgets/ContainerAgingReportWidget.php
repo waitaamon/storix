@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Carbon\CarbonImmutable;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use WaitAmon\Storix\Models\Dispatch;
+use Storix\Models\Dispatch;
 
 final class ContainerAgingReportWidget extends StatsOverviewWidget
 {
@@ -27,7 +27,7 @@ final class ContainerAgingReportWidget extends StatsOverviewWidget
         }
 
         $today = CarbonImmutable::now();
-        $ages = $openDispatches->map(fn ($dispatch): int => $today->diffInDays(CarbonImmutable::parse($dispatch->dispatched_at)));
+        $ages = $openDispatches->map(fn ($dispatch): int|float => $today->diffInDays(CarbonImmutable::parse($dispatch->dispatched_at)));
 
         return [
             Stat::make('Open Dispatches', (string) $openDispatches->count()),

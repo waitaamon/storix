@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use WaitAmon\Storix\Models\Container;
-use WaitAmon\Storix\Models\Dispatch;
+use Storix\Models\Container;
+use Storix\Models\Dispatch;
 
 final class ContainerUtilizationWidget extends StatsOverviewWidget
 {

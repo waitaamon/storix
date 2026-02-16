@@ -1,28 +1,24 @@
 # Storix
 
-Storix is a production-grade Filament v4 plugin for reusable container lifecycle tracking in ERP systems.
+Storix is a Filament v4 plugin for reusable container lifecycle tracking.
 
-## Features
+## Highlights
 
-- Container master data management with UUID primary keys and soft deletes.
-- Full dispatch/return lifecycle tracking with condition-based status flow.
-- Postgres-optimized schema (UUIDs, JSONB, indexes, constraints).
+- Container management with soft deletes (`name`, `serial`, active state, description, metadata).
+- Dispatch and return lifecycle tracking with status calculation (`Dispatched`, `Returned Good`, `Returned Damaged`, `Lost`).
 - Filament resources for containers and dispatches.
-- Dispatch history relation manager on containers.
-- Filament importers:
-  - Container import (create/upsert by serial)
-  - Dispatch import (create)
-  - Return import (update existing dispatch)
-- Filament exporters for containers and dispatches.
-- Spatie permission integration with automatic Storix permission registration.
-- Policy classes for container and dispatch authorization.
-- Lifecycle service + DTO for transactional dispatch and return handling.
-- Pest v4 test suite covering CRUD, lifecycle, import/export definitions, and policies.
-- Bonus widgets:
-  - Container utilization
-  - Damage rate
-  - Customer/container aging
-  - Lost financial exposure
+- Relation manager for container dispatch history.
+- Native Filament imports and exports.
+- Spatie permission integration with automatic permission registration.
+- Service layer (`DispatchLifecycleService`) and DTO (`DispatchLifecycleData`) for lifecycle operations.
+- Dashboard widgets for utilization, damage rate, aging, and lost exposure.
+- Pest test suite for CRUD, lifecycle, import/export definitions, and policy checks.
+
+## Requirements
+
+- PHP 8.5+
+- Laravel 12+
+- Filament 4+
 
 ## Installation
 
@@ -32,10 +28,11 @@ php artisan vendor:publish --tag=storix-config
 php artisan migrate
 ```
 
-## Filament Panel Registration
+## Register In Filament Panel
 
 ```php
-use WaitAmon\Storix\StorixPlugin;
+use Filament\Panel;
+use Storix\StorixPlugin;
 
 public function panel(Panel $panel): Panel
 {
@@ -45,9 +42,22 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+## Configuration
+
+Published config: `config/storix.php`
+
+Key options:
+
+- `storix.customer_model` (default: `App\\Models\\Accounts\\Account`)
+- `storix.customer_table` (default from env `STORIX_CUSTOMER_TABLE`, fallback `accounts`)
+- `storix.user_model` (default from env `STORIX_USER_MODEL`, fallback `App\\Models\\User`)
+- `storix.users_table` (default from env `STORIX_USER_TABLE`, fallback `users`)
+- `storix.containers_table` (default: `containers`)
+- `storix.dispatches_table` (default: `dispatches`)
+
 ## Permissions
 
-Storix auto-registers the following permissions (guard: `web` by default):
+Storix registers these permissions (guard defaults to `web`):
 
 - `viewAny.containers`
 - `view.containers`
@@ -65,38 +75,33 @@ Storix auto-registers the following permissions (guard: `web` by default):
 - `forceDelete.dispatches`
 - `receive.containers`
 
-You can also seed explicitly:
+You can seed explicitly:
 
 ```bash
-php artisan db:seed --class="WaitAmon\\Storix\\Database\\Seeders\\StorixPermissionSeeder"
+php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
 ```
 
-## Imports & Exports
+## Imports And Exports
 
 ### Imports
 
-- Containers: create/update by serial.
-- Dispatches: create dispatch records.
-- Returns: update existing dispatch by dispatch UUID.
-
-Imports enforce validation and provide row-level failure reporting through Filament import jobs.
+- `ContainerImporter`: creates/updates containers by `serial`.
+- `DispatchImporter`: creates dispatch rows.
+- `DispatchReturnImporter`: updates return fields on an existing dispatch by `id`.
 
 ### Exports
 
-- Container bulk export.
-- Dispatch bulk export.
+- `ContainerExporter`
+- `DispatchExporter`
 
-Exports use Filament export actions and exporter classes.
+## Data Model Notes
 
-## Data Integrity Notes
+- Current migrations use numeric primary/foreign keys.
+- Soft deletes are enabled for containers and dispatches.
+- `dispatches.metadata` uses `jsonb`.
+- Table names are config-driven through `Storix\\Support\\TableNames`.
 
-- UUID primary keys on Storix entities.
-- Soft delete support on containers and dispatches.
-- Foreign keys with explicit update/delete behavior.
-- Indexed high-frequency query columns (`container_id`, `customer_id`, `dispatched_at`, `return_date`).
-- JSONB metadata columns for ERP extensibility and analytics.
-
-## Tests
+## Testing
 
 ```bash
 composer test

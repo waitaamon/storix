@@ -1,0 +1,15 @@
+/vendor/
+
+# IDE / OS
+/.idea/
+.DS_Store
+
+# Env
+/.env
+/.env.*
+
+# Logs and coverage
+*.log
+/.phpunit.result.cache
+/.phpunit.cache/
+/coverage/

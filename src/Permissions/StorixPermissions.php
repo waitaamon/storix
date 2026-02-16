@@ -2,13 +2,34 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Permissions;
+namespace Storix\Permissions;
+
+use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 final class StorixPermissions
 {
-    /**
-     * @return list<string>
-     */
+    public static function register(): void
+    {
+        if (! class_exists(Permission::class)) {
+            return;
+        }
+
+        if (! Schema::hasTable('permissions')) {
+            return;
+        }
+
+        $guardName = (string) config('storix.permissions.guard_name', 'web');
+
+        foreach (self::all() as $permission) {
+            Permission::findOrCreate($permission, $guardName);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /** @return list<string> */
     public static function all(): array
     {
         return [
@@ -17,9 +38,7 @@ final class StorixPermissions
         ];
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function containerPermissions(): array
     {
         return [
@@ -33,9 +52,7 @@ final class StorixPermissions
         ];
     }
 
-    /**
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function dispatchPermissions(): array
     {
         return [

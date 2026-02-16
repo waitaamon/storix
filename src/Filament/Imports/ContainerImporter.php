@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Imports;
+namespace Storix\Filament\Imports;
 
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use WaitAmon\Storix\Models\Container;
+use Storix\Models\Container;
 
 final class ContainerImporter extends Importer
 {
@@ -33,6 +33,15 @@ final class ContainerImporter extends Importer
         ];
     }
 
+    public static function getCompletedNotificationBody(Import $import): string
+    {
+        return sprintf(
+            'Container import finished: %d successful rows, %d failed rows.',
+            $import->successful_rows,
+            $import->getFailedRowsCount(),
+        );
+    }
+
     public function resolveRecord(): ?Container
     {
         return Container::query()->firstOrNew([
@@ -49,14 +58,5 @@ final class ContainerImporter extends Importer
             'name' => 'container name',
             'serial' => 'container serial',
         ];
-    }
-
-    public static function getCompletedNotificationBody(Import $import): string
-    {
-        return sprintf(
-            'Container import finished: %d successful rows, %d failed rows.',
-            $import->successful_rows,
-            $import->getFailedRowsCount(),
-        );
     }
 }

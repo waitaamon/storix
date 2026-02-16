@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use WaitAmon\Storix\Filament\Exports\ContainerExporter;
-use WaitAmon\Storix\Filament\Exports\DispatchExporter;
-use WaitAmon\Storix\Filament\Imports\ContainerImporter;
-use WaitAmon\Storix\Filament\Imports\DispatchImporter;
-use WaitAmon\Storix\Filament\Imports\DispatchReturnImporter;
+use Storix\Filament\Exports\ContainerExporter;
+use Storix\Filament\Exports\DispatchExporter;
+use Storix\Filament\Imports\ContainerImporter;
+use Storix\Filament\Imports\DispatchImporter;
+use Storix\Filament\Imports\DispatchReturnImporter;
 
 it('defines container import columns', function (): void {
     $columns = ContainerImporter::getColumns();

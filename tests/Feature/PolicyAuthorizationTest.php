@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use WaitAmon\Storix\Models\Container;
-use WaitAmon\Storix\Models\Dispatch;
-use WaitAmon\Storix\Policies\ContainerPolicy;
-use WaitAmon\Storix\Policies\DispatchPolicy;
+use Storix\Models\Container;
+use Storix\Models\Dispatch;
+use Storix\Policies\ContainerPolicy;
+use Storix\Policies\DispatchPolicy;
 
 it('enforces container permissions', function (): void {
     $policy = new ContainerPolicy();
@@ -45,6 +45,6 @@ it('enforces dispatch permissions including receive containers', function (): vo
     };
 
     expect($policy->viewAny($user))->toBeTrue();
-    expect($policy->receiveContainers($user))->toBeTrue();
+    expect($policy->receive($user))->toBeTrue();
     expect($policy->forceDelete($user, new Dispatch()))->toBeFalse();
 });

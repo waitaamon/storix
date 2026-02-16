@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use WaitAmon\Storix\Models\Dispatch;
+use Storix\Enums\ReturnCondition;
+use Storix\Models\Dispatch;
 
 final class LostExposureWidget extends StatsOverviewWidget
 {
@@ -15,10 +16,10 @@ final class LostExposureWidget extends StatsOverviewWidget
      */
     protected function getStats(): array
     {
-        $lostCount = Dispatch::query()->where('return_condition', 'lost')->count();
+        $lostCount = Dispatch::query()->where('return_condition', ReturnCondition::Lost)->count();
 
         $estimatedExposure = Dispatch::query()
-            ->where('return_condition', 'lost')
+            ->where('return_condition', ReturnCondition::Lost)
             ->get(['metadata'])
             ->sum(static fn ($dispatch): float => (float) data_get($dispatch->metadata, 'replacement_cost', 0));
 

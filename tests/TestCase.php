@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Tests;
+namespace Storix\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Permission\PermissionServiceProvider;
-use WaitAmon\Storix\StorixServiceProvider;
+use Storix\StorixServiceProvider;
 
 abstract class TestCase extends Orchestra
 {
@@ -33,15 +33,15 @@ abstract class TestCase extends Orchestra
             'foreign_key_constraints' => true,
         ]);
 
-        $app['config']->set('auth.providers.users.model', \WaitAmon\Storix\Tests\Fixtures\Models\User::class);
-        $app['config']->set('storix.user_model', \WaitAmon\Storix\Tests\Fixtures\Models\User::class);
-        $app['config']->set('storix.customer_model', \WaitAmon\Storix\Tests\Fixtures\Models\Customer::class);
+        $app['config']->set('auth.providers.users.model', Fixtures\Models\User::class);
+        $app['config']->set('storix.user_model', Fixtures\Models\User::class);
+        $app['config']->set('storix.customer_model', Fixtures\Models\Customer::class);
     }
 
     protected function defineDatabaseMigrations(): void
     {
         Schema::create('users', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password')->nullable();
@@ -49,7 +49,7 @@ abstract class TestCase extends Orchestra
         });
 
         Schema::create('customers', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->id();
             $table->string('name');
             $table->string('email')->nullable();
             $table->timestamps();

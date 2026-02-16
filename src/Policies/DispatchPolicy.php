@@ -2,54 +2,49 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Policies;
+namespace Storix\Policies;
 
-use WaitAmon\Storix\Models\Dispatch;
+use Storix\Models\Dispatch;
 
 final class DispatchPolicy
 {
     public function viewAny(mixed $user): bool
     {
-        return $this->allowed($user, 'viewAny.dispatches');
+        return $user->can('viewAny.dispatches');
     }
 
     public function view(mixed $user, Dispatch $dispatch): bool
     {
-        return $this->allowed($user, 'view.dispatches');
+        return $user->can('view.dispatches');
     }
 
     public function create(mixed $user): bool
     {
-        return $this->allowed($user, 'create.dispatches');
+        return $user->can('create.dispatches');
     }
 
     public function update(mixed $user, Dispatch $dispatch): bool
     {
-        return $this->allowed($user, 'update.dispatches');
+        return $user->can('update.dispatches');
     }
 
     public function delete(mixed $user, Dispatch $dispatch): bool
     {
-        return $this->allowed($user, 'delete.dispatches');
+        return $user->can('delete.dispatches');
     }
 
     public function restore(mixed $user, Dispatch $dispatch): bool
     {
-        return $this->allowed($user, 'restore.dispatches');
+        return $user->can('restore.dispatches');
     }
 
     public function forceDelete(mixed $user, Dispatch $dispatch): bool
     {
-        return $this->allowed($user, 'forceDelete.dispatches');
+        return $user->can('forceDelete.dispatches');
     }
 
-    public function receiveContainers(mixed $user): bool
+    public function receive(mixed $user): bool
     {
-        return $this->allowed($user, 'receive.containers');
-    }
-
-    private function allowed(mixed $user, string $permission): bool
-    {
-        return is_object($user) && method_exists($user, 'can') && $user->can($permission);
+        return $user->can('receive.containers');
     }
 }

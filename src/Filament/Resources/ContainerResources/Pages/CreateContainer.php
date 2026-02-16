@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Resources\ContainerResource\Pages;
+namespace Storix\Filament\Resources\ContainerResources\Pages;
 
 use Filament\Resources\Pages\CreateRecord;
-use WaitAmon\Storix\Filament\Resources\ContainerResource;
+use Storix\Filament\Resources\ContainerResources\ContainerResource;
 
 final class CreateContainer extends CreateRecord
 {

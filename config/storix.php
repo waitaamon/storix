@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 return [
-    'customer_model' => 'App\\Models\\Customer',
+    'customer_model' => env('STORIX_CUSTOMER_CLASS', 'App\\Models\\Accounts\\Account'),
 
-    'customer_table' => 'customers',
+    'customer_table' => env('STORIX_CUSTOMER_TABLE', 'accounts'),
 
-    'user_model' => env('AUTH_MODEL', 'App\\Models\\User'),
+    'user_model' => env('STORIX_USER_MODEL', 'App\\Models\\User'),
 
-    'users_table' => 'users',
+    'users_table' => env('STORIX_USER_TABLE', 'users'),
 
     'containers_table' => 'containers',
 
@@ -18,6 +18,6 @@ return [
     'register_permissions' => true,
 
     'permissions' => [
-        'guard_name' => config('auth.defaults.guard', 'web'),
+        'guard_name' => 'web',
     ],
 ];

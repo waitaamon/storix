@@ -2,29 +2,33 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Enums;
+namespace Storix\Enums;
 
-enum ReturnCondition: string
+use Filament\Support\Contracts\HasColor;
+use Filament\Support\Contracts\HasLabel;
+use Illuminate\Contracts\Support\Htmlable;
+
+enum ReturnCondition: string implements HasColor, HasLabel
 {
     case Good = 'good';
     case Damaged = 'damaged';
     case Lost = 'lost';
 
-    public function label(): string
-    {
-        return match ($this) {
-            self::Good => 'Returned Good',
-            self::Damaged => 'Returned Damaged',
-            self::Lost => 'Lost',
-        };
-    }
-
-    public function color(): string
+    public function getColor(): string|null|array
     {
         return match ($this) {
             self::Good => 'success',
             self::Damaged => 'warning',
             self::Lost => 'danger',
+        };
+    }
+
+    public function getLabel(): string|Htmlable|null
+    {
+        return match ($this) {
+            self::Good => 'Returned Good',
+            self::Damaged => 'Returned Damaged',
+            self::Lost => 'Lost',
         };
     }
 }

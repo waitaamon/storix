@@ -2,19 +2,24 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix;
+namespace Storix;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
-use WaitAmon\Storix\Filament\Resources\ContainerResource;
-use WaitAmon\Storix\Filament\Resources\DispatchResource;
-use WaitAmon\Storix\Filament\Widgets\ContainerAgingReportWidget;
-use WaitAmon\Storix\Filament\Widgets\ContainerUtilizationWidget;
-use WaitAmon\Storix\Filament\Widgets\DamageRateWidget;
-use WaitAmon\Storix\Filament\Widgets\LostExposureWidget;
+use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Resources\DispatchResources\DispatchResource;
+use Storix\Filament\Widgets\ContainerAgingReportWidget;
+use Storix\Filament\Widgets\ContainerUtilizationWidget;
+use Storix\Filament\Widgets\DamageRateWidget;
+use Storix\Filament\Widgets\LostExposureWidget;
 
 final class StorixPlugin implements Plugin
 {
+    public static function make(): self
+    {
+        return new self();
+    }
+
     public function getId(): string
     {
         return 'storix';
@@ -35,13 +40,5 @@ final class StorixPlugin implements Plugin
             ]);
     }
 
-    public function boot(Panel $panel): void
-    {
-        // Plugin does not require per-panel runtime boot logic yet.
-    }
-
-    public static function make(): self
-    {
-        return new self();
-    }
+    public function boot(Panel $panel): void {}
 }

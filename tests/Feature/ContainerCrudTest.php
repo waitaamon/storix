@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use WaitAmon\Storix\Models\Container;
+use Storix\Models\Container;
 
 it('creates and updates a container', function (): void {
     $container = Container::query()->create([

@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
-use WaitAmon\Storix\Data\DispatchLifecycleData;
-use WaitAmon\Storix\Enums\DispatchStatus;
-use WaitAmon\Storix\Enums\ReturnCondition;
-use WaitAmon\Storix\Models\Container;
-use WaitAmon\Storix\Services\DispatchLifecycleService;
-use WaitAmon\Storix\Tests\Fixtures\Models\Customer;
-use WaitAmon\Storix\Tests\Fixtures\Models\User;
+use Storix\Data\DispatchLifecycleData;
+use Storix\Enums\DispatchStatus;
+use Storix\Enums\ReturnCondition;
+use Storix\Models\Container;
+use Storix\Services\DispatchLifecycleService;
+use Storix\Tests\Fixtures\Models\Customer;
+use Storix\Tests\Fixtures\Models\User;
 
 it('creates dispatch and registers a returned good status', function (): void {
     $container = Container::factory()->create();

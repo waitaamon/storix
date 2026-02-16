@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Widgets;
+namespace Storix\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use WaitAmon\Storix\Models\Dispatch;
+use Storix\Enums\ReturnCondition;
+use Storix\Models\Dispatch;
 
 final class DamageRateWidget extends StatsOverviewWidget
 {
@@ -16,7 +17,7 @@ final class DamageRateWidget extends StatsOverviewWidget
     protected function getStats(): array
     {
         $returned = Dispatch::query()->whereNotNull('return_date')->count();
-        $damaged = Dispatch::query()->where('return_condition', 'damaged')->count();
+        $damaged = Dispatch::query()->where('return_condition', ReturnCondition::Damaged)->count();
         $rate = $returned > 0 ? round(($damaged / $returned) * 100, 2) : 0.0;
 
         return [

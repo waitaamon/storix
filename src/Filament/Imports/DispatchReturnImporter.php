@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace WaitAmon\Storix\Filament\Imports;
+namespace Storix\Filament\Imports;
 
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use Illuminate\Validation\ValidationException;
-use WaitAmon\Storix\Models\Dispatch;
-use WaitAmon\Storix\Support\TableNames;
+use Storix\Models\Dispatch;
+use Storix\Support\TableNames;
 
 final class DispatchReturnImporter extends Importer
 {
@@ -25,31 +24,22 @@ final class DispatchReturnImporter extends Importer
         return [
             ImportColumn::make('id')
                 ->requiredMapping()
-                ->rules(['required', 'uuid']),
+                ->rules(['required', 'integer', 'exists:'.TableNames::dispatches().',id']),
+
             ImportColumn::make('received_by')
                 ->requiredMapping()
-                ->rules(['required', 'uuid', 'exists:'.$usersTable.',id']),
+                ->rules(['required', 'integer', 'exists:'.$usersTable.',id']),
+
             ImportColumn::make('return_date')
-                ->rules(['nullable', 'date']),
+                ->rules(['required', 'date']),
+
             ImportColumn::make('return_condition')
                 ->requiredMapping()
                 ->rules(['required', 'in:good,damaged,lost']),
+
             ImportColumn::make('return_note')
                 ->rules(['nullable', 'string']),
         ];
-    }
-
-    public function resolveRecord(): Dispatch
-    {
-        $dispatch = Dispatch::query()->find((string) $this->data['id']);
-
-        if ($dispatch instanceof Dispatch) {
-            return $dispatch;
-        }
-
-        throw ValidationException::withMessages([
-            'id' => sprintf('Dispatch %s was not found.', (string) $this->data['id']),
-        ]);
     }
 
     public static function getCompletedNotificationBody(Import $import): string
@@ -59,5 +49,10 @@ final class DispatchReturnImporter extends Importer
             $import->successful_rows,
             $import->getFailedRowsCount(),
         );
+    }
+
+    public function resolveRecord(): Dispatch
+    {
+        return Dispatch::query()->findOrFail($this->data['id']);
     }
 }
