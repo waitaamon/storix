@@ -24,9 +24,6 @@ final class ContainerFactory extends Factory
             'serial' => mb_strtoupper($this->faker->unique()->bothify('STRX-########')),
             'is_active' => true,
             'description' => $this->faker->optional()->sentence(),
-            'metadata' => [
-                'capacity_liters' => $this->faker->numberBetween(20, 200),
-            ],
         ];
     }
 }

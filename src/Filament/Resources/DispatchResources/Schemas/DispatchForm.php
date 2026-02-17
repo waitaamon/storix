@@ -26,7 +26,7 @@ final class DispatchForm
                         ->relationship(
                             name: 'customer',
                             titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query,
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->whereRelation('category', 'slug', 'accounts-receivable')->where('is_active', true)
                         )
                         ->searchable()
                         ->preload()
