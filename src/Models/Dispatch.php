@@ -25,14 +25,6 @@ final class Dispatch extends Model
      */
     protected $fillable = ['customer_id', 'dispatched_by', 'delivery_note', 'dispatched_at', 'dispatched_note'];
 
-    protected static function booted(): void
-    {
-        self::creating(function (self $dispatch): void {
-            $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
-            $dispatch->dispatched_at = $dispatch->dispatched_at ?? today();
-        });
-    }
-
     /**
      * Get the customer that the items were dispatched to.
      *
@@ -94,6 +86,14 @@ final class Dispatch extends Model
     public function getTable(): string
     {
         return TableNames::dispatches();
+    }
+
+    protected static function booted(): void
+    {
+        self::creating(function (self $dispatch): void {
+            $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
+            $dispatch->dispatched_at = $dispatch->dispatched_at ?? today();
+        });
     }
 
     /** @return array<string, string> */
