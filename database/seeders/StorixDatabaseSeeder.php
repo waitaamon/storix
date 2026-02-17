@@ -13,7 +13,7 @@ final class StorixDatabaseSeeder extends Seeder
     {
         $this->call(StorixPermissionSeeder::class);
 
-        if (Container::query()->doesntExist()) {
+        if (Container::query()->doesntExist() && app()->isLocal()) {
             Container::factory()->count(20)->create();
         }
     }

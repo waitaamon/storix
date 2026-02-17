@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Storix\Filament\Resources\DispatchResources;
 
 use BackedEnum;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
+use Storix\Filament\Resources\DispatchResources\RelationManagers\DispatchEntriesRelationManager;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchForm;
 use Storix\Filament\Resources\DispatchResources\Tables\DispatchesTable;
 use Storix\Models\Dispatch;
@@ -41,6 +43,16 @@ final class DispatchResource extends Resource
     public static function table(Table $table): Table
     {
         return DispatchesTable::configure($table);
+    }
+
+    /**
+     * @return array<class-string<RelationManager>>
+     */
+    public static function getRelations(): array
+    {
+        return [
+            DispatchEntriesRelationManager::class,
+        ];
     }
 
     /**

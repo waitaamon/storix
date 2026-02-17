@@ -10,7 +10,6 @@ Storix is a Filament v4 plugin for reusable container lifecycle tracking.
 - Relation manager for container dispatch history.
 - Native Filament imports and exports.
 - Spatie permission integration with automatic permission registration.
-- Service layer (`DispatchLifecycleService`) and DTO (`DispatchLifecycleData`) for lifecycle operations.
 - Dashboard widgets for utilization, damage rate, aging, and lost exposure.
 - Pest test suite for CRUD, lifecycle, import/export definitions, and policy checks.
 

@@ -18,19 +18,9 @@ final class DispatchForm
     {
         return $schema->components([
             Section::make()
-                ->columns()
+                ->columns(3)
                 ->columnSpanFull()
                 ->schema([
-                    Select::make('container_id')
-                        ->relationship(
-                            name: 'container',
-                            titleAttribute: 'serial',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->availableForDispatch()
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->required(),
-
                     Select::make('customer_id')
                         ->relationship(
                             name: 'customer',
@@ -50,6 +40,18 @@ final class DispatchForm
                         ->closeOnDateSelection()
                         ->native(false)
                         ->required(),
+
+                    Select::make('containers')
+                        ->relationship(
+                            name: 'containers',
+                            titleAttribute: 'serial',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->availableForDispatch()
+                        )
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->columnSpanFull(),
 
                     Textarea::make('dispatched_note')
                         ->columnSpanFull(),

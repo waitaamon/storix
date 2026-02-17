@@ -6,5 +6,12 @@
         <entry key="LaravelIdeaSettings.switchedToSrcFolder" value="true" />
       </map>
     </option>
+    <option name="generationStringOptionValues">
+      <map>
+        <entry key="postGeneration:databaseClassFactory" value="1" />
+        <entry key="postGeneration:filamentResource" value="1" />
+        <entry key="postGeneration:policy" value="1" />
+      </map>
+    </option>
   </component>
 </project>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix\Permissions;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -20,7 +21,7 @@ final class StorixPermissions
             return;
         }
 
-        $guardName = (string) config('storix.permissions.guard_name', 'web');
+        $guardName = Config::string('storix.permissions.guard_name', 'web');
 
         foreach (self::all() as $permission) {
             Permission::findOrCreate($permission, $guardName);
@@ -35,6 +36,7 @@ final class StorixPermissions
         return [
             ...self::containerPermissions(),
             ...self::dispatchPermissions(),
+            ...self::dispatchEntryPermissions(),
         ];
     }
 
@@ -64,6 +66,20 @@ final class StorixPermissions
             'restore.dispatches',
             'forceDelete.dispatches',
             'receive.containers',
+        ];
+    }
+
+    /** @return list<string> */
+    public static function dispatchEntryPermissions(): array
+    {
+        return [
+            'viewAny.dispatch-entries',
+            'view.dispatch-entries',
+            'create.dispatch-entries',
+            'update.dispatch-entries',
+            'delete.dispatch-entries',
+            'restore.dispatch-entries',
+            'forceDelete.dispatch-entries',
         ];
     }
 }

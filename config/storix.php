@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 return [
-    'customer_model' => env('STORIX_CUSTOMER_CLASS', 'App\\Models\\Accounts\\Account'),
+    'models' => [
+        'container' => env('STORIX_CONTAINER_MODEL', 'Storix\\Models\\Container'),
+        'dispatch' => env('STORIX_DISPATCH_MODEL', 'Storix\\Models\\Dispatch'),
+        'dispatch_entry' => env('STORIX_DISPATCH_ENTRY_MODEL', 'Storix\\Models\\DispatchEntry'),
+        'customer' => env('STORIX_CUSTOMER_CLASS', 'App\\Models\\Accounts\\Account'),
+        'user' => env('STORIX_USER_MODEL', 'App\\Models\\User'),
+    ],
 
-    'customer_table' => env('STORIX_CUSTOMER_TABLE', 'accounts'),
-
-    'user_model' => env('STORIX_USER_MODEL', 'App\\Models\\User'),
-
-    'users_table' => env('STORIX_USER_TABLE', 'users'),
-
-    'containers_table' => 'containers',
-
-    'dispatches_table' => 'dispatches',
+    'tables' => [
+        'containers' => env('STORIX_CONTAINERS_TABLE', 'containers'),
+        'dispatches' => env('STORIX_DISPATCHES_TABLE', 'dispatches'),
+        'dispatch_entries' => env('STORIX_DISPATCH_ENTRIES_TABLE', 'dispatch_entries'),
+        'customers' => env('STORIX_CUSTOMER_TABLE', 'accounts'),
+        'users' => env('STORIX_USER_TABLE', 'users'),
+    ],
 
     'labels' => [
         'container' => env('STORIX_CONTAINER_LABEL', 'container'),

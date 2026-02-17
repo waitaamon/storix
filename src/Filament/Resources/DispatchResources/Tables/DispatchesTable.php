@@ -7,16 +7,11 @@ namespace Storix\Filament\Resources\DispatchResources\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
-use Filament\Actions\ImportAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchExporter;
-use Storix\Filament\Imports\DispatchImporter;
-use Storix\Filament\Imports\DispatchReturnImporter;
 use Storix\Models\Dispatch;
 
 final class DispatchesTable
@@ -24,29 +19,22 @@ final class DispatchesTable
     public static function configure(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('container.serial')
-                ->label('Container')
-                ->searchable()
-                ->sortable(),
 
             TextColumn::make('customer.name')
                 ->label('Customer')
                 ->searchable(),
 
+            TextColumn::make('delivery_note')
+                ->searchable(),
+
             TextColumn::make('dispatched_at')
-                ->dateTime()
+                ->date()
                 ->sortable(),
 
-            TextColumn::make('return_date')
-                ->dateTime()
-                ->sortable(),
-
-            TextColumn::make('status')->badge(),
+            TextColumn::make('dispatchedBy.name')
+                ->label('Dispatched By'),
         ])
             ->filters([
-                SelectFilter::make('return_condition')
-                    ->options(ReturnCondition::class),
-
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -58,18 +46,6 @@ final class DispatchesTable
                     ->authorize(fn (Dispatch $record) => auth()->user()->can('update', $record)),
             ])
             ->toolbarActions([
-                ImportAction::make()
-                    ->label('Bulk Dispatches')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('danger')
-                    ->outlined()
-                    ->importer(DispatchImporter::class),
-                ImportAction::make('importReturns')
-                    ->label('Bulk Returns')
-                    ->color('success')
-                    ->outlined()
-                    ->icon('heroicon-o-arrow-down-on-square-stack')
-                    ->importer(DispatchReturnImporter::class),
                 BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exporter(DispatchExporter::class),
