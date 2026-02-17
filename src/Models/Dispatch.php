@@ -25,10 +25,8 @@ final class Dispatch extends Model
      */
     protected $fillable = ['customer_id', 'dispatched_by', 'delivery_note', 'dispatched_at', 'dispatched_note'];
 
-    public static function booted(): void
+    protected static function booted(): void
     {
-        parent::booted();
-
         self::creating(function (self $dispatch): void {
             $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
             $dispatch->dispatched_at = $dispatch->dispatched_at ?? today();

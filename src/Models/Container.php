@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Storix\Database\Factories\ContainerFactory;
@@ -30,7 +31,20 @@ final class Container extends Model
     /**
      * Get the dispatch entries for this container.
      *
-     * @return BelongsToMany<Dispatch>
+     * @return HasMany<DispatchEntry, self>
+     */
+    public function entries(): HasMany
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.dispatch_entry', 'Storix\\Models\\DispatchEntry');
+
+        return $this->hasMany($model, 'container_id');
+    }
+
+    /**
+     * Get the dispatches for this container.
+     *
+     * @return BelongsToMany<Dispatch, self>
      */
     public function dispatches(): BelongsToMany
     {
@@ -58,7 +72,7 @@ final class Container extends Model
     protected function availableForDispatch(Builder $query): void
     {
         $query->where('is_active', true)
-            ->whereDoesntHave('dispatches', fn (Builder $query) => $query->whereNull('return_date'));
+            ->whereDoesntHave('entries', fn (Builder $query) => $query->whereNull('return_date'));
     }
 
     /**

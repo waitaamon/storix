@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
 
 final class DispatchForm
 {
@@ -25,7 +26,7 @@ final class DispatchForm
                         ->relationship(
                             name: 'customer',
                             titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true)->whereRelation('category', 'slug', 'accounts-receivable')
+                            modifyQueryUsing: Config::get('storix.customer_query_modifier'),
                         )
                         ->searchable()
                         ->preload()

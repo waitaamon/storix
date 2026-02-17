@@ -15,7 +15,7 @@ it('defines container import columns', function (): void {
 });
 
 it('defines dispatch import and return import columns', function (): void {
-    expect(DispatchImporter::getColumns())->toHaveCount(6)
+    expect(DispatchImporter::getColumns())->toHaveCount(4)
         ->and(DispatchReturnImporter::getColumns())->toHaveCount(5);
 });
 

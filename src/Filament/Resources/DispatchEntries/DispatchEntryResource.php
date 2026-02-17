@@ -37,7 +37,7 @@ final class DispatchEntryResource extends Resource
 
                 TextColumn::make('return_condition')->badge()->label('Return Condition'),
 
-                TextColumn::make('received.name')->badge()->label('Received By'),
+                TextColumn::make('receivedBy.name')->label('Received By'),
             ]);
     }
 

@@ -17,7 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Storix\Enums\ReturnCondition;
-use Storix\Filament\Exports\DispatchExporter;
+use Storix\Filament\Exports\DispatchEntryExporter;
 
 final class DispatchEntriesRelationManager extends RelationManager
 {
@@ -71,7 +71,7 @@ final class DispatchEntriesRelationManager extends RelationManager
             ->toolbarActions([
                 BulkActionGroup::make([
                     ExportBulkAction::make()
-                        ->exporter(DispatchExporter::class),
+                        ->exporter(DispatchEntryExporter::class),
                 ]),
             ]);
     }

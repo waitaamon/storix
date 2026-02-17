@@ -34,8 +34,10 @@ abstract class TestCase extends Orchestra
         ]);
 
         $app['config']->set('auth.providers.users.model', Fixtures\Models\User::class);
-        $app['config']->set('storix.user_model', Fixtures\Models\User::class);
-        $app['config']->set('storix.customer_model', Fixtures\Models\Customer::class);
+        $app['config']->set('storix.models.user', Fixtures\Models\User::class);
+        $app['config']->set('storix.models.customer', Fixtures\Models\Customer::class);
+        $app['config']->set('storix.tables.customers', 'customers');
+        $app['config']->set('storix.tables.users', 'users');
     }
 
     protected function defineDatabaseMigrations(): void

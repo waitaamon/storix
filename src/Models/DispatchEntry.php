@@ -53,7 +53,7 @@ final class DispatchEntry extends Model
     }
 
     /**
-     * Get the dispatch that this entry belongs to.
+     * Get the user that received this entry.
      *
      * @return BelongsTo<Model, self>
      */

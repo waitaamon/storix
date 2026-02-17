@@ -24,6 +24,8 @@ return [
         'dispatch' => env('STORIX_DISPATCH_LABEL', 'dispatch'),
     ],
 
+    'customer_query_modifier' => null,
+
     'register_permissions' => true,
 
     'permissions' => [
