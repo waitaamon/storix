@@ -26,7 +26,7 @@ final class Container extends Model
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'serial', 'is_active', 'description', 'metadata'];
+    protected $fillable = ['name', 'serial', 'is_active', 'description'];
 
     /**
      * Get the dispatch entries for this container.
@@ -71,8 +71,7 @@ final class Container extends Model
     #[Scope]
     protected function availableForDispatch(Builder $query): void
     {
-        $query->where('is_active', true)
-            ->whereDoesntHave('entries', fn (Builder $query) => $query->whereNull('return_date'));
+        $query->where('is_active', true)->whereDoesntHave('entries', fn (Builder $query): Builder => $query->whereNull('return_date'));
     }
 
     /**
@@ -82,7 +81,6 @@ final class Container extends Model
     {
         return [
             'is_active' => 'boolean',
-            'metadata' => 'array',
         ];
     }
 }

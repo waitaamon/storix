@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('serial')->unique()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->text('description')->nullable();
-            $table->json('metadata')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

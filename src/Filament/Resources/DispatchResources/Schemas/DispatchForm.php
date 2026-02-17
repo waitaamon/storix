@@ -11,7 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Config;
+use Storix\Models\Container;
 
 final class DispatchForm
 {
@@ -26,7 +26,7 @@ final class DispatchForm
                         ->relationship(
                             name: 'customer',
                             titleAttribute: 'name',
-                            modifyQueryUsing: Config::get('storix.customer_query_modifier'),
+                            modifyQueryUsing: fn (Builder $query): Builder => $query,
                         )
                         ->searchable()
                         ->preload()
@@ -46,8 +46,9 @@ final class DispatchForm
                         ->relationship(
                             name: 'containers',
                             titleAttribute: 'serial',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->availableForDispatch()
+                            modifyQueryUsing: static fn (Builder $query): Builder => $query->availableForDispatch()
                         )
+                        ->getOptionLabelFromRecordUsing(static fn (Container $record): string => $record->serial)
                         ->multiple()
                         ->searchable()
                         ->preload()
