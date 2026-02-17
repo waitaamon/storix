@@ -24,11 +24,7 @@ final class StorixServiceProvider extends PackageServiceProvider
         $package
             ->name('storix')
             ->hasConfigFile()
-            ->hasMigrations([
-                '100_create_containers_table',
-                '200_create_dispatches_table',
-                '300_create_dispatch_entries_table',
-            ])
+            ->discoversMigrations()
             ->runsMigrations();
     }
 

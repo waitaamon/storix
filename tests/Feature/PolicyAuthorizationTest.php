@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 use Storix\Policies\ContainerPolicy;
+use Storix\Policies\DispatchEntryPolicy;
 use Storix\Policies\DispatchPolicy;
 
 it('enforces container permissions', function (): void {
@@ -47,4 +51,13 @@ it('enforces dispatch permissions including receive containers', function (): vo
     expect($policy->viewAny($user))->toBeTrue();
     expect($policy->receive($user))->toBeTrue();
     expect($policy->forceDelete($user, new Dispatch()))->toBeFalse();
+});
+
+it('registers storix policies and morph aliases in the service provider', function (): void {
+    expect(Gate::getPolicyFor(Container::class))->toBeInstanceOf(ContainerPolicy::class)
+        ->and(Gate::getPolicyFor(Dispatch::class))->toBeInstanceOf(DispatchPolicy::class)
+        ->and(Gate::getPolicyFor(DispatchEntry::class))->toBeInstanceOf(DispatchEntryPolicy::class)
+        ->and(Relation::getMorphedModel('storix_container'))->toBe(Container::class)
+        ->and(Relation::getMorphedModel('storix_dispatch'))->toBe(Dispatch::class)
+        ->and(Relation::getMorphedModel('storix_dispatch_entry'))->toBe(DispatchEntry::class);
 });
