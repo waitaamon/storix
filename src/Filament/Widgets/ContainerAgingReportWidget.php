@@ -7,7 +7,7 @@ namespace Storix\Filament\Widgets;
 use Carbon\CarbonImmutable;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 
 final class ContainerAgingReportWidget extends StatsOverviewWidget
 {
@@ -16,9 +16,13 @@ final class ContainerAgingReportWidget extends StatsOverviewWidget
      */
     protected function getStats(): array
     {
-        $openDispatches = Dispatch::query()->whereNull('return_date')->get(['dispatched_at']);
+        $openEntries = DispatchEntry::query()
+            ->whereNull('return_date')
+            ->whereHas('dispatch')
+            ->with(['dispatch:id,dispatched_at'])
+            ->get(['dispatch_id']);
 
-        if ($openDispatches->isEmpty()) {
+        if ($openEntries->isEmpty()) {
             return [
                 Stat::make('Open Dispatches', '0'),
                 Stat::make('Average Aging (days)', '0'),
@@ -27,10 +31,18 @@ final class ContainerAgingReportWidget extends StatsOverviewWidget
         }
 
         $today = CarbonImmutable::now();
-        $ages = $openDispatches->map(fn ($dispatch): int|float => $today->diffInDays(CarbonImmutable::parse($dispatch->dispatched_at)));
+        $ages = $openEntries->map(function (DispatchEntry $entry) use ($today): int|float {
+            $dispatchedAt = $entry->dispatch?->dispatched_at;
+
+            if (! $dispatchedAt instanceof CarbonImmutable) {
+                return 0;
+            }
+
+            return $dispatchedAt->diffInDays($today);
+        });
 
         return [
-            Stat::make('Open Dispatches', (string) $openDispatches->count()),
+            Stat::make('Open Dispatches', (string) $openEntries->count()),
             Stat::make('Average Aging (days)', (string) round((float) $ages->avg(), 2)),
             Stat::make('Oldest Open (days)', (string) $ages->max()),
         ];

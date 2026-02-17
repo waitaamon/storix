@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Storix;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 use Storix\Permissions\StorixPermissions;
 use Storix\Policies\ContainerPolicy;
+use Storix\Policies\DispatchEntryPolicy;
 use Storix\Policies\DispatchPolicy;
 
 final class StorixServiceProvider extends PackageServiceProvider
@@ -22,8 +25,9 @@ final class StorixServiceProvider extends PackageServiceProvider
             ->name('storix')
             ->hasConfigFile()
             ->hasMigrations([
-                'create_containers_table',
-                'create_dispatches_table',
+                '100_create_containers_table',
+                '200_create_dispatches_table',
+                '300_create_dispatch_entries_table',
             ])
             ->runsMigrations();
     }
@@ -32,13 +36,15 @@ final class StorixServiceProvider extends PackageServiceProvider
     {
         Gate::policy(Container::class, ContainerPolicy::class);
         Gate::policy(Dispatch::class, DispatchPolicy::class);
+        Gate::policy(DispatchEntry::class, DispatchEntryPolicy::class);
 
         Relation::morphMap([
             'storix_container' => Container::class,
             'storix_dispatch' => Dispatch::class,
+            'storix_dispatch_entry' => DispatchEntry::class,
         ]);
 
-        if (config('storix.register_permissions', true)) {
+        if (Config::boolean('storix.permissions.register', true)) {
             StorixPermissions::register();
         }
     }

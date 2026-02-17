@@ -7,7 +7,7 @@ namespace Storix\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Storix\Models\Container;
-use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 
 final class ContainerUtilizationWidget extends StatsOverviewWidget
 {
@@ -18,8 +18,10 @@ final class ContainerUtilizationWidget extends StatsOverviewWidget
     {
         $totalContainers = Container::query()->count();
 
-        $inUseContainers = Dispatch::query()
+        $inUseContainers = DispatchEntry::query()
             ->whereNull('return_date')
+            ->whereHas('dispatch')
+            ->whereHas('container')
             ->distinct('container_id')
             ->count('container_id');
 

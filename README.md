@@ -5,12 +5,11 @@ Storix is a Filament v4 plugin for reusable container lifecycle tracking.
 ## Highlights
 
 - Container management with soft deletes (`name`, `serial`, active state, description, metadata).
-- Dispatch and return lifecycle tracking with status calculation (`Dispatched`, `Returned Good`, `Returned Damaged`, `Lost`).
-- Filament resources for containers and dispatches.
-- Relation manager for container dispatch history.
+- Dispatch and return lifecycle tracking via `dispatches` + `dispatch_entries`.
+- Filament resources for containers and dispatches, including relation managers for entry-level returns.
+- Dashboard widgets for utilization, damage rate, aging, and lost exposure (computed from dispatch entry data).
 - Native Filament imports and exports.
 - Spatie permission integration with automatic permission registration.
-- Dashboard widgets for utilization, damage rate, aging, and lost exposure.
 - Pest test suite for CRUD, lifecycle, import/export definitions, and policy checks.
 
 ## Requirements
@@ -47,12 +46,18 @@ Published config: `config/storix.php`
 
 Key options:
 
-- `storix.customer_model` (default: `App\\Models\\Accounts\\Account`)
-- `storix.customer_table` (default from env `STORIX_CUSTOMER_TABLE`, fallback `accounts`)
-- `storix.user_model` (default from env `STORIX_USER_MODEL`, fallback `App\\Models\\User`)
-- `storix.users_table` (default from env `STORIX_USER_TABLE`, fallback `users`)
-- `storix.containers_table` (default: `containers`)
-- `storix.dispatches_table` (default: `dispatches`)
+- `storix.models.container` (default from env `STORIX_CONTAINER_MODEL`, fallback `Storix\\Models\\Container`)
+- `storix.models.dispatch` (default from env `STORIX_DISPATCH_MODEL`, fallback `Storix\\Models\\Dispatch`)
+- `storix.models.dispatch_entry` (default from env `STORIX_DISPATCH_ENTRY_MODEL`, fallback `Storix\\Models\\DispatchEntry`)
+- `storix.models.customer` (default from env `STORIX_CUSTOMER_CLASS`, fallback `App\\Models\\Accounts\\Account`)
+- `storix.models.user` (default from env `STORIX_USER_MODEL`, fallback `App\\Models\\User`)
+- `storix.tables.containers` (default from env `STORIX_CONTAINERS_TABLE`, fallback `containers`)
+- `storix.tables.dispatches` (default from env `STORIX_DISPATCHES_TABLE`, fallback `dispatches`)
+- `storix.tables.dispatch_entries` (default from env `STORIX_DISPATCH_ENTRIES_TABLE`, fallback `dispatch_entries`)
+- `storix.tables.customers` (default from env `STORIX_CUSTOMER_TABLE`, fallback `accounts`)
+- `storix.tables.users` (default from env `STORIX_USER_TABLE`, fallback `users`)
+- `storix.permissions.register` (default: `true`)
+- `storix.permissions.guard_name` (default: `web`)
 
 ## Permissions
 
@@ -73,6 +78,13 @@ Storix registers these permissions (guard defaults to `web`):
 - `restore.dispatches`
 - `forceDelete.dispatches`
 - `receive.containers`
+- `viewAny.dispatch-entries`
+- `view.dispatch-entries`
+- `create.dispatch-entries`
+- `update.dispatch-entries`
+- `delete.dispatch-entries`
+- `restore.dispatch-entries`
+- `forceDelete.dispatch-entries`
 
 You can seed explicitly:
 
@@ -86,17 +98,18 @@ php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
 
 - `ContainerImporter`: creates/updates containers by `serial`.
 - `DispatchImporter`: creates dispatch rows.
-- `DispatchReturnImporter`: updates return fields on an existing dispatch by `id`.
+- `DispatchReturnImporter`: updates return fields on an existing dispatch entry by `id`.
 
 ### Exports
 
 - `ContainerExporter`
 - `DispatchExporter`
+- `DispatchEntryExporter`
 
 ## Data Model Notes
 
 - Current migrations use numeric primary/foreign keys.
-- Soft deletes are enabled for containers and dispatches.
+- Soft deletes are enabled for containers, dispatches, and dispatch entries.
 - `dispatches.metadata` uses `jsonb`.
 - Table names are config-driven through `Storix\\Support\\TableNames`.
 

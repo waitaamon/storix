@@ -45,10 +45,11 @@ final class DispatchesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('customer_id')->label('Customer')->searchable(),
+                TextColumn::make('customer.name')->label('Customer')->searchable(),
                 TextColumn::make('dispatched_at')->dateTime()->sortable(),
-                TextColumn::make('return_date')->dateTime()->sortable(),
-                TextColumn::make('status')
+                TextColumn::make('pivot.return_date')->dateTime()->label('Return Date'),
+                TextColumn::make('pivot.return_condition')
+                    ->label('Return Condition')
                     ->badge(),
             ])
             ->headerActions([

@@ -7,7 +7,7 @@ namespace Storix\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Storix\Enums\ReturnCondition;
-use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 
 final class LostExposureWidget extends StatsOverviewWidget
 {
@@ -16,17 +16,22 @@ final class LostExposureWidget extends StatsOverviewWidget
      */
     protected function getStats(): array
     {
-        $lostCount = Dispatch::query()->where('return_condition', ReturnCondition::Lost)->count();
-
-        $estimatedExposure = Dispatch::query()
+        $lostEntries = DispatchEntry::query()
             ->where('return_condition', ReturnCondition::Lost)
-            ->get(['metadata'])
-            ->sum(static fn ($dispatch): float => (float) data_get($dispatch->metadata, 'replacement_cost', 0));
+            ->whereHas('dispatch')
+            ->whereHas('container')
+            ->with(['container:id,metadata'])
+            ->get(['container_id']);
+
+        $lostCount = $lostEntries->count();
+        $estimatedExposure = $lostEntries->sum(
+            static fn (DispatchEntry $entry): float => (float) data_get($entry->container?->metadata, 'replacement_cost', 0),
+        );
 
         return [
             Stat::make('Lost Containers', (string) $lostCount),
             Stat::make('Estimated Exposure', sprintf('%.2f', $estimatedExposure))
-                ->description('Based on dispatch metadata.replacement_cost'),
+                ->description('Based on container metadata.replacement_cost'),
         ];
     }
 }

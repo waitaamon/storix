@@ -7,12 +7,12 @@ namespace Storix\Filament\Imports;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
-use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 use Storix\Support\TableNames;
 
 final class DispatchReturnImporter extends Importer
 {
-    protected static ?string $model = Dispatch::class;
+    protected static ?string $model = DispatchEntry::class;
 
     /**
      * @return array<int, ImportColumn>
@@ -24,7 +24,7 @@ final class DispatchReturnImporter extends Importer
         return [
             ImportColumn::make('id')
                 ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.TableNames::dispatches().',id']),
+                ->rules(['required', 'integer', 'exists:'.TableNames::dispatchEntries().',id']),
 
             ImportColumn::make('received_by')
                 ->requiredMapping()
@@ -51,8 +51,8 @@ final class DispatchReturnImporter extends Importer
         );
     }
 
-    public function resolveRecord(): Dispatch
+    public function resolveRecord(): DispatchEntry
     {
-        return Dispatch::query()->findOrFail($this->data['id']);
+        return DispatchEntry::query()->findOrFail($this->data['id']);
     }
 }

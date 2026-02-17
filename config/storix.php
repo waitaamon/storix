@@ -26,9 +26,8 @@ return [
 
     'customer_query_modifier' => null,
 
-    'register_permissions' => true,
-
     'permissions' => [
+        'register' => true,
         'guard_name' => 'web',
     ],
 ];
