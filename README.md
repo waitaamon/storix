@@ -86,6 +86,8 @@ Storix registers these permissions (guard defaults to `web`):
 - `restore.dispatch-entries`
 - `forceDelete.dispatch-entries`
 
+Permissions are auto-registered by `StorixServiceProvider` when `storix.permissions.register` is `true` (default), so manual seeding is optional.
+
 You can seed explicitly:
 
 ```bash

@@ -22,7 +22,8 @@
     "autoload": {
         "psr-4": {
             "Storix\\": "src/",
-            "Storix\\Database\\Factories\\": "database/factories/"
+            "Storix\\Database\\Factories\\": "database/factories/",
+            "Storix\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
