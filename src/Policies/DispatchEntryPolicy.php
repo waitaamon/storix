@@ -11,6 +11,15 @@ final class DispatchEntryPolicy
 {
     use HandlesAuthorization;
 
+    public function before(mixed $user): ?bool
+    {
+        if ($user->can('manage.dispatch-entries')) {
+            return true;
+        }
+
+        return null;
+    }
+
     public function viewAny(mixed $user): bool
     {
         return $user->can('viewAny.dispatch-entries');

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('return_condition')->nullable();
             $table->text('return_note')->nullable();
             $table->timestampsTz();
-            $table->softDeletesTz();
         });
     }
 };

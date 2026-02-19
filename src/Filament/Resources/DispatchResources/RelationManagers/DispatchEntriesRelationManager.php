@@ -16,8 +16,10 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchEntryExporter;
+use Storix\Models\Container;
 
 final class DispatchEntriesRelationManager extends RelationManager
 {
@@ -26,11 +28,16 @@ final class DispatchEntriesRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('return_condition')
-                ->options(ReturnCondition::class)
-                ->native(false),
-            DateTimePicker::make('return_date'),
-            Textarea::make('return_note'),
+            Select::make('container_id')
+                ->relationship(
+                    name: 'container',
+                    titleAttribute: 'serial',
+                    modifyQueryUsing: static fn (Builder $query): Builder => $query->availableForDispatch()
+                )
+                ->searchable()
+                ->preload()
+                ->required()
+                ->columnSpanFull(),
         ]);
     }
 

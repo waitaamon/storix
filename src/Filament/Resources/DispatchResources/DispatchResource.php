@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Filament\Resources\DispatchResources\RelationManagers\DispatchEntriesRelationManager;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchForm;
+use Storix\Filament\Resources\DispatchResources\Schemas\DispatchInfolist;
 use Storix\Filament\Resources\DispatchResources\Tables\DispatchesTable;
 use Storix\Models\Dispatch;
 use UnitEnum;
@@ -43,6 +44,12 @@ final class DispatchResource extends Resource
     public static function table(Table $table): Table
     {
         return DispatchesTable::configure($table);
+    }
+
+    #[Override]
+    public static function infolist(Schema $schema): Schema
+    {
+        return DispatchInfolist::configure($schema);
     }
 
     /**

@@ -44,6 +44,7 @@ final class StorixPermissions
     public static function containerPermissions(): array
     {
         return [
+            'manage.containers',
             'viewAny.containers',
             'view.containers',
             'create.containers',
@@ -58,6 +59,7 @@ final class StorixPermissions
     public static function dispatchPermissions(): array
     {
         return [
+            'manage.dispatches',
             'viewAny.dispatches',
             'view.dispatches',
             'create.dispatches',
@@ -66,6 +68,8 @@ final class StorixPermissions
             'restore.dispatches',
             'forceDelete.dispatches',
             'receive.containers',
+            'draft.dispatches',
+            'approve.dispatches',
         ];
     }
 
@@ -73,6 +77,7 @@ final class StorixPermissions
     public static function dispatchEntryPermissions(): array
     {
         return [
+            'manage.dispatch-entries',
             'viewAny.dispatch-entries',
             'view.dispatch-entries',
             'create.dispatch-entries',

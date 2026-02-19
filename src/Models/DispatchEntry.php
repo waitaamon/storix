@@ -8,16 +8,20 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Facades\Config;
 use Storix\Database\Factories\DispatchEntryFactory;
 use Storix\Enums\ReturnCondition;
 use Storix\Support\TableNames;
 
 #[UseFactory(DispatchEntryFactory::class)]
-final class DispatchEntry extends Model
+final class DispatchEntry extends Pivot
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    public $incrementing = true;
+
+    public $timestamps = true;
 
     /**
      * The attributes that are mass assignable.

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Storix\Database\Factories\ContainerFactory;
+use Storix\Models\States\DispatchApprovedState;
 use Storix\Support\TableNames;
 
 #[UseFactory(ContainerFactory::class)]
@@ -71,7 +72,10 @@ final class Container extends Model
     #[Scope]
     protected function availableForDispatch(Builder $query): void
     {
-        $query->where('is_active', true)->whereDoesntHave('entries', fn (Builder $query): Builder => $query->whereNull('return_date'));
+        $query->where('is_active', true)
+            ->whereDoesntHave('entries', fn (Builder $query): Builder => $query->whereNull('return_date')
+                ->whereHas('dispatches', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
+            );
     }
 
     /**

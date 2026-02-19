@@ -8,6 +8,14 @@ use Storix\Models\Container;
 
 final class ContainerPolicy
 {
+    public function before(mixed $user): ?bool
+    {
+        if ($user->can('manage.containers')) {
+            return true;
+        }
+
+        return null;
+    }
     public function viewAny(mixed $user): bool
     {
         return $user->can('viewAny.containers');

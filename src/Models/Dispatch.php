@@ -12,18 +12,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
+use Spatie\ModelStates\HasStates;
+use Spatie\ModelStates\HasStatesContract;
 use Storix\Database\Factories\DispatchFactory;
+use Storix\Models\States\DispatchState;
 use Storix\Support\TableNames;
 
 #[UseFactory(DispatchFactory::class)]
-final class Dispatch extends Model
+final class Dispatch extends Model implements HasStatesContract
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasStates, SoftDeletes;
 
     /**
      * @var list<string>
      */
-    protected $fillable = ['customer_id', 'dispatched_by', 'delivery_note', 'dispatched_at', 'dispatched_note'];
+    protected $fillable = ['customer_id', 'dispatched_by', 'delivery_note', 'dispatched_at', 'dispatched_note', 'state'];
 
     /**
      * Get the customer that the items were dispatched to.
@@ -102,6 +105,7 @@ final class Dispatch extends Model
         return [
             'dispatched_at' => 'immutable_date',
             'metadata' => 'array',
+            'state' => DispatchState::class,
         ];
     }
 }

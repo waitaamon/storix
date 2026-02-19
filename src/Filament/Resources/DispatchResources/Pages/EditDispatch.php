@@ -28,4 +28,16 @@ final class EditDispatch extends EditRecord
             ]),
         ];
     }
+
+    #[Override]
+    public function getRelationManagers(): array
+    {
+        return [];
+    }
+
+    #[Override]
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
+    }
 }
