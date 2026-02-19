@@ -31,7 +31,7 @@ final class DispatchesRelationManager extends RelationManager
                     ->searchable(),
 
                 TextColumn::make('dispatched_at')
-                    ->dateTime()
+                    ->date()
                     ->sortable(),
 
                 TextColumn::make('pivot.return_date')

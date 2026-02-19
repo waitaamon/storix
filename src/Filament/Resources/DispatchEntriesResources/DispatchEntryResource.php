@@ -6,13 +6,20 @@ namespace Storix\Filament\Resources\DispatchEntriesResources;
 
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Config;
 use Override;
+use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchEntryExporter;
+use Storix\Models\Container;
 use Storix\Models\DispatchEntry;
 use UnitEnum;
 
@@ -28,6 +35,25 @@ final class DispatchEntryResource extends Resource
     public static function getModelLabel(): string
     {
         return Config::string('storix.labels.dispatch_entry');
+    }
+
+    #[Override]
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                DatePicker::make('return_date')
+                    ->native(false)
+                    ->closeOnDateSelection()
+                    ->required(),
+                Select::make('return_condition')
+                    ->options(ReturnCondition::class)
+                    ->native(false)
+                    ->required(),
+                Textarea::make('return_note')
+                    ->nullable()
+                    ->columnSpanFull(),
+            ]);
     }
 
     #[Override]
@@ -56,7 +82,8 @@ final class DispatchEntryResource extends Resource
                     ->label('Dispatched At'),
 
                 TextColumn::make('dispatch.dispatchedBy.name')
-                    ->label('Dispatched By'),
+                    ->label('Dispatched By')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('return_date')
                     ->date(),
@@ -66,7 +93,25 @@ final class DispatchEntryResource extends Resource
                     ->label('Return Condition'),
 
                 TextColumn::make('receivedBy.name')
-                    ->label('Received By'),
+                    ->label('Received By')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->recordActions([
+                EditAction::make()
+                    ->iconButton()
+                    ->icon('heroicon-o-archive-box-arrow-down')
+                    ->modalHeading('Update Dispatch Entry')
+                    ->authorize(fn () => auth()->user()->can('receive', Container::class)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

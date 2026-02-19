@@ -63,9 +63,4 @@ final class DispatchPolicy
     {
         return $user->can('approve.dispatches') && $dispatch->state->equals(DispatchDraftState::class);
     }
-
-    public function receive(mixed $user): bool
-    {
-        return $user->can('receive.containers');
-    }
 }

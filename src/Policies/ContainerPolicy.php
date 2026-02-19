@@ -50,4 +50,9 @@ final class ContainerPolicy
     {
         return $user->can('forceDelete.containers');
     }
+
+    public function receive(mixed $user): bool
+    {
+        return $user->can('receive.containers');
+    }
 }
