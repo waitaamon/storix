@@ -21,8 +21,10 @@ final class DispatchEntryExporter extends Exporter
         return [
             ExportColumn::make('container.serial'),
             ExportColumn::make('container.name'),
+            ExportColumn::make('dispatch.deliveryNote.customer.name')->label('Customer'),
             ExportColumn::make('dispatch.deliveryNote.code')->label('Delivery note'),
             ExportColumn::make('dispatch.dispatched_at'),
+            ExportColumn::make('dispatch.dispatch_note'),
             ExportColumn::make('receivedBy.name'),
             ExportColumn::make('return_date'),
             ExportColumn::make('return_condition'),

@@ -21,11 +21,10 @@ final class DispatchFactory extends Factory
     public function definition(): array
     {
         return [
-            'customer_id' => $this->faker->numberBetween(1, 1000000),
             'dispatched_by' => $this->faker->numberBetween(1, 1000000),
             'delivery_note_id' => $this->faker->numberBetween(1, 1000000),
             'dispatched_at' => CarbonImmutable::instance($this->faker->dateTimeThisMonth()),
-            'dispatched_note' => $this->faker->optional()->paragraph(),
+            'dispatch_note' => $this->faker->optional()->paragraph(),
             'metadata' => [
                 'source' => 'factory',
             ],

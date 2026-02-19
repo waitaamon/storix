@@ -23,11 +23,6 @@ final class TableNames
         return Config::string('storix.tables.dispatch_entries', 'dispatch_entries');
     }
 
-    public static function customers(): string
-    {
-        return Config::string('storix.tables.customers', 'customers');
-    }
-
     public static function deliveryNotes(): string
     {
         return Config::string('storix.tables.delivery_notes', 'delivery_notes');

@@ -62,13 +62,12 @@ Create **Dispatches module** representing full lifecycle.
 ### Dispatch Migration Fields
 
 -   id
--   customer_id → FK customers table
 -   container_id → FK containers table
 -   dispatched_by → FK users table
 -   delivery_note_id → string / text
 -   received_by → FK users table (nullable)
 -   dispatched_at → timestamp
--   dispatched_note → text (nullable)
+-   dispatch_note → text (nullable)
 
 ### Return Tracking Fields
 
@@ -85,7 +84,6 @@ Must include:
 -   Proper foreign keys with cascade rules
 -   Indexes on:
     -   container_id
-    -   customer_id
     -   dispatched_at
     -   return_date
 
@@ -241,7 +239,7 @@ Storix plugin must include:
 
 -   Container utilization dashboard widgets
 -   Damage rate analytics
--   Customer container aging report
+-    Container aging report
 -   Lost container financial exposure report
 
 ------------------------------------------------------------------------

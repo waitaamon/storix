@@ -35,8 +35,6 @@ abstract class TestCase extends Orchestra
 
         $app['config']->set('auth.providers.users.model', Fixtures\Models\User::class);
         $app['config']->set('storix.models.user', Fixtures\Models\User::class);
-        $app['config']->set('storix.models.customer', Fixtures\Models\Customer::class);
-        $app['config']->set('storix.tables.customers', 'customers');
         $app['config']->set('storix.tables.users', 'users');
     }
 
@@ -47,13 +45,6 @@ abstract class TestCase extends Orchestra
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('customers', function (Blueprint $table): void {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->nullable();
             $table->timestamps();
         });
 

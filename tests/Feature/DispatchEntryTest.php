@@ -6,16 +6,13 @@ use Storix\Enums\ReturnCondition;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
-use Storix\Tests\Fixtures\Models\Customer;
 use Storix\Tests\Fixtures\Models\User;
 
 it('creates a dispatch entry linking a container to a dispatch', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $container = Container::factory()->create();
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
         'delivery_note_id' => 'Test delivery',
     ]);
@@ -31,13 +28,11 @@ it('creates a dispatch entry linking a container to a dispatch', function (): vo
 });
 
 it('records return information on a dispatch entry', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $receiver = User::query()->create(['name' => 'Receiver', 'email' => 'receive@example.com']);
     $container = Container::factory()->create();
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
         'delivery_note_id' => 'Test delivery',
     ]);
@@ -62,12 +57,10 @@ it('records return information on a dispatch entry', function (): void {
 });
 
 it('soft deletes and restores a dispatch entry', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $container = Container::factory()->create();
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
         'delivery_note_id' => 'Test delivery',
     ]);
@@ -88,12 +81,12 @@ it('soft deletes and restores a dispatch entry', function (): void {
 });
 
 it('associates multiple containers with a single dispatch', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
+
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $containers = Container::factory()->count(3)->create();
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
+
         'dispatched_by' => $user->id,
         'delivery_note_id' => 'Bulk delivery',
     ]);
@@ -111,7 +104,7 @@ it('associates multiple containers with a single dispatch', function (): void {
 });
 
 it('scopes availableForDispatch to active containers without unreturned entries', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
+
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
 
     $available = Container::factory()->create(['is_active' => true]);
@@ -120,7 +113,7 @@ it('scopes availableForDispatch to active containers without unreturned entries'
     $returned = Container::factory()->create(['is_active' => true]);
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
+
         'dispatched_by' => $user->id,
         'delivery_note_id' => 'Test',
     ]);
@@ -148,13 +141,13 @@ it('scopes availableForDispatch to active containers without unreturned entries'
 });
 
 it('includes containers with soft-deleted unreturned entries in availableForDispatch', function (): void {
-    $customer = Customer::query()->create(['name' => 'Acme Industries']);
+
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
 
     $container = Container::factory()->create(['is_active' => true]);
 
     $dispatch = Dispatch::query()->create([
-        'customer_id' => $customer->id,
+
         'dispatched_by' => $user->id,
         'delivery_note_id' => 'Test',
     ]);

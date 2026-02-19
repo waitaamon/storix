@@ -21,13 +21,19 @@ final class ContainersTable
     {
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(),
+
             TextColumn::make('serial')->searchable()->sortable(),
+
             IconColumn::make('is_active')->boolean(),
+
             TextColumn::make('dispatches_count')
                 ->counts('dispatches')
-                ->label('Dispatches')
-                ->sortable(),
-            TextColumn::make('created_at')->dateTime()->sortable()->toggleable(),
+                ->label('Dispatches'),
+
+            TextColumn::make('created_at')
+                ->dateTime()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
         ])
             ->filters([
                 TrashedFilter::make(),

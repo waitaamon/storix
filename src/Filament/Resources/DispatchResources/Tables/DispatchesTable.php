@@ -20,7 +20,7 @@ final class DispatchesTable
     {
         return $table->columns([
 
-            TextColumn::make('customer.name')
+            TextColumn::make('deliveryNote.customer.name')
                 ->label('Customer')
                 ->searchable(),
 

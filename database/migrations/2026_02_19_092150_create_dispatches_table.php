@@ -14,11 +14,10 @@ return new class extends Migration
     {
         Schema::create(TableNames::dispatches(), function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('customer_id')->index()->constrained(TableNames::customers());
             $table->foreignId('dispatched_by')->index()->constrained(TableNames::users());
             $table->foreignId('delivery_note_id')->index()->constrained(TableNames::deliveryNotes());
             $table->date('dispatched_at')->nullable();
-            $table->text('dispatched_note')->nullable();
+            $table->text('dispatch_note')->nullable();
             $table->string('state')->default(DispatchDraftState::$name);
             $table->timestampsTz();
             $table->softDeletesTz();

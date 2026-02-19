@@ -7,10 +7,10 @@ namespace Storix\Filament\Resources\DispatchResources\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Config;
 use Storix\Models\Container;
 
 final class DispatchForm
@@ -19,24 +19,15 @@ final class DispatchForm
     {
         return $schema->components([
             Section::make()
-                ->columns(3)
+                ->columns()
                 ->columnSpanFull()
                 ->schema([
-                    Select::make('customer_id')
-                        ->relationship(
-                            name: 'customer',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->whereRelation('category', 'slug', 'accounts-receivable')->where('is_active', true)
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->required(),
 
                     Select::make('delivery_note_id')
                         ->relationship(
                             name: 'deliveryNote',
                             titleAttribute: 'code',
-                            modifyQueryUsing: static fn (Builder $query): Builder => $query->whereNull('dispatched_at')
+                            modifyQueryUsing: Config::get('storix.delivery_note_query_modifier') ?? fn ($query) => $query
                         )
                         ->searchable()
                         ->preload()
@@ -61,7 +52,7 @@ final class DispatchForm
                         ->required()
                         ->columnSpanFull(),
 
-                    Textarea::make('dispatched_note')
+                    Textarea::make('dispatch_note')
                         ->columnSpanFull(),
                 ]),
         ]);

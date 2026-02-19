@@ -17,16 +17,18 @@ final class DispatchInfolist
                 ->columnSpanFull()
                 ->columns(4)
                 ->schema([
-                    TextEntry::make('customer.name')->label('Customer'),
+                    TextEntry::make('deliveryNote.customer.name')
+                        ->label('Customer'),
 
-                    TextEntry::make('deliveryNote.code')->label('Delivery Note'),
+                    TextEntry::make('deliveryNote.code')
+                        ->label('Delivery Note'),
 
                     TextEntry::make('dispatched_at')
                         ->dateTime(),
 
                     TextEntry::make('state'),
 
-                    TextEntry::make('dispatched_note')
+                    TextEntry::make('dispatch_note')
                         ->columnSpanFull(),
                 ]),
         ]);

@@ -6,34 +6,14 @@ namespace Storix\Filament\Resources\DispatchResources\RelationManagers;
 
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 
 final class ContainersRelationManager extends RelationManager
 {
     protected static string $relationship = 'containers';
-
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            Select::make('container_id')
-                ->relationship(
-                    name: 'container',
-                    titleAttribute: 'serial',
-                    modifyQueryUsing: static fn (Builder $query): Builder => $query->availableForDispatch()
-                )
-                ->searchable()
-                ->preload()
-                ->required()
-                ->columnSpanFull(),
-        ]);
-    }
 
     public function table(Table $table): Table
     {

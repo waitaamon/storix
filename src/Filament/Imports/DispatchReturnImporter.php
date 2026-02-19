@@ -19,16 +19,11 @@ final class DispatchReturnImporter extends Importer
      */
     public static function getColumns(): array
     {
-        $usersTable = TableNames::users();
 
         return [
-            ImportColumn::make('id')
+            ImportColumn::make('serial')
                 ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.TableNames::dispatchEntries().',id']),
-
-            ImportColumn::make('received_by')
-                ->requiredMapping()
-                ->rules(['required', 'integer', 'exists:'.$usersTable.',id']),
+                ->rules(['required', 'string', 'exists:'.TableNames::containers().',serial']),
 
             ImportColumn::make('return_date')
                 ->rules(['required', 'date']),

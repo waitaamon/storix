@@ -26,20 +26,7 @@ final class Dispatch extends Model implements HasStatesContract
     /**
      * @var list<string>
      */
-    protected $fillable = ['customer_id', 'delivery_note_id', 'dispatched_by', 'dispatched_at', 'dispatched_note', 'state'];
-
-    /**
-     * Get the customer that the items were dispatched to.
-     *
-     * @return BelongsTo<Model, self>
-     */
-    public function customer(): BelongsTo
-    {
-        /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.customer', 'App\\Models\\Accounts\\Account');
-
-        return $this->belongsTo($model, 'customer_id');
-    }
+    protected $fillable = ['delivery_note_id', 'dispatched_by', 'dispatched_at', 'dispatch_note', 'state'];
 
     /**
      * Get the delivery note associated with the dispatch.

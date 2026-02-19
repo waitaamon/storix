@@ -19,15 +19,12 @@ final class DispatchExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('containers.serial'),
-            ExportColumn::make('customer_id'),
-            ExportColumn::make('dispatched_by'),
-            ExportColumn::make('entries.receivedBy.name'),
+            ExportColumn::make('deliveryNote.customer.name')->label('Customer'),
             ExportColumn::make('deliveryNote.code')->label('Delivery note'),
+            ExportColumn::make('dispatchedBy.name'),
+            ExportColumn::make('dispatch_note'),
             ExportColumn::make('dispatched_at'),
-            ExportColumn::make('entries.return_date'),
-            ExportColumn::make('entries.return_condition'),
-            ExportColumn::make('entries.return_note'),
+            ExportColumn::make('state'),
         ];
     }
 

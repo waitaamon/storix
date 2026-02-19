@@ -21,23 +21,11 @@ final class DispatchImporter extends Importer
     public static function getColumns(): array
     {
         $containersTable = TableNames::containers();
-        $customersTable = TableNames::customers();
-        $deliveryNotesTable = TableNames::deliveryNotes();
 
         return [
             ImportColumn::make('serial')
                 ->requiredMapping()
                 ->rules(['required', 'string', 'exists:'.$containersTable.',serial']),
-
-            ImportColumn::make('customer')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'exists:'.$customersTable.',name']),
-
-            ImportColumn::make('deliveryNote')
-                ->rules(['required', 'string', 'exists:'.$deliveryNotesTable.',code']),
-
-            ImportColumn::make('dispatched_note')
-                ->rules(['nullable', 'string']),
         ];
     }
 
