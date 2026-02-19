@@ -12,6 +12,7 @@ use Storix\Filament\Widgets\LostExposureWidget;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
+use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Storix\Tests\Fixtures\Models\User;
 
 /**
@@ -37,22 +38,20 @@ function widgetStatsFor(object $widget): array
 }
 
 it('computes container utilization from active dispatch entries', function (): void {
-
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Utilization test']);
 
     [$containerOne, $containerTwo, $containerThree, $containerFour] = Container::factory()->count(4)->create();
 
     $dispatchA = Dispatch::query()->create([
-
         'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => 'Dispatch A',
+        'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-12',
     ]);
 
     $dispatchB = Dispatch::query()->create([
-
         'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => 'Dispatch B',
+        'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-13',
     ]);
 
@@ -90,14 +89,13 @@ it('computes container utilization from active dispatch entries', function (): v
 });
 
 it('computes damage rate from returned entries only', function (): void {
-
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $containers = Container::factory()->count(3)->create();
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Damage check']);
 
     $dispatch = Dispatch::query()->create([
-
         'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => 'Damage check',
+        'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-12',
     ]);
 
@@ -134,28 +132,25 @@ it('computes aging metrics from open dispatch entries', function (): void {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-17'));
 
     try {
-
         $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
         $containers = Container::factory()->count(3)->create();
+        $deliveryNote = DeliveryNote::query()->create(['name' => 'Aging test']);
 
         $dispatchFiveDays = Dispatch::query()->create([
-
             'dispatched_by' => $dispatcher->id,
-            'delivery_note_id' => 'Five day',
+            'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-12',
         ]);
 
         $dispatchTwoDays = Dispatch::query()->create([
-
             'dispatched_by' => $dispatcher->id,
-            'delivery_note_id' => 'Two day',
+            'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-15',
         ]);
 
         $dispatchReturned = Dispatch::query()->create([
-
             'dispatched_by' => $dispatcher->id,
-            'delivery_note_id' => 'Returned',
+            'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-14',
         ]);
 
@@ -189,8 +184,8 @@ it('computes aging metrics from open dispatch entries', function (): void {
 });
 
 it('computes lost exposure from container replacement costs', function (): void {
-
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Loss report']);
 
     $lostOne = Container::factory()->create(['metadata' => ['replacement_cost' => 100.50]]);
     $lostTwo = Container::factory()->create(['metadata' => ['replacement_cost' => 25]]);
@@ -198,7 +193,7 @@ it('computes lost exposure from container replacement costs', function (): void 
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => 'Loss report',
+        'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-12',
     ]);
 

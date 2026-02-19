@@ -6,15 +6,17 @@ use Storix\Enums\ReturnCondition;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
+use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Storix\Tests\Fixtures\Models\User;
 
 it('creates a dispatch entry linking a container to a dispatch', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $container = Container::factory()->create();
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Test delivery']);
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
-        'delivery_note_id' => 'Test delivery',
+        'delivery_note_id' => $deliveryNote->id,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -31,10 +33,11 @@ it('records return information on a dispatch entry', function (): void {
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $receiver = User::query()->create(['name' => 'Receiver', 'email' => 'receive@example.com']);
     $container = Container::factory()->create();
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Test delivery']);
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => 'Test delivery',
+        'delivery_note_id' => $deliveryNote->id,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -56,13 +59,14 @@ it('records return information on a dispatch entry', function (): void {
         ->and($entry->receivedBy->id)->toBe($receiver->id);
 });
 
-it('soft deletes and restores a dispatch entry', function (): void {
+it('deletes a dispatch entry', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $container = Container::factory()->create();
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Test delivery']);
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
-        'delivery_note_id' => 'Test delivery',
+        'delivery_note_id' => $deliveryNote->id,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -70,25 +74,20 @@ it('soft deletes and restores a dispatch entry', function (): void {
         'container_id' => $container->id,
     ]);
 
+    $entryId = $entry->id;
     $entry->delete();
 
-    expect(DispatchEntry::query()->find($entry->id))->toBeNull()
-        ->and(DispatchEntry::withTrashed()->find($entry->id))->not->toBeNull();
-
-    $entry->restore();
-
-    expect(DispatchEntry::query()->find($entry->id))->not->toBeNull();
+    expect(DispatchEntry::query()->find($entryId))->toBeNull();
 });
 
 it('associates multiple containers with a single dispatch', function (): void {
-
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $containers = Container::factory()->count(3)->create();
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Bulk delivery']);
 
     $dispatch = Dispatch::query()->create([
-
         'dispatched_by' => $user->id,
-        'delivery_note_id' => 'Bulk delivery',
+        'delivery_note_id' => $deliveryNote->id,
     ]);
 
     foreach ($containers as $container) {
@@ -104,8 +103,8 @@ it('associates multiple containers with a single dispatch', function (): void {
 });
 
 it('scopes availableForDispatch to active containers without unreturned entries', function (): void {
-
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Test']);
 
     $available = Container::factory()->create(['is_active' => true]);
     $inactive = Container::factory()->create(['is_active' => false]);
@@ -113,9 +112,9 @@ it('scopes availableForDispatch to active containers without unreturned entries'
     $returned = Container::factory()->create(['is_active' => true]);
 
     $dispatch = Dispatch::query()->create([
-
         'dispatched_by' => $user->id,
-        'delivery_note_id' => 'Test',
+        'delivery_note_id' => $deliveryNote->id,
+        'state' => 'approved',
     ]);
 
     // Container dispatched but not returned — should be excluded
@@ -140,24 +139,23 @@ it('scopes availableForDispatch to active containers without unreturned entries'
         ->and($result)->not->toContain($dispatched->id);
 });
 
-it('includes containers with soft-deleted unreturned entries in availableForDispatch', function (): void {
-
+it('includes containers on draft dispatches in availableForDispatch', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Test']);
 
     $container = Container::factory()->create(['is_active' => true]);
 
     $dispatch = Dispatch::query()->create([
-
         'dispatched_by' => $user->id,
-        'delivery_note_id' => 'Test',
+        'delivery_note_id' => $deliveryNote->id,
+        // state defaults to draft
     ]);
 
-    // Entry is unreturned but soft-deleted — container should be available
-    $entry = DispatchEntry::query()->create([
+    // Entry is unreturned but dispatch is still in draft — container should be available
+    DispatchEntry::query()->create([
         'dispatch_id' => $dispatch->id,
         'container_id' => $container->id,
     ]);
-    $entry->delete();
 
     $result = Container::query()->availableForDispatch()->pluck('id');
 

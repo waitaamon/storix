@@ -36,6 +36,8 @@ abstract class TestCase extends Orchestra
         $app['config']->set('auth.providers.users.model', Fixtures\Models\User::class);
         $app['config']->set('storix.models.user', Fixtures\Models\User::class);
         $app['config']->set('storix.tables.users', 'users');
+        $app['config']->set('storix.models.delivery_note', Fixtures\Models\DeliveryNote::class);
+        $app['config']->set('storix.tables.delivery_notes', 'delivery_notes');
     }
 
     protected function defineDatabaseMigrations(): void
@@ -54,6 +56,12 @@ abstract class TestCase extends Orchestra
             $table->string('guard_name');
             $table->timestamps();
             $table->unique(['name', 'guard_name']);
+        });
+
+        Schema::create('delivery_notes', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
         });
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');

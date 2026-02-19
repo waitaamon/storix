@@ -16,8 +16,8 @@ it('defines container import columns', function (): void {
 });
 
 it('defines dispatch import and return import columns', function (): void {
-    expect(DispatchImporter::getColumns())->toHaveCount(4)
-        ->and(DispatchReturnImporter::getColumns())->toHaveCount(5);
+    expect(DispatchImporter::getColumns())->toHaveCount(1)
+        ->and(DispatchReturnImporter::getColumns())->toHaveCount(4);
 });
 
 it('defines export columns for containers and dispatches', function (): void {
@@ -26,13 +26,10 @@ it('defines export columns for containers and dispatches', function (): void {
         ->all();
 
     expect(ContainerExporter::getColumns())->not->toBeEmpty()
-        ->and($dispatchColumns)->toContain('containers.serial')
-        ->and($dispatchColumns)->toContain('entries.return_date')
-        ->and($dispatchColumns)->toContain('entries.return_condition')
-        ->and($dispatchColumns)->toContain('entries.return_note')
-        ->and($dispatchColumns)->not->toContain('return_date')
-        ->and($dispatchColumns)->not->toContain('return_condition')
-        ->and($dispatchColumns)->not->toContain('return_note');
+        ->and($dispatchColumns)->toContain('deliveryNote.customer.name')
+        ->and($dispatchColumns)->toContain('state')
+        ->and($dispatchColumns)->not->toContain('containers.serial')
+        ->and($dispatchColumns)->not->toContain('entries.return_date');
 });
 
 it('targets dispatch entries for return imports', function (): void {

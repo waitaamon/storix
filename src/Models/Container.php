@@ -27,7 +27,7 @@ final class Container extends Model
      *
      * @var list<string>
      */
-    protected $fillable = ['name', 'serial', 'is_active', 'description'];
+    protected $fillable = ['name', 'serial', 'is_active', 'description', 'metadata'];
 
     /**
      * Get the dispatch entries for this container.
@@ -85,6 +85,7 @@ final class Container extends Model
     {
         return [
             'is_active' => 'boolean',
+            'metadata' => 'array',
         ];
     }
 }
