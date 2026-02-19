@@ -7,6 +7,7 @@ namespace Storix;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Resources\DispatchEntriesResources\DispatchEntryResource;
 use Storix\Filament\Resources\DispatchResources\DispatchResource;
 use Storix\Filament\Widgets\ContainerAgingReportWidget;
 use Storix\Filament\Widgets\ContainerUtilizationWidget;
@@ -31,6 +32,7 @@ final class StorixPlugin implements Plugin
             ->resources([
                 ContainerResource::class,
                 DispatchResource::class,
+                DispatchEntryResource::class,
             ])
             ->widgets([
                 ContainerUtilizationWidget::class,

@@ -24,9 +24,23 @@ return [
     'labels' => [
         'container' => env('STORIX_CONTAINER_LABEL', 'container'),
         'dispatch' => env('STORIX_DISPATCH_LABEL', 'dispatch'),
+        'dispatch_entry' => env('STORIX_DISPATCH_ENTRY_LABEL', 'dispatch entry'),
     ],
 
-    'delivery_note_query_modifier' => static fn (Builder $query): Builder => $query->whereNull('dispatched_at'),
+    'delivery_note_query_modifier' => static function (Builder $query): Builder {
+
+        $financialYearServiceClass = env('STORIX_FINANCIAL_YEAR_SERVICE', 'App\\Services\\FinancialYearService');
+
+        $year = $financialYearServiceClass::selectedFinancialYear();
+
+        return $query
+            ->whereNull('dispatched_at')
+            ->where('state', 'approved')
+            ->whereBetween('transaction_date', [
+                $year?->start_date ?? today(),
+                $year?->end_date ?? today(),
+            ]);
+    },
 
     'permissions' => [
         'register' => true,

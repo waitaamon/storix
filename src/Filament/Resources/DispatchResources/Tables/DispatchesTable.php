@@ -11,6 +11,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Config;
 use Storix\Filament\Exports\DispatchExporter;
 use Storix\Models\Dispatch;
 
@@ -34,6 +35,13 @@ final class DispatchesTable
 
             TextColumn::make('dispatchedBy.name')
                 ->label('Dispatched By'),
+
+            TextColumn::make('containers_count')
+                ->label(fn () => str(Config::string('storix.labels.container'))->plural()->headline().' count')
+                ->counts('containers'),
+
+            TextColumn::make('state')
+                ->icon(false),
         ])
             ->filters([
                 TrashedFilter::make(),

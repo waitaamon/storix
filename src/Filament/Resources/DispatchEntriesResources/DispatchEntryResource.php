@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Storix\Filament\Resources\DispatchEntries;
+namespace Storix\Filament\Resources\DispatchEntriesResources;
 
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ExportBulkAction;
 use Filament\Resources\Resource;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Config;
+use Override;
 use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Models\DispatchEntry;
 use UnitEnum;
@@ -19,10 +20,17 @@ final class DispatchEntryResource extends Resource
 {
     protected static ?string $model = DispatchEntry::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
+    #[Override]
+    public static function getModelLabel(): string
+    {
+        return Config::string('storix.labels.dispatch_entry');
+    }
+
+    #[Override]
     public static function table(Table $table): Table
     {
         return $table

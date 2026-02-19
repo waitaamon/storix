@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Storix\Filament\Resources\DispatchEntries\Pages;
+namespace Storix\Filament\Resources\DispatchEntriesResources\Pages;
 
 use Filament\Resources\Pages\ListRecords;
-use Storix\Filament\Resources\DispatchEntries\DispatchEntryResource;
+use Storix\Filament\Resources\DispatchEntriesResources\DispatchEntryResource;
 
 final class ListDispatchEntries extends ListRecords
 {
