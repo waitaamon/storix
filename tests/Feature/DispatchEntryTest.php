@@ -17,7 +17,7 @@ it('creates a dispatch entry linking a container to a dispatch', function (): vo
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
-        'delivery_note' => 'Test delivery',
+        'delivery_note_id' => 'Test delivery',
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -39,7 +39,7 @@ it('records return information on a dispatch entry', function (): void {
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
-        'delivery_note' => 'Test delivery',
+        'delivery_note_id' => 'Test delivery',
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -69,7 +69,7 @@ it('soft deletes and restores a dispatch entry', function (): void {
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
-        'delivery_note' => 'Test delivery',
+        'delivery_note_id' => 'Test delivery',
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -95,7 +95,7 @@ it('associates multiple containers with a single dispatch', function (): void {
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
-        'delivery_note' => 'Bulk delivery',
+        'delivery_note_id' => 'Bulk delivery',
     ]);
 
     foreach ($containers as $container) {
@@ -122,7 +122,7 @@ it('scopes availableForDispatch to active containers without unreturned entries'
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
-        'delivery_note' => 'Test',
+        'delivery_note_id' => 'Test',
     ]);
 
     // Container dispatched but not returned — should be excluded
@@ -156,7 +156,7 @@ it('includes containers with soft-deleted unreturned entries in availableForDisp
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $user->id,
-        'delivery_note' => 'Test',
+        'delivery_note_id' => 'Test',
     ]);
 
     // Entry is unreturned but soft-deleted — container should be available

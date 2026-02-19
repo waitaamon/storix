@@ -74,7 +74,7 @@ final class Container extends Model
     {
         $query->where('is_active', true)
             ->whereDoesntHave('entries', fn (Builder $query): Builder => $query->whereNull('return_date')
-                ->whereHas('dispatches', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
+                ->whereHas('dispatch', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
             );
     }
 

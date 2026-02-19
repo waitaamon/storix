@@ -24,7 +24,8 @@ final class DispatchesTable
                 ->label('Customer')
                 ->searchable(),
 
-            TextColumn::make('delivery_note')
+            TextColumn::make('deliveryNote.code')
+                ->label('Delivery Note')
                 ->searchable(),
 
             TextColumn::make('dispatched_at')

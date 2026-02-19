@@ -36,22 +36,22 @@ final class DispatchPolicy
 
     public function update(mixed $user, Dispatch $dispatch): bool
     {
-        return $user->can('update.dispatches');
+        return $user->can('update.dispatches') && $dispatch->state->equals(DispatchDraftState::class);
     }
 
     public function delete(mixed $user, Dispatch $dispatch): bool
     {
-        return $user->can('delete.dispatches');
+        return $user->can('delete.dispatches') && $dispatch->state->equals(DispatchDraftState::class);
     }
 
     public function restore(mixed $user, Dispatch $dispatch): bool
     {
-        return $user->can('restore.dispatches');
+        return $user->can('restore.dispatches') && $dispatch->state->equals(DispatchDraftState::class);
     }
 
     public function forceDelete(mixed $user, Dispatch $dispatch): bool
     {
-        return $user->can('forceDelete.dispatches');
+        return $user->can('forceDelete.dispatches') && $dispatch->state->equals(DispatchDraftState::class);
     }
 
     public function draft(mixed $user, Dispatch $dispatch): bool

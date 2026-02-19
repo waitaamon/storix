@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
-use Storix\Filament\Resources\DispatchResources\RelationManagers\DispatchEntriesRelationManager;
+use Storix\Filament\Resources\DispatchResources\RelationManagers\ContainersRelationManager;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchForm;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchInfolist;
 use Storix\Filament\Resources\DispatchResources\Tables\DispatchesTable;
@@ -58,7 +58,7 @@ final class DispatchResource extends Resource
     public static function getRelations(): array
     {
         return [
-            DispatchEntriesRelationManager::class,
+            ContainersRelationManager::class,
         ];
     }
 

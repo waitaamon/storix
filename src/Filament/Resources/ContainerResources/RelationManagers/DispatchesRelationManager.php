@@ -30,7 +30,7 @@ final class DispatchesRelationManager extends RelationManager
             TextInput::make('customer_id')->required()->numeric(),
             TextInput::make('dispatched_by')->required()->numeric(),
             DateTimePicker::make('dispatched_at')->required(),
-            Textarea::make('delivery_note'),
+            TextInput::make('delivery_note_id'),
             Textarea::make('dispatched_note'),
             Select::make('return_condition')
                 ->options(ReturnCondition::class)

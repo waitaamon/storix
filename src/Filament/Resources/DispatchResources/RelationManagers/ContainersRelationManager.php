@@ -4,26 +4,20 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources\RelationManagers;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
+use Filament\Actions\AttachAction;
+use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ExportBulkAction;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Storix\Enums\ReturnCondition;
-use Storix\Filament\Exports\DispatchEntryExporter;
-use Storix\Models\Container;
+use Illuminate\Support\Facades\Config;
 
-final class DispatchEntriesRelationManager extends RelationManager
+final class ContainersRelationManager extends RelationManager
 {
-    protected static string $relationship = 'entries';
+    protected static string $relationship = 'containers';
 
     public function form(Schema $schema): Schema
     {
@@ -44,13 +38,13 @@ final class DispatchEntriesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('id')
+            ->recordTitleAttribute('serial')
             ->columns([
-                TextColumn::make('container.serial')
+                TextColumn::make('serial')
                     ->label('Serial')
                     ->searchable(),
 
-                TextColumn::make('container.name')
+                TextColumn::make('name')
                     ->label('Name')
                     ->searchable(),
 
@@ -64,22 +58,17 @@ final class DispatchEntriesRelationManager extends RelationManager
                     ->badge(),
             ])
             ->headerActions([
-                CreateAction::make()
+                AttachAction::make()
+                    ->multiple()
+                    ->preloadRecordSelect()
+                    ->icon('heroicon-o-plus')
+                    ->label(fn () => 'Add '.Config::string('storix.labels.container'))
                     ->authorize(fn () => auth()->user()->can('update', $this->ownerRecord)),
             ])
             ->recordActions([
-                EditAction::make()
+                DetachAction::make()
                     ->iconButton()
                     ->authorize(fn () => auth()->user()->can('update', $this->ownerRecord)),
-                DeleteAction::make()
-                    ->iconButton()
-                    ->authorize(fn () => auth()->user()->can('update', $this->ownerRecord)),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    ExportBulkAction::make()
-                        ->exporter(DispatchEntryExporter::class),
-                ]),
             ]);
     }
 }

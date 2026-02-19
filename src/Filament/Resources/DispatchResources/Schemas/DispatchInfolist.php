@@ -19,10 +19,12 @@ final class DispatchInfolist
                 ->schema([
                     TextEntry::make('customer.name')->label('Customer'),
 
-                    TextEntry::make('delivery_note'),
+                    TextEntry::make('deliveryNote.code')->label('Delivery Note'),
 
                     TextEntry::make('dispatched_at')
                         ->dateTime(),
+
+                    TextEntry::make('state'),
 
                     TextEntry::make('dispatched_note')
                         ->columnSpanFull(),

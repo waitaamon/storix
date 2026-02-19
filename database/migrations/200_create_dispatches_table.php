@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->index()->constrained(TableNames::customers());
             $table->foreignId('dispatched_by')->index()->constrained(TableNames::users());
-            $table->string('delivery_note')->nullable();
+            $table->foreignId('delivery_note_id')->index()->constrained(TableNames::deliveryNotes());
             $table->date('dispatched_at')->nullable();
             $table->text('dispatched_note')->nullable();
             $table->string('state')->default(DispatchDraftState::$name);

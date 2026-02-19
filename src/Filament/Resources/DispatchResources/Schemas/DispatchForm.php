@@ -32,8 +32,14 @@ final class DispatchForm
                         ->preload()
                         ->required(),
 
-                    TextInput::make('delivery_note')
-                        ->maxLength(200)
+                    Select::make('delivery_note_id')
+                        ->relationship(
+                            name: 'deliveryNote',
+                            titleAttribute: 'code',
+                            modifyQueryUsing: static fn (Builder $query): Builder => $query->whereNull('dispatched_at')
+                        )
+                        ->searchable()
+                        ->preload()
                         ->required(),
 
                     DateTimePicker::make('dispatched_at')

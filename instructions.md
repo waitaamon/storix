@@ -65,7 +65,7 @@ Create **Dispatches module** representing full lifecycle.
 -   customer_id → FK customers table
 -   container_id → FK containers table
 -   dispatched_by → FK users table
--   delivery_note → string / text
+-   delivery_note_id → string / text
 -   received_by → FK users table (nullable)
 -   dispatched_at → timestamp
 -   dispatched_note → text (nullable)

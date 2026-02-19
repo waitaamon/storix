@@ -22,6 +22,7 @@ final class DispatchImporter extends Importer
     {
         $containersTable = TableNames::containers();
         $customersTable = TableNames::customers();
+        $deliveryNotesTable = TableNames::deliveryNotes();
 
         return [
             ImportColumn::make('serial')
@@ -32,8 +33,8 @@ final class DispatchImporter extends Importer
                 ->requiredMapping()
                 ->rules(['required', 'string', 'exists:'.$customersTable.',name']),
 
-            ImportColumn::make('delivery_note')
-                ->rules(['required', 'string']),
+            ImportColumn::make('deliveryNote')
+                ->rules(['required', 'string', 'exists:'.$deliveryNotesTable.',code']),
 
             ImportColumn::make('dispatched_note')
                 ->rules(['nullable', 'string']),

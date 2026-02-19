@@ -46,14 +46,14 @@ it('computes container utilization from active dispatch entries', function (): v
     $dispatchA = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
-        'delivery_note' => 'Dispatch A',
+        'delivery_note_id' => 'Dispatch A',
         'dispatched_at' => '2026-02-12',
     ]);
 
     $dispatchB = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
-        'delivery_note' => 'Dispatch B',
+        'delivery_note_id' => 'Dispatch B',
         'dispatched_at' => '2026-02-13',
     ]);
 
@@ -98,7 +98,7 @@ it('computes damage rate from returned entries only', function (): void {
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
-        'delivery_note' => 'Damage check',
+        'delivery_note_id' => 'Damage check',
         'dispatched_at' => '2026-02-12',
     ]);
 
@@ -142,21 +142,21 @@ it('computes aging metrics from open dispatch entries', function (): void {
         $dispatchFiveDays = Dispatch::query()->create([
             'customer_id' => $customer->id,
             'dispatched_by' => $dispatcher->id,
-            'delivery_note' => 'Five day',
+            'delivery_note_id' => 'Five day',
             'dispatched_at' => '2026-02-12',
         ]);
 
         $dispatchTwoDays = Dispatch::query()->create([
             'customer_id' => $customer->id,
             'dispatched_by' => $dispatcher->id,
-            'delivery_note' => 'Two day',
+            'delivery_note_id' => 'Two day',
             'dispatched_at' => '2026-02-15',
         ]);
 
         $dispatchReturned = Dispatch::query()->create([
             'customer_id' => $customer->id,
             'dispatched_by' => $dispatcher->id,
-            'delivery_note' => 'Returned',
+            'delivery_note_id' => 'Returned',
             'dispatched_at' => '2026-02-14',
         ]);
 
@@ -200,7 +200,7 @@ it('computes lost exposure from container replacement costs', function (): void 
     $dispatch = Dispatch::query()->create([
         'customer_id' => $customer->id,
         'dispatched_by' => $dispatcher->id,
-        'delivery_note' => 'Loss report',
+        'delivery_note_id' => 'Loss report',
         'dispatched_at' => '2026-02-12',
     ]);
 

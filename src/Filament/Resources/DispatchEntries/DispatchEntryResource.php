@@ -27,7 +27,7 @@ final class DispatchEntryResource extends Resource
 
                 TextColumn::make('dispatch.customer.name')->searchable()->label('Customer'),
 
-                TextColumn::make('dispatch.delivery_note')->searchable()->label('Delivery Note'),
+                TextColumn::make('dispatch.deliveryNote.code')->searchable()->label('Delivery Note'),
 
                 TextColumn::make('dispatch.dispatched_at')->date()->label('Dispatched At'),
 
