@@ -13,7 +13,6 @@ use Storix\Models\Transitions\DispatchToDraftTransition;
 
 abstract class DispatchState extends State
 {
-
     /**
      * @throws InvalidConfig
      */

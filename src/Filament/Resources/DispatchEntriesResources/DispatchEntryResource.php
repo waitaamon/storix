@@ -8,17 +8,20 @@ use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ImportAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Size;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchEntryExporter;
+use Storix\Filament\Imports\DispatchReturnImporter;
 use Storix\Models\Container;
 use Storix\Models\DispatchEntry;
 use UnitEnum;
@@ -40,10 +43,16 @@ final class DispatchEntryResource extends Resource
     #[Override]
     public static function form(Schema $schema): Schema
     {
+        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
+
+        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+
         return $schema
             ->components([
                 DatePicker::make('return_date')
                     ->native(false)
+                    ->minDate($year->start_date ?? today())
+                    ->maxDate($year->end_date ?? today())
                     ->closeOnDateSelection()
                     ->required(),
                 Select::make('return_condition')
@@ -61,9 +70,14 @@ final class DispatchEntryResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('dispatch.code')
+                    ->label('Code')
+                    ->searchable(),
+
                 TextColumn::make('container.name')
                     ->searchable()
-                    ->label('Name'),
+                    ->label('Name')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('container.serial')
                     ->searchable()
@@ -79,9 +93,9 @@ final class DispatchEntryResource extends Resource
 
                 TextColumn::make('dispatch.dispatched_at')
                     ->date()
-                    ->label('Dispatched At'),
+                    ->label('Date'),
 
-                TextColumn::make('dispatch.dispatchedBy.name')
+                TextColumn::make('dispatchedBy.name')
                     ->label('Dispatched By')
                     ->toggleable(isToggledHiddenByDefault: true),
 
@@ -114,6 +128,14 @@ final class DispatchEntryResource extends Resource
                     ->authorize(fn () => auth()->user()->can('receive', Container::class)),
             ])
             ->toolbarActions([
+                ImportAction::make('Bulk '.str(Config::string('storix.labels.dispatch_entry'))->plural()->headline().' Import')
+                    ->icon('heroicon-o-document-arrow-up')
+                    ->outlined()
+                    ->color('primary')
+                    ->size(Size::ExtraSmall)
+                    ->label('Import '.str(Config::string('storix.labels.container'))->plural()->headline())
+                    ->importer(DispatchReturnImporter::class),
+
                 BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exporter(DispatchEntryExporter::class),

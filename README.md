@@ -97,7 +97,7 @@ php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
 ### Imports
 
 - `ContainerImporter`: creates/updates containers by `serial`.
-- `DispatchImporter`: creates dispatch rows.
+- `DispatchEntryImporter`: creates dispatch entries rows.
 - `DispatchReturnImporter`: updates return fields on an existing dispatch entry by `id`.
 
 ### Exports

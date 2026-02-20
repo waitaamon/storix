@@ -27,11 +27,13 @@ return [
         'dispatch_entry' => env('STORIX_DISPATCH_ENTRY_LABEL', 'dispatch entry'),
     ],
 
+    'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
+
     'delivery_note_query_modifier' => static function (Builder $query): Builder {
 
-        $financialYearServiceClass = env('STORIX_FINANCIAL_YEAR_SERVICE', 'App\\Services\\FinancialYearService');
+        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
 
-        $year = $financialYearServiceClass::selectedFinancialYear();
+        $year = (new $financialYearServiceClass)::selectedFinancialYear();
 
         return $query
             ->whereNull('dispatched_at')

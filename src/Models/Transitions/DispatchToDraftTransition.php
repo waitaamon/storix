@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Storix\Models\Transitions;
 
 use Spatie\ModelStates\Transition;
-use Storix\Events\DispatchApproved;
 use Storix\Events\DispatchDrafted;
 use Storix\Models\Dispatch;
-use Storix\Models\States\DispatchApprovedState;
 use Storix\Models\States\DispatchDraftState;
 
 final class DispatchToDraftTransition extends Transition

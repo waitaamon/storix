@@ -17,6 +17,12 @@ final class EditDispatch extends EditRecord
     protected static string $resource = DispatchResource::class;
 
     #[Override]
+    public function getRelationManagers(): array
+    {
+        return [];
+    }
+
+    #[Override]
     protected function getHeaderActions(): array
     {
         return [
@@ -27,12 +33,6 @@ final class EditDispatch extends EditRecord
                     ->authorize(fn (Dispatch $record) => auth()->user()->can('delete', $record)),
             ]),
         ];
-    }
-
-    #[Override]
-    public function getRelationManagers(): array
-    {
-        return [];
     }
 
     #[Override]

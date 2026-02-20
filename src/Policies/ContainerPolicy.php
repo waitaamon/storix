@@ -16,6 +16,7 @@ final class ContainerPolicy
 
         return null;
     }
+
     public function viewAny(mixed $user): bool
     {
         return $user->can('viewAny.containers');

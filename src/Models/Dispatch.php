@@ -24,9 +24,11 @@ final class Dispatch extends Model implements HasStatesContract
     use HasFactory, HasStates, SoftDeletes;
 
     /**
+     * The attributes that are mass assignable.
+     *
      * @var list<string>
      */
-    protected $fillable = ['delivery_note_id', 'dispatched_by', 'dispatched_at', 'dispatch_note', 'state'];
+    protected $fillable = ['delivery_note_id', 'dispatched_by', 'code', 'dispatched_at', 'dispatch_note', 'state'];
 
     /**
      * Get the delivery note associated with the dispatch.
@@ -91,11 +93,21 @@ final class Dispatch extends Model implements HasStatesContract
         return TableNames::dispatches();
     }
 
+    /**
+     * The "booted" method of the model.
+     */
     protected static function booted(): void
     {
         self::creating(function (self $dispatch): void {
             $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
             $dispatch->dispatched_at = $dispatch->dispatched_at ?? today();
+        });
+
+        self::created(function (self $dispatch): void {
+            if (empty($dispatch->code)) {
+                $dispatch->code = 'DSP-'.$dispatch->dispatched_at->format('ymd').str($dispatch->id)->padLeft(4, '0');
+                $dispatch->save();
+            }
         });
     }
 

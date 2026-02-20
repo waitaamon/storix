@@ -7,12 +7,16 @@ namespace Storix\Filament\Resources\ContainerResources\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Enums\Size;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Config;
 use Storix\Filament\Exports\ContainerExporter;
+use Storix\Filament\Imports\ContainerImporter;
 use Storix\Models\Container;
 
 final class ContainersTable
@@ -48,6 +52,13 @@ final class ContainersTable
                     ->authorize(fn (Container $record) => auth()->user()->can('update', $record)),
             ])
             ->toolbarActions([
+                ImportAction::make('Bulk '.str(Config::string('storix.labels.container'))->plural()->headline().' Import')
+                    ->icon('heroicon-o-document-arrow-up')
+                    ->outlined()
+                    ->color('primary')
+                    ->size(Size::ExtraSmall)
+                    ->label('Import '.str(Config::string('storix.labels.container'))->plural()->headline())
+                    ->importer(ContainerImporter::class),
                 BulkActionGroup::make([
                     ExportBulkAction::make()
                         ->exporter(ContainerExporter::class),

@@ -7,6 +7,7 @@ namespace Storix\Filament\Imports;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
+use Illuminate\Support\Number;
 use Storix\Models\Container;
 
 final class ContainerImporter extends Importer
@@ -22,12 +23,15 @@ final class ContainerImporter extends Importer
             ImportColumn::make('name')
                 ->requiredMapping()
                 ->rules(['required', 'string', 'max:255']),
+
             ImportColumn::make('serial')
                 ->requiredMapping()
                 ->rules(['required', 'string', 'max:255']),
+
             ImportColumn::make('is_active')
                 ->boolean()
                 ->rules(['nullable', 'boolean']),
+
             ImportColumn::make('description')
                 ->rules(['nullable', 'string']),
         ];
@@ -35,11 +39,13 @@ final class ContainerImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        return sprintf(
-            'Container import finished: %d successful rows, %d failed rows.',
-            $import->successful_rows,
-            $import->getFailedRowsCount(),
-        );
+        $body = 'Your containers import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
+
+        if (($failedRowsCount = $import->getFailedRowsCount()) !== 0) {
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
+        }
+
+        return $body;
     }
 
     public function resolveRecord(): ?Container
@@ -47,16 +53,5 @@ final class ContainerImporter extends Importer
         return Container::query()->firstOrNew([
             'serial' => (string) $this->data['serial'],
         ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getValidationAttributes(): array
-    {
-        return [
-            'name' => 'container name',
-            'serial' => 'container serial',
-        ];
     }
 }

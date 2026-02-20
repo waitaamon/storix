@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Storix\Filament\Exports\ContainerExporter;
 use Storix\Filament\Exports\DispatchExporter;
 use Storix\Filament\Imports\ContainerImporter;
-use Storix\Filament\Imports\DispatchImporter;
+use Storix\Filament\Imports\DispatchEntryImporter;
 use Storix\Filament\Imports\DispatchReturnImporter;
 use Storix\Models\DispatchEntry;
 
@@ -16,7 +16,7 @@ it('defines container import columns', function (): void {
 });
 
 it('defines dispatch import and return import columns', function (): void {
-    expect(DispatchImporter::getColumns())->toHaveCount(1)
+    expect(DispatchEntryImporter::getColumns())->toHaveCount(1)
         ->and(DispatchReturnImporter::getColumns())->toHaveCount(4);
 });
 

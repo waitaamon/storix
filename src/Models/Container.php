@@ -79,6 +79,18 @@ final class Container extends Model
     }
 
     /**
+     * Scope a query to only include containers that are active and are currently dispatched.
+     */
+    #[Scope]
+    protected function currentlyDispatched(Builder $query): void
+    {
+        $query->where('is_active', true)
+            ->whereHas('entries', fn (Builder $query): Builder => $query->whereNull('return_date')
+                ->whereHas('dispatch', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
+            );
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

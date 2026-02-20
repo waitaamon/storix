@@ -17,6 +17,10 @@ final class DispatchForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
+
+        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+
         return $schema->components([
             Section::make()
                 ->columns()
@@ -37,6 +41,8 @@ final class DispatchForm
                         ->default(now())
                         ->closeOnDateSelection()
                         ->native(false)
+                        ->minDate($year?->start_date ?? today())
+                        ->maxDate($year?->end_date ?? today())
                         ->required(),
 
                     Select::make('containers')
@@ -49,7 +55,7 @@ final class DispatchForm
                         ->multiple()
                         ->searchable()
                         ->preload()
-                        ->required()
+                        ->nullable()
                         ->columnSpanFull(),
 
                     Textarea::make('dispatch_note')

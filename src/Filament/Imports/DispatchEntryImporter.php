@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
+use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Storix\Models\Container;
 use Storix\Models\Dispatch;
-use Storix\Support\TableNames;
+use Storix\Models\DispatchEntry;
 
-final class DispatchImporter extends Importer
+final class DispatchEntryImporter extends Importer
 {
     protected static ?string $model = Dispatch::class;
 
@@ -20,12 +22,10 @@ final class DispatchImporter extends Importer
      */
     public static function getColumns(): array
     {
-        $containersTable = TableNames::containers();
-
         return [
             ImportColumn::make('serial')
-                ->requiredMapping()
-                ->rules(['required', 'string', 'exists:'.$containersTable.',serial']),
+                ->ignoreBlankState()
+                ->relationship(name: 'container', resolveUsing: 'serial'),
         ];
     }
 
@@ -40,8 +40,22 @@ final class DispatchImporter extends Importer
         return $body;
     }
 
-    public function resolveRecord(): Dispatch
+    /**
+     * @throws RowImportFailedException
+     */
+    public function resolveRecord(): DispatchEntry
     {
-        return new Dispatch();
+        $container = Container::query()
+            ->availableForDispatch()
+            ->where('serial', $this->data['serial'])
+            ->first();
+
+        if (! $container) {
+            throw new RowImportFailedException("No container found with serial [{$this->data['serial']}].");
+        }
+
+        return new DispatchEntry([
+            'dispatch_id' => $this->options['dispatch_id'],
+        ]);
     }
 }

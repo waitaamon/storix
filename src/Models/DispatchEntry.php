@@ -78,6 +78,18 @@ final class DispatchEntry extends Pivot
     }
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        self::updating(function (self $dispatch): void {
+            if ($dispatch->isDirty('return_date')) {
+                $dispatch->received_by = auth()->check() ? auth()->id() : null;
+            }
+        });
+    }
+
+    /**
      * Get the casts for the model's attributes.
      *
      * @return array<string, string>

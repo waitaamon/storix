@@ -11,6 +11,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Storix\Filament\Exports\DispatchExporter;
 use Storix\Models\Dispatch;
@@ -19,30 +20,41 @@ final class DispatchesTable
 {
     public static function configure(Table $table): Table
     {
-        return $table->columns([
+        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
 
-            TextColumn::make('deliveryNote.customer.name')
-                ->label('Customer')
-                ->searchable(),
+        $year = (new $financialYearServiceClass)::selectedFinancialYear();
 
-            TextColumn::make('deliveryNote.code')
-                ->label('Delivery Note')
-                ->searchable(),
+        return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->whereBetween('dispatched_at', [$year?->start_date ?? today(), $year?->end_date ?? today()])
+                ->orderByDesc('dispatched_at')
+            )
+            ->columns([
+                TextColumn::make('code')
+                    ->searchable(),
 
-            TextColumn::make('dispatched_at')
-                ->date()
-                ->sortable(),
+                TextColumn::make('deliveryNote.customer.name')
+                    ->label('Customer')
+                    ->searchable(),
 
-            TextColumn::make('dispatchedBy.name')
-                ->label('Dispatched By'),
+                TextColumn::make('deliveryNote.code')
+                    ->label('Delivery Note')
+                    ->searchable(),
 
-            TextColumn::make('containers_count')
-                ->label(fn () => str(Config::string('storix.labels.container'))->plural()->headline().' count')
-                ->counts('containers'),
+                TextColumn::make('dispatched_at')
+                    ->date()
+                    ->sortable(),
 
-            TextColumn::make('state')
-                ->icon(false),
-        ])
+                TextColumn::make('dispatchedBy.name')
+                    ->label('Dispatched By'),
+
+                TextColumn::make('containers_count')
+                    ->label(fn () => str(Config::string('storix.labels.container'))->plural()->headline().' count')
+                    ->counts('containers'),
+
+                TextColumn::make('state')
+                    ->icon(false),
+            ])
             ->filters([
                 TrashedFilter::make(),
             ])
