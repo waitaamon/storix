@@ -30,8 +30,6 @@ final class DispatchEntryResource extends Resource
 {
     protected static ?string $model = DispatchEntry::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
-
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]

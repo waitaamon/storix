@@ -23,8 +23,6 @@ final class ContainerResource extends Resource
 {
     protected static ?string $model = Container::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-inbox-stack';
-
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]

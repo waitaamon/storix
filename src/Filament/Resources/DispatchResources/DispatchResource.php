@@ -24,8 +24,6 @@ final class DispatchResource extends Resource
 {
     protected static ?string $model = Dispatch::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-truck';
-
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]

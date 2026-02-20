@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Storix;
 
 use Filament\Contracts\Plugin;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
 use Storix\Filament\Resources\DispatchEntriesResources\DispatchEntryResource;
@@ -39,6 +40,10 @@ final class StorixPlugin implements Plugin
                 DamageRateWidget::class,
                 ContainerAgingReportWidget::class,
                 LostExposureWidget::class,
+            ])
+            ->navigationGroups([
+                NavigationGroup::make('Storix')
+                    ->icon('heroicon-s-inbox-stack'),
             ]);
     }
 
