@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Widgets;
 
-use Carbon\CarbonImmutable;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\DB;
 use Storix\Enums\ReturnCondition;
 use Storix\Models\Container;
 use Storix\Models\DispatchEntry;
+use Storix\Support\TableNames;
 
 final class ContainerUtilizationWidget extends StatsOverviewWidget
 {
@@ -51,34 +51,29 @@ final class ContainerUtilizationWidget extends StatsOverviewWidget
             ->whereHas('container')
             ->count();
 
-        // Aging
-        $openEntries = DispatchEntry::query()
-            ->whereNull('return_date')
-            ->whereHas('dispatch')
-            ->with(['dispatch:id,dispatched_at'])
-            ->get(['dispatch_id']);
-        $today = CarbonImmutable::now();
-        $ages = $openEntries->map(function (DispatchEntry $entry) use ($today): int|float {
-            $dispatchedAt = $entry->dispatch?->dispatched_at;
+        // Aging (DB-level aggregation)
+        $aging = DB::table(TableNames::dispatchEntries())
+            ->join(TableNames::dispatches(), TableNames::dispatches().'.id', '=', TableNames::dispatchEntries().'.dispatch_id')
+            ->whereNull(TableNames::dispatchEntries().'.return_date')
+            ->whereNotNull(TableNames::dispatches().'.dispatched_at')
+            ->selectRaw('COUNT(*) as open_count')
+            ->selectRaw('COALESCE(ROUND(AVG(DATEDIFF(NOW(), '.TableNames::dispatches().'.dispatched_at))), 0) as avg_aging')
+            ->selectRaw('COALESCE(MAX(DATEDIFF(NOW(), '.TableNames::dispatches().'.dispatched_at)), 0) as max_aging')
+            ->first();
 
-            if (! $dispatchedAt instanceof CarbonImmutable) {
-                return 0;
-            }
-
-            return $dispatchedAt->diffInDays($today);
-        });
-        $avgAging = $openEntries->isNotEmpty() ? (int) round((float) $ages->avg()) : 0;
-        $oldest = $openEntries->isNotEmpty() ? (int) $ages->max() : 0;
+        $openCount = (int) ($aging?->open_count ?? 0);
+        $avgAging = (int) ($aging?->avg_aging ?? 0);
+        $oldest = (int) ($aging?->max_aging ?? 0);
 
         return [
             Stat::make('Total Containers', (string) $totalContainers)
                 ->description("In Use: {$inUseContainers} · Utilization: ".sprintf('%.2f%%', $utilization)),
 
             Stat::make('Returned Dispatches', (string) $returned)
-                ->description(new HtmlString("Damaged: $damaged · Lost: $lost · Damage Rate: ".sprintf('%.2f%%', $rate))),
+                ->description("Damaged: {$damaged} · Lost: {$lost} · Damage Rate: ".sprintf('%.2f%%', $rate)),
 
-            Stat::make('Open Dispatches', (string) $openEntries->count())
-                ->description("Avg Aging: $avgAging days · Oldest: $oldest days"),
+            Stat::make('Open Dispatches', (string) $openCount)
+                ->description("Avg Aging: {$avgAging} days · Oldest: {$oldest} days"),
         ];
     }
 }

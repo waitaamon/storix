@@ -10,12 +10,11 @@ use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
 use Storix\Models\Container;
-use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 
 final class DispatchEntryImporter extends Importer
 {
-    protected static ?string $model = Dispatch::class;
+    protected static ?string $model = DispatchEntry::class;
 
     /**
      * @return array<int, ImportColumn>

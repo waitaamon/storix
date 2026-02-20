@@ -19,6 +19,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Enums\ReturnCondition;
+use Storix\Support\FinancialYear;
 use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Filament\Imports\DispatchReturnImporter;
 use Storix\Models\Container;
@@ -40,9 +41,7 @@ final class DispatchEntryResource extends Resource
     #[Override]
     public static function form(Schema $schema): Schema
     {
-        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
-
-        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+        $year = FinancialYear::selected();
 
         return $schema
             ->components([
@@ -125,12 +124,12 @@ final class DispatchEntryResource extends Resource
                     ->authorize(fn () => auth()->user()->can('receive', Container::class)),
             ])
             ->toolbarActions([
-                ImportAction::make('Bulk '.str(Config::string('storix.labels.dispatch_entry'))->plural()->headline().' Import')
+                ImportAction::make('Bulk Returns Import')
                     ->icon('heroicon-o-document-arrow-up')
                     ->outlined()
                     ->color('primary')
                     ->size(Size::ExtraSmall)
-                    ->label('Import '.str(Config::string('storix.labels.container'))->plural()->headline())
+                    ->label('Import Returns')
                     ->importer(DispatchReturnImporter::class),
 
                 BulkActionGroup::make([

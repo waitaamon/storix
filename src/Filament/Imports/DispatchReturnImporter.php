@@ -23,7 +23,6 @@ final class DispatchReturnImporter extends Importer
      */
     public static function getColumns(): array
     {
-
         return [
             ImportColumn::make('serial')
                 ->relationship('container', resolveUsing: 'serial')

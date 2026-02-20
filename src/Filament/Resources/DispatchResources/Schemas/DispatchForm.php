@@ -12,14 +12,13 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Storix\Models\Container;
+use Storix\Support\FinancialYear;
 
 final class DispatchForm
 {
     public static function configure(Schema $schema): Schema
     {
-        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
-
-        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+        $year = FinancialYear::selected();
 
         return $schema->components([
             Section::make()

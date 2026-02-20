@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Builder;
+use Storix\Support\FinancialYear;
 
 return [
     'models' => [
@@ -30,10 +31,7 @@ return [
     'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
 
     'delivery_note_query_modifier' => static function (Builder $query): Builder {
-
-        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
-
-        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+        $year = FinancialYear::selected();
 
         return $query
             ->whereNull('dispatched_at')

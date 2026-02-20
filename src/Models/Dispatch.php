@@ -106,7 +106,7 @@ final class Dispatch extends Model implements HasStatesContract
         self::created(function (self $dispatch): void {
             if (empty($dispatch->code)) {
                 $dispatch->code = 'DSP-'.$dispatch->dispatched_at->format('ymd').str($dispatch->id)->padLeft(4, '0');
-                $dispatch->save();
+                $dispatch->saveQuietly();
             }
         });
     }

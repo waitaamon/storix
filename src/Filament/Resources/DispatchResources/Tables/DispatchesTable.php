@@ -15,14 +15,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Storix\Filament\Exports\DispatchExporter;
 use Storix\Models\Dispatch;
+use Storix\Support\FinancialYear;
 
 final class DispatchesTable
 {
     public static function configure(Table $table): Table
     {
-        $financialYearServiceClass = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
-
-        $year = (new $financialYearServiceClass)::selectedFinancialYear();
+        $year = FinancialYear::selected();
 
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query

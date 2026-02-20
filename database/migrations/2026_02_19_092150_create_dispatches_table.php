@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Storix\Models\States\DispatchDraftState;
 use Storix\Support\TableNames;
 
 return new class extends Migration
@@ -19,7 +18,7 @@ return new class extends Migration
             $table->foreignId('delivery_note_id')->index()->constrained(TableNames::deliveryNotes());
             $table->date('dispatched_at')->nullable();
             $table->text('dispatch_note')->nullable();
-            $table->string('state')->default(DispatchDraftState::$name);
+            $table->string('state')->default('draft');
             $table->timestampsTz();
             $table->softDeletesTz();
         });

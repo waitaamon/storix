@@ -53,7 +53,7 @@ final class Container extends Model
         $model = Config::string('storix.models.dispatch', 'Storix\\Models\\Dispatch');
 
         return $this->belongsToMany($model, TableNames::dispatchEntries())
-            ->using(Config::string('storix.models.dispatchEntry', 'Storix\\Models\\DispatchEntry'))
+            ->using(Config::string('storix.models.dispatch_entry', 'Storix\\Models\\DispatchEntry'))
             ->withPivot(['received_by', 'return_date', 'return_condition', 'return_note'])
             ->withTimestamps();
     }
