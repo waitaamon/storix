@@ -10,10 +10,6 @@ use Filament\Panel;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
 use Storix\Filament\Resources\DispatchEntriesResources\DispatchEntryResource;
 use Storix\Filament\Resources\DispatchResources\DispatchResource;
-use Storix\Filament\Widgets\ContainerAgingReportWidget;
-use Storix\Filament\Widgets\ContainerUtilizationWidget;
-use Storix\Filament\Widgets\DamageRateWidget;
-use Storix\Filament\Widgets\LostExposureWidget;
 
 final class StorixPlugin implements Plugin
 {
@@ -34,12 +30,6 @@ final class StorixPlugin implements Plugin
                 ContainerResource::class,
                 DispatchResource::class,
                 DispatchEntryResource::class,
-            ])
-            ->widgets([
-                ContainerUtilizationWidget::class,
-                DamageRateWidget::class,
-                ContainerAgingReportWidget::class,
-                LostExposureWidget::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make('Storix')

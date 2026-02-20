@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\ContainerResources;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -16,6 +15,7 @@ use Storix\Filament\Resources\ContainerResources\RelationManagers\DispatchesRela
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerForm;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerInfolist;
 use Storix\Filament\Resources\ContainerResources\Tables\ContainersTable;
+use Storix\Filament\Widgets\ContainerUtilizationWidget;
 use Storix\Models\Container;
 use UnitEnum;
 
@@ -47,6 +47,14 @@ final class ContainerResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return ContainerInfolist::configure($schema);
+    }
+
+    #[Override]
+    public static function getWidgets(): array
+    {
+        return [
+            ContainerUtilizationWidget::class,
+        ];
     }
 
     /**

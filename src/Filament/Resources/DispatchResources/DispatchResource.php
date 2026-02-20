@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources;
 
-use BackedEnum;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchEntriesResources;
 
-use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;

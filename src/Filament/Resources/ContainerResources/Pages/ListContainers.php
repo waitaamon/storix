@@ -8,6 +8,7 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Override;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Widgets\ContainerUtilizationWidget;
 
 final class ListContainers extends ListRecords
 {
@@ -21,6 +22,14 @@ final class ListContainers extends ListRecords
                 ->icon('heroicon-o-plus')
                 ->slideOver()
                 ->authorize(fn () => auth()->user()->can('create', ContainerResource::getModel())),
+        ];
+    }
+
+    #[Override]
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            ContainerUtilizationWidget::class,
         ];
     }
 }
