@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Storix\Tests;
 
+use Storix\Tests\Fixtures\Models\User;
+use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -33,10 +35,10 @@ abstract class TestCase extends Orchestra
             'foreign_key_constraints' => true,
         ]);
 
-        $app['config']->set('auth.providers.users.model', Fixtures\Models\User::class);
-        $app['config']->set('storix.models.user', Fixtures\Models\User::class);
+        $app['config']->set('auth.providers.users.model', User::class);
+        $app['config']->set('storix.models.user', User::class);
         $app['config']->set('storix.tables.users', 'users');
-        $app['config']->set('storix.models.delivery_note', Fixtures\Models\DeliveryNote::class);
+        $app['config']->set('storix.models.delivery_note', DeliveryNote::class);
         $app['config']->set('storix.tables.delivery_notes', 'delivery_notes');
     }
 

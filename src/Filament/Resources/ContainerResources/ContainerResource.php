@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\ContainerResources;
 
+use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
+use Storix\Filament\Resources\ContainerResources\Pages\CreateContainer;
+use Storix\Filament\Resources\ContainerResources\Pages\ViewContainer;
+use Storix\Filament\Resources\ContainerResources\Pages\EditContainer;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
@@ -15,7 +21,10 @@ use Storix\Filament\Resources\ContainerResources\RelationManagers\DispatchesRela
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerForm;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerInfolist;
 use Storix\Filament\Resources\ContainerResources\Tables\ContainersTable;
+use Storix\Filament\Widgets\ContainerAgingReportWidget;
 use Storix\Filament\Widgets\ContainerUtilizationWidget;
+use Storix\Filament\Widgets\DamageRateWidget;
+use Storix\Filament\Widgets\LostExposureWidget;
 use Storix\Models\Container;
 use UnitEnum;
 
@@ -24,6 +33,14 @@ final class ContainerResource extends Resource
     protected static ?string $model = Container::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
+
+    #[Override]
+    public static function getModel(): string
+    {
+        $model = Config::string('storix.models.container', Container::class);
+
+        return is_a($model, Model::class, true) ? $model : Container::class;
+    }
 
     #[Override]
     public static function getModelLabel(): string
@@ -54,12 +71,16 @@ final class ContainerResource extends Resource
     {
         return [
             ContainerUtilizationWidget::class,
+            DamageRateWidget::class,
+            ContainerAgingReportWidget::class,
+            LostExposureWidget::class,
         ];
     }
 
     /**
-     * @return array<class-string<\Filament\Resources\RelationManagers\RelationManager>>
+     * @return array<class-string<RelationManager>>
      */
+    #[Override]
     public static function getRelations(): array
     {
         return [
@@ -67,17 +88,18 @@ final class ContainerResource extends Resource
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
+    #[Override]
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListContainers::route('/'),
-            'view' => Pages\ViewContainer::route('/{record}'),
+            'index' => ListContainers::route('/'),
+            'create' => CreateContainer::route('/create'),
+            'view' => ViewContainer::route('/{record}'),
+            'edit' => EditContainer::route('/{record}/edit'),
         ];
     }
 
+    #[Override]
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);

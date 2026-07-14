@@ -4,38 +4,45 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources\RelationManagers;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ImportAction;
+use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Enums\Size;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Override;
+use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Filament\Imports\DispatchEntryImporter;
+use Storix\Models\Container;
+use Storix\Models\Dispatch;
+use Storix\Models\DispatchEntry;
 
+/**
+ * @property Dispatch $ownerRecord
+ */
 final class ContainersRelationManager extends RelationManager
 {
-    protected static string $relationship = 'containers';
+    protected static string $relationship = 'entries';
 
     #[Override]
     public function isReadOnly(): bool
     {
-        return auth()->user()->cannot('update', $this->ownerRecord);
+        return auth()->user()?->cannot('update', $this->ownerRecord) ?? true;
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('serial')
+            ->recordTitleAttribute('container.serial')
             ->columns([
-                TextColumn::make('serial')
+                TextColumn::make('container.serial')
                     ->label('Serial')
                     ->searchable(),
 
-                TextColumn::make('name')
+                TextColumn::make('container.name')
                     ->label('Name')
                     ->searchable(),
 
@@ -58,15 +65,32 @@ final class ContainersRelationManager extends RelationManager
                     ->importer(DispatchEntryImporter::class)
                     ->options(['dispatch_id' => $this->ownerRecord->id]),
 
-                AttachAction::make()
-                    ->multiple()
-                    ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn (Builder $query): Builder => $query->availableForDispatch())
+                CreateAction::make('addContainer')
+                    ->schema([
+                        Select::make('container_id')
+                            ->label(Config::string('storix.labels.container'))
+                            ->options(static fn (): array => Container::query()
+                                ->availableForDispatch()
+                                ->orderBy('serial')
+                                ->pluck('serial', 'id')
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ])
+                    ->using(function (array $data): DispatchEntry {
+                        app(AttachContainersToDispatchAction::class)->handle($this->ownerRecord, [(int) $data['container_id']]);
+
+                        return DispatchEntry::query()
+                            ->where('dispatch_id', $this->ownerRecord->id)
+                            ->where('container_id', $data['container_id'])
+                            ->firstOrFail();
+                    })
                     ->icon('heroicon-o-plus')
-                    ->label(fn () => 'Add '.Config::string('storix.labels.container')),
+                    ->label(fn (): string => 'Add '.Config::string('storix.labels.container')),
             ])
             ->recordActions([
-                DetachAction::make()
+                DeleteAction::make()
                     ->iconButton(),
             ]);
     }

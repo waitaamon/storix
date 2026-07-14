@@ -11,15 +11,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(TableNames::dispatchEntries(), function (Blueprint $table) {
+        Schema::create(TableNames::dispatchEntries(), function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('container_id')->constrained(TableNames::containers());
-            $table->foreignId('dispatch_id')->constrained(TableNames::dispatches());
-            $table->foreignId('received_by')->index()->nullable()->constrained(TableNames::users());
-            $table->date('return_date')->nullable()->index();
-            $table->string('return_condition')->nullable();
+            $table->foreignId('container_id')->constrained(TableNames::containers())->restrictOnDelete();
+            $table->foreignId('dispatch_id')->constrained(TableNames::dispatches())->cascadeOnDelete();
+            $table->foreignId('received_by')->nullable()->constrained(TableNames::users())->nullOnDelete();
+            $table->timestampTz('return_date')->nullable()->index();
+            $table->string('return_condition')->nullable()->index();
             $table->text('return_note')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestampsTz();
+            $table->softDeletesTz();
         });
     }
 };

@@ -16,7 +16,7 @@ final class DispatchDraftState extends DispatchState implements HasColor, HasDes
 
     public static int $order = 1;
 
-    public function getLabel(): ?string
+    public function getLabel(): string
     {
         return __('Draft');
     }

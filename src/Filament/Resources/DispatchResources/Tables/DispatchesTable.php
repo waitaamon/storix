@@ -24,10 +24,13 @@ final class DispatchesTable
         $year = FinancialYear::selected();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->whereBetween('dispatched_at', [$year?->start_date ?? today(), $year?->end_date ?? today()])
-                ->orderByDesc('dispatched_at')
-            )
+            ->modifyQueryUsing(function (Builder $query) use ($year): Builder {
+                if ($year) {
+                    $query->whereBetween('dispatched_at', [$year->start_date, $year->end_date]);
+                }
+
+                return $query->orderByDesc('dispatched_at');
+            })
             ->columns([
                 TextColumn::make('code')
                     ->searchable(),
@@ -48,7 +51,7 @@ final class DispatchesTable
                     ->label('Dispatched By'),
 
                 TextColumn::make('containers_count')
-                    ->label(fn () => str(Config::string('storix.labels.container'))->plural()->headline().' count')
+                    ->label(fn (): string => str(Config::string('storix.labels.container'))->plural()->headline().' count')
                     ->counts('containers'),
 
                 TextColumn::make('state')
@@ -60,10 +63,10 @@ final class DispatchesTable
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
-                    ->authorize(fn (Dispatch $record) => auth()->user()->can('view', $record)),
+                    ->authorize(fn (Dispatch $record) => auth()->user()?->can('view', $record) ?? false),
                 EditAction::make()
                     ->iconButton()
-                    ->authorize(fn (Dispatch $record) => auth()->user()->can('update', $record)),
+                    ->authorize(fn (Dispatch $record) => auth()->user()?->can('update', $record) ?? false),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -8,7 +8,10 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Override;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Widgets\ContainerAgingReportWidget;
 use Storix\Filament\Widgets\ContainerUtilizationWidget;
+use Storix\Filament\Widgets\DamageRateWidget;
+use Storix\Filament\Widgets\LostExposureWidget;
 
 final class ListContainers extends ListRecords
 {
@@ -21,7 +24,7 @@ final class ListContainers extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->slideOver()
-                ->authorize(fn () => auth()->user()->can('create', ContainerResource::getModel())),
+                ->authorize(fn () => auth()->user()?->can('create', ContainerResource::getModel()) ?? false),
         ];
     }
 
@@ -30,6 +33,9 @@ final class ListContainers extends ListRecords
     {
         return [
             ContainerUtilizationWidget::class,
+            DamageRateWidget::class,
+            ContainerAgingReportWidget::class,
+            LostExposureWidget::class,
         ];
     }
 }

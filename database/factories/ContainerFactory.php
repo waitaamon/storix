@@ -23,6 +23,8 @@ final class ContainerFactory extends Factory
             'name' => mb_strtoupper($this->faker->bothify('BIN-####')),
             'serial' => mb_strtoupper($this->faker->unique()->bothify('STRX-########')),
             'is_active' => true,
+            'replacement_cost' => $this->faker->randomFloat(4, 0, 250),
+            'replacement_currency' => 'USD',
             'description' => $this->faker->optional()->sentence(),
         ];
     }

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Policies;
 
-use Storix\Models\Container;
-
 final class ContainerPolicy
 {
     public function before(mixed $user): ?bool
@@ -22,7 +20,7 @@ final class ContainerPolicy
         return $user->can('viewAny.containers');
     }
 
-    public function view(mixed $user, Container $container): bool
+    public function view(mixed $user): bool
     {
         return $user->can('view.containers');
     }
@@ -32,28 +30,23 @@ final class ContainerPolicy
         return $user->can('create.containers');
     }
 
-    public function update(mixed $user, Container $container): bool
+    public function update(mixed $user): bool
     {
         return $user->can('update.containers');
     }
 
-    public function delete(mixed $user, Container $container): bool
+    public function delete(mixed $user): bool
     {
         return $user->can('delete.containers');
     }
 
-    public function restore(mixed $user, Container $container): bool
+    public function restore(mixed $user): bool
     {
         return $user->can('restore.containers');
     }
 
-    public function forceDelete(mixed $user, Container $container): bool
+    public function forceDelete(mixed $user): bool
     {
         return $user->can('forceDelete.containers');
-    }
-
-    public function receive(mixed $user): bool
-    {
-        return $user->can('receive.containers');
     }
 }

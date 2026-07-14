@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create(TableNames::containers(), function (Blueprint $table): void {
             $table->id();
-            $table->string('name')->unique()->index();
-            $table->string('serial')->unique()->index();
+            $table->string('name')->unique();
+            $table->string('serial')->unique();
             $table->boolean('is_active')->default(true)->index();
+            $table->decimal('replacement_cost', 19, 4)->default(0);
+            $table->char('replacement_currency', 3)->default('USD');
             $table->text('description')->nullable();
             $table->jsonb('metadata')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
+            $table->timestampsTz();
+            $table->softDeletesTz();
         });
     }
 };

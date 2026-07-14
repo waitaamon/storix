@@ -6,6 +6,8 @@ namespace Storix\Database\Factories;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Storix\Models\Dispatch;
 
 /**
@@ -20,9 +22,20 @@ final class DispatchFactory extends Factory
      */
     public function definition(): array
     {
+        /** @var class-string<Model> $userModel */
+        $userModel = Config::string('storix.models.user', 'App\\Models\\User');
+
+        /** @var class-string<Model> $deliveryNoteModel */
+        $deliveryNoteModel = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
+
         return [
-            'dispatched_by' => $this->faker->numberBetween(1, 1000000),
-            'delivery_note_id' => $this->faker->numberBetween(1, 1000000),
+            'dispatched_by' => $userModel::query()->create([
+                'name' => $this->faker->name(),
+                'email' => $this->faker->unique()->safeEmail(),
+            ])->getKey(),
+            'delivery_note_id' => $deliveryNoteModel::query()->create([
+                'name' => $this->faker->words(3, true),
+            ])->getKey(),
             'dispatched_at' => CarbonImmutable::instance($this->faker->dateTimeThisMonth()),
             'dispatch_note' => $this->faker->optional()->paragraph(),
         ];

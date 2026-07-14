@@ -24,6 +24,10 @@ final class DispatchExporter extends Exporter
             ExportColumn::make('dispatchedBy.name'),
             ExportColumn::make('dispatch_note'),
             ExportColumn::make('dispatched_at'),
+            ExportColumn::make('approved_at'),
+            ExportColumn::make('approvedBy.name'),
+            ExportColumn::make('voided_at'),
+            ExportColumn::make('voidedBy.name'),
             ExportColumn::make('state'),
         ];
     }

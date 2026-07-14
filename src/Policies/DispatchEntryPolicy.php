@@ -25,7 +25,7 @@ final class DispatchEntryPolicy
         return $user->can('viewAny.dispatch-entries');
     }
 
-    public function view(mixed $user, DispatchEntry $dispatchEntry): bool
+    public function view(mixed $user): bool
     {
         return $user->can('view.dispatch-entries');
     }
@@ -35,22 +35,27 @@ final class DispatchEntryPolicy
         return $user->can('create.dispatch-entries');
     }
 
-    public function update(mixed $user, DispatchEntry $dispatchEntry): bool
+    public function update(mixed $user): bool
     {
         return $user->can('update.dispatch-entries');
     }
 
-    public function delete(mixed $user, DispatchEntry $dispatchEntry): bool
+    public function receive(mixed $user, DispatchEntry $dispatchEntry): bool
+    {
+        return $user->can('receive.dispatch-entries') && $dispatchEntry->return_date === null;
+    }
+
+    public function delete(mixed $user): bool
     {
         return $user->can('delete.dispatch-entries');
     }
 
-    public function restore(mixed $user, DispatchEntry $dispatchEntry): bool
+    public function restore(mixed $user): bool
     {
         return $user->can('restore.dispatch-entries');
     }
 
-    public function forceDelete(mixed $user, DispatchEntry $dispatchEntry): bool
+    public function forceDelete(mixed $user): bool
     {
         return $user->can('forceDelete.dispatch-entries');
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Gate;
@@ -30,14 +31,22 @@ final class StorixServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        Gate::policy(Container::class, ContainerPolicy::class);
-        Gate::policy(Dispatch::class, DispatchPolicy::class);
-        Gate::policy(DispatchEntry::class, DispatchEntryPolicy::class);
+        $containerModel = Config::string('storix.models.container', Container::class);
+        $dispatchModel = Config::string('storix.models.dispatch', Dispatch::class);
+        $dispatchEntryModel = Config::string('storix.models.dispatch_entry', DispatchEntry::class);
+
+        $containerModel = is_a($containerModel, Model::class, true) ? $containerModel : Container::class;
+        $dispatchModel = is_a($dispatchModel, Model::class, true) ? $dispatchModel : Dispatch::class;
+        $dispatchEntryModel = is_a($dispatchEntryModel, Model::class, true) ? $dispatchEntryModel : DispatchEntry::class;
+
+        Gate::policy($containerModel, ContainerPolicy::class);
+        Gate::policy($dispatchModel, DispatchPolicy::class);
+        Gate::policy($dispatchEntryModel, DispatchEntryPolicy::class);
 
         Relation::morphMap([
-            'storix_container' => Container::class,
-            'storix_dispatch' => Dispatch::class,
-            'storix_dispatch_entry' => DispatchEntry::class,
+            'storix_container' => $containerModel,
+            'storix_dispatch' => $dispatchModel,
+            'storix_dispatch_entry' => $dispatchEntryModel,
         ]);
 
         if (Config::boolean('storix.permissions.register', true)) {

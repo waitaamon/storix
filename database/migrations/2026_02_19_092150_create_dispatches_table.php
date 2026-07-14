@@ -13,12 +13,18 @@ return new class extends Migration
     {
         Schema::create(TableNames::dispatches(), function (Blueprint $table): void {
             $table->id();
-            $table->string('code')->nullable()->index();
-            $table->foreignId('dispatched_by')->index()->constrained(TableNames::users());
-            $table->foreignId('delivery_note_id')->index()->constrained(TableNames::deliveryNotes());
-            $table->date('dispatched_at')->nullable();
+            $table->string('code')->nullable()->unique();
+            $table->foreignId('dispatched_by')->constrained(TableNames::users())->restrictOnDelete();
+            $table->foreignId('delivery_note_id')->constrained(TableNames::deliveryNotes())->restrictOnDelete();
+            $table->timestampTz('dispatched_at')->nullable()->index();
             $table->text('dispatch_note')->nullable();
-            $table->string('state')->default('draft');
+            $table->string('state')->default('draft')->index();
+            $table->foreignId('approved_by')->nullable()->constrained(TableNames::users())->nullOnDelete();
+            $table->timestampTz('approved_at')->nullable();
+            $table->foreignId('voided_by')->nullable()->constrained(TableNames::users())->nullOnDelete();
+            $table->timestampTz('voided_at')->nullable();
+            $table->text('void_reason')->nullable();
+            $table->jsonb('metadata')->nullable();
             $table->timestampsTz();
             $table->softDeletesTz();
         });

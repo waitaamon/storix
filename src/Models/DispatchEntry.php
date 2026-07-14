@@ -4,41 +4,55 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Override;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Storix\Database\Factories\DispatchEntryFactory;
 use Storix\Enums\ReturnCondition;
 use Storix\Support\TableNames;
 
+/**
+ * @property int $id
+ * @property int|string $dispatch_id
+ * @property int|string $container_id
+ * @property int|string|null $received_by
+ * @property CarbonImmutable|null $return_date
+ * @property ReturnCondition|null $return_condition
+ * @property string|null $return_note
+ * @property array<string, mixed>|null $metadata
+ * @property-read Container $container
+ * @property-read Dispatch $dispatch
+ */
 #[UseFactory(DispatchEntryFactory::class)]
-final class DispatchEntry extends Pivot
+#[Fillable([
+    'dispatch_id',
+    'container_id',
+    'received_by',
+    'return_date',
+    'return_condition',
+    'return_note',
+    'metadata',
+])]
+final class DispatchEntry extends Model
 {
-    use HasFactory;
-
-    public $incrementing = true;
-
-    public $timestamps = true;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = ['dispatch_id', 'container_id', 'received_by', 'return_date', 'return_condition', 'return_note'];
+    /** @use HasFactory<DispatchEntryFactory> */
+    use HasFactory, SoftDeletes;
 
     /**
      * Get the container that this entry belongs to.
      *
-     * @return BelongsTo<Container, self>
+     * @return BelongsTo<Model, $this>
      */
     public function container(): BelongsTo
     {
         /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.container', 'Storix\\Models\\Container');
+        $model = Config::string('storix.models.container', Container::class);
 
         return $this->belongsTo($model, 'container_id');
     }
@@ -46,12 +60,12 @@ final class DispatchEntry extends Pivot
     /**
      * Get the dispatch that this entry belongs to.
      *
-     * @return BelongsTo<Dispatch, self>
+     * @return BelongsTo<Model, $this>
      */
     public function dispatch(): BelongsTo
     {
         /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.dispatch', 'Storix\\Models\\Dispatch');
+        $model = Config::string('storix.models.dispatch', Dispatch::class);
 
         return $this->belongsTo($model, 'dispatch_id');
     }
@@ -59,7 +73,7 @@ final class DispatchEntry extends Pivot
     /**
      * Get the user that received this entry.
      *
-     * @return BelongsTo<Model, self>
+     * @return BelongsTo<Model, $this>
      */
     public function receivedBy(): BelongsTo
     {
@@ -72,21 +86,10 @@ final class DispatchEntry extends Pivot
     /**
      * Get the table associated with the model.
      */
+    #[Override]
     public function getTable(): string
     {
         return TableNames::dispatchEntries();
-    }
-
-    /**
-     * The "booted" method of the model.
-     */
-    protected static function booted(): void
-    {
-        self::updating(function (self $dispatch): void {
-            if ($dispatch->isDirty('return_date')) {
-                $dispatch->received_by = auth()->check() ? auth()->id() : null;
-            }
-        });
     }
 
     /**
@@ -94,11 +97,13 @@ final class DispatchEntry extends Pivot
      *
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [
-            'return_date' => 'immutable_date',
+            'return_date' => 'immutable_datetime',
             'return_condition' => ReturnCondition::class,
+            'metadata' => 'array',
         ];
     }
 }

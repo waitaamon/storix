@@ -1,24 +1,27 @@
 {
     "name": "waitaamon/storix",
-    "description": "Storix Filament v4 plugin for reusable container lifecycle tracking.",
+    "description": "Storix Filament v5 plugin for reusable container lifecycle tracking.",
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.5",
-        "filament/filament": "^4.0",
-        "illuminate/contracts": "^12.0",
-        "illuminate/database": "^12.0",
-        "illuminate/support": "^12.0",
-        "spatie/laravel-package-tools": "^1.20",
-        "spatie/laravel-permission": "^7.0",
+        "php": "^8.3",
+        "filament/filament": "^5.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/support": "^13.0",
+        "livewire/livewire": "^4.0",
+        "spatie/laravel-package-tools": "^1.93",
+        "spatie/laravel-permission": "^7.4",
         "spatie/laravel-model-states": "^2.12"
     },
     "require-dev": {
         "laravel/pint": "^1.21",
-        "larastan/larastan": "^3.0",
-        "orchestra/testbench": "^10.0",
+        "larastan/larastan": "^3.10",
+        "orchestra/testbench": "^11.0",
         "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0"
+        "pestphp/pest-plugin-laravel": "^4.1",
+        "rector/rector": "^2.4",
+        "driftingly/rector-laravel": "^2.5"
     },
     "autoload": {
         "psr-4": {

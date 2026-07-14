@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Storix\Models\Transitions;
 
 use Spatie\ModelStates\Transition;
-use Storix\Events\DispatchDrafted;
+use Storix\Events\DispatchVoided;
 use Storix\Models\Dispatch;
-use Storix\Models\States\DispatchDraftState;
+use Storix\Models\States\DispatchVoidedState;
 
-final class DispatchToDraftTransition extends Transition
+final class DispatchToVoidedTransition extends Transition
 {
     public function __construct(private readonly Dispatch $dispatch) {}
 
     public function handle(): Dispatch
     {
-        $this->dispatch->state = new DispatchDraftState($this->dispatch);
+        $this->dispatch->state = new DispatchVoidedState($this->dispatch);
         $this->dispatch->save();
 
-        DispatchDrafted::dispatch($this->dispatch);
+        DispatchVoided::dispatch($this->dispatch);
 
         return $this->dispatch;
     }

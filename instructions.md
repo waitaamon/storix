@@ -1,4 +1,4 @@
-w# Storix -- Filament v4 Container Lifecycle Plugin -- AI Code Generation Prompt
+# Storix -- Filament v5 Container Lifecycle Plugin -- AI Code Generation Prompt
 
 ## Package Name
 
@@ -26,11 +26,12 @@ containers (crates, cylinders, pallets, etc).
 
 ## Technical Stack Requirements
 
-Build a **production-grade Laravel Filament v4 plugin (Storix)** with:
+Build a **production-grade Laravel Filament v5 plugin (Storix)** with:
 
--   Laravel 12+
--   PHP 8.5+
--   FilamentPHP v4
+-   Laravel 13+
+-   PHP 8.3+
+-   Livewire 4+
+-   FilamentPHP v5
 -   PestPHP v4 tests
 -   PostgreSQL compatibility (STRICT --- must support UUIDs, JSONB,
     proper indexing, constraints)

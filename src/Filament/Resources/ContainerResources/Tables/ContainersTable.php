@@ -30,6 +30,10 @@ final class ContainersTable
 
             IconColumn::make('is_active')->boolean(),
 
+            TextColumn::make('replacement_cost')
+                ->money(fn (Container $record): string => $record->replacement_currency)
+                ->sortable(),
+
             TextColumn::make('dispatches_count')
                 ->counts('dispatches')
                 ->label('Dispatches'),
@@ -45,11 +49,11 @@ final class ContainersTable
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
-                    ->authorize(fn (Container $record) => auth()->user()->can('view', $record)),
+                    ->authorize(fn (Container $record) => auth()->user()?->can('view', $record) ?? false),
                 EditAction::make()
                     ->iconButton()
                     ->slideOver()
-                    ->authorize(fn (Container $record) => auth()->user()->can('update', $record)),
+                    ->authorize(fn (Container $record) => auth()->user()?->can('update', $record) ?? false),
             ])
             ->toolbarActions([
                 ImportAction::make('Bulk '.str(Config::string('storix.labels.container'))->plural()->headline().' Import')

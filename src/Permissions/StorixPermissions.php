@@ -67,9 +67,8 @@ final class StorixPermissions
             'delete.dispatches',
             'restore.dispatches',
             'forceDelete.dispatches',
-            'receive.containers',
-            'draft.dispatches',
             'approve.dispatches',
+            'void.dispatches',
         ];
     }
 
@@ -85,6 +84,7 @@ final class StorixPermissions
             'delete.dispatch-entries',
             'restore.dispatch-entries',
             'forceDelete.dispatch-entries',
+            'receive.dispatch-entries',
         ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
+use Override;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
@@ -11,7 +12,10 @@ use Filament\Actions\Imports\Models\Import;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Number;
+use Storix\Actions\ReceiveContainerReturnAction;
+use Storix\Data\ReceiveContainerReturnData;
 use Storix\Models\DispatchEntry;
+use Storix\Models\States\DispatchApprovedState;
 use Storix\Support\TableNames;
 
 final class DispatchReturnImporter extends Importer
@@ -25,7 +29,7 @@ final class DispatchReturnImporter extends Importer
     {
         return [
             ImportColumn::make('serial')
-                ->relationship('container', resolveUsing: 'serial')
+                ->requiredMapping()
                 ->rules(['required', 'string', 'exists:'.TableNames::containers().',serial']),
 
             ImportColumn::make('return_date')
@@ -56,13 +60,13 @@ final class DispatchReturnImporter extends Importer
     /**
      * @throws RowImportFailedException
      */
+    #[Override]
     public function resolveRecord(): DispatchEntry
     {
         $entry = DispatchEntry::query()
-            ->whereHas('container', fn (Builder $query): Builder => $query
-                ->where('serial', $this->data['serial'])
-                ->currentlyDispatched()
-            )
+            ->whereNull('return_date')
+            ->whereHas('dispatch', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
+            ->whereHas('container', fn (Builder $query): Builder => $query->where('serial', $this->data['serial']))
             ->first();
 
         if (! $entry) {
@@ -70,5 +74,23 @@ final class DispatchReturnImporter extends Importer
         }
 
         return $entry;
+    }
+
+    #[Override]
+    public function saveRecord(): void
+    {
+        if (! $this->record instanceof DispatchEntry) {
+            throw new RowImportFailedException('No dispatch entry was resolved for this return row.');
+        }
+
+        app(ReceiveContainerReturnAction::class)->handle(
+            $this->record,
+            new ReceiveContainerReturnData(
+                returnDate: $this->data['return_date'],
+                condition: $this->data['return_condition'],
+                receivedBy: $this->options['received_by'] ?? (auth()->check() ? auth()->id() : null),
+                note: $this->data['return_note'] ?? null,
+            ),
+        );
     }
 }

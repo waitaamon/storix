@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
+use Override;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Models\Container;
+use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 
 final class DispatchEntryImporter extends Importer
@@ -23,8 +26,9 @@ final class DispatchEntryImporter extends Importer
     {
         return [
             ImportColumn::make('serial')
+                ->requiredMapping()
                 ->ignoreBlankState()
-                ->relationship(name: 'container', resolveUsing: 'serial'),
+                ->rules(['required', 'string']),
         ];
     }
 
@@ -42,10 +46,10 @@ final class DispatchEntryImporter extends Importer
     /**
      * @throws RowImportFailedException
      */
+    #[Override]
     public function resolveRecord(): DispatchEntry
     {
         $container = Container::query()
-            ->availableForDispatch()
             ->where('serial', $this->data['serial'])
             ->first();
 
@@ -55,6 +59,24 @@ final class DispatchEntryImporter extends Importer
 
         return new DispatchEntry([
             'dispatch_id' => $this->options['dispatch_id'],
+            'container_id' => $container->getKey(),
         ]);
+    }
+
+    #[Override]
+    public function saveRecord(): void
+    {
+        $containerId = Container::query()
+            ->where('serial', $this->data['serial'])
+            ->value('id');
+
+        if (! $containerId) {
+            throw new RowImportFailedException("No container found with serial [{$this->data['serial']}].");
+        }
+
+        app(AttachContainersToDispatchAction::class)->handle(
+            Dispatch::query()->whereKey($this->options['dispatch_id'])->firstOrFail(),
+            [(int) $containerId],
+        );
     }
 }

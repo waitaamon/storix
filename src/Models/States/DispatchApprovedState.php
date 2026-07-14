@@ -16,7 +16,7 @@ final class DispatchApprovedState extends DispatchState implements HasColor, Has
 
     public static int $order = 3;
 
-    public function getLabel(): ?string
+    public function getLabel(): string
     {
         return __('Approved');
     }

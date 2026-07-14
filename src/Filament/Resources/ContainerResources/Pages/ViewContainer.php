@@ -22,10 +22,10 @@ final class ViewContainer extends ViewRecord
         return [
             ActionGroup::make([
                 EditAction::make()
-                    ->authorize(fn (Container $record) => auth()->user()->can('update', $record)),
+                    ->authorize(fn (Container $record) => auth()->user()?->can('update', $record) ?? false),
 
                 DeleteAction::make()
-                    ->authorize(fn (Container $record) => auth()->user()->can('delete', $record)),
+                    ->authorize(fn (Container $record) => auth()->user()?->can('delete', $record) ?? false),
             ]),
         ];
     }

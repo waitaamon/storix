@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Override;
+use Carbon\CarbonInterface;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,22 +23,46 @@ use Storix\Database\Factories\DispatchFactory;
 use Storix\Models\States\DispatchState;
 use Storix\Support\TableNames;
 
+/**
+ * @property int $id
+ * @property int|string $delivery_note_id
+ * @property int|string|null $dispatched_by
+ * @property string|null $code
+ * @property CarbonInterface|null $dispatched_at
+ * @property string|null $dispatch_note
+ * @property DispatchState $state
+ * @property int|string|null $approved_by
+ * @property CarbonImmutable|null $approved_at
+ * @property int|string|null $voided_by
+ * @property CarbonImmutable|null $voided_at
+ * @property string|null $void_reason
+ * @property array<string, mixed>|null $metadata
+ * @property-read Collection<int, DispatchEntry> $entries
+ */
 #[UseFactory(DispatchFactory::class)]
+#[Fillable([
+    'delivery_note_id',
+    'dispatched_by',
+    'code',
+    'dispatched_at',
+    'dispatch_note',
+    'state',
+    'approved_by',
+    'approved_at',
+    'voided_by',
+    'voided_at',
+    'void_reason',
+    'metadata',
+])]
 final class Dispatch extends Model implements HasStatesContract
 {
+    /** @use HasFactory<DispatchFactory> */
     use HasFactory, HasStates, SoftDeletes;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = ['delivery_note_id', 'dispatched_by', 'code', 'dispatched_at', 'dispatch_note', 'state'];
 
     /**
      * Get the delivery note associated with the dispatch.
      *
-     * @return BelongsTo<Model, self>
+     * @return BelongsTo<Model, $this>
      */
     public function deliveryNote(): BelongsTo
     {
@@ -46,7 +75,7 @@ final class Dispatch extends Model implements HasStatesContract
     /**
      * Get the user that dispatched the items.
      *
-     * @return BelongsTo<Model, self>
+     * @return BelongsTo<Model, $this>
      */
     public function dispatchedBy(): BelongsTo
     {
@@ -57,14 +86,40 @@ final class Dispatch extends Model implements HasStatesContract
     }
 
     /**
+     * Get the user that approved this dispatch.
+     *
+     * @return BelongsTo<Model, $this>
+     */
+    public function approvedBy(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.user', 'App\\Models\\User');
+
+        return $this->belongsTo($model, 'approved_by');
+    }
+
+    /**
+     * Get the user that voided this dispatch.
+     *
+     * @return BelongsTo<Model, $this>
+     */
+    public function voidedBy(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.user', 'App\\Models\\User');
+
+        return $this->belongsTo($model, 'voided_by');
+    }
+
+    /**
      * Get all the entries for the dispatch.
      *
-     * @return HasMany<Model, self>
+     * @return HasMany<Model, $this>
      */
     public function entries(): HasMany
     {
         /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.dispatch_entry', 'Storix\\Models\\DispatchEntry');
+        $model = Config::string('storix.models.dispatch_entry', DispatchEntry::class);
 
         return $this->hasMany($model, 'dispatch_id');
     }
@@ -72,22 +127,23 @@ final class Dispatch extends Model implements HasStatesContract
     /**
      * Get all the containers for the dispatch.
      *
-     * @return BelongsToMany<Model, self>
+     * @return BelongsToMany<Model, $this>
      */
     public function containers(): BelongsToMany
     {
         /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.container', 'Storix\\Models\\Container');
+        $model = Config::string('storix.models.container', Container::class);
 
         return $this->belongsToMany($model, TableNames::dispatchEntries())
-            ->using(Config::string('storix.models.dispatch_entry', 'Storix\\Models\\DispatchEntry'))
-            ->withPivot('received_by', 'return_date', 'return_condition', 'return_note')
+            ->withPivot('id', 'received_by', 'return_date', 'return_condition', 'return_note', 'deleted_at')
+            ->wherePivotNull('deleted_at')
             ->withTimestamps();
     }
 
     /**
      * Get the name of the table associated with the model.
      */
+    #[Override]
     public function getTable(): string
     {
         return TableNames::dispatches();
@@ -96,26 +152,34 @@ final class Dispatch extends Model implements HasStatesContract
     /**
      * The "booted" method of the model.
      */
+    #[Override]
     protected static function booted(): void
     {
         self::creating(function (self $dispatch): void {
-            $dispatch->dispatched_by = $dispatch->dispatched_by ?? (auth()->check() ? auth()->id() : null);
-            $dispatch->dispatched_at = $dispatch->dispatched_at ?? today();
+            if ($dispatch->dispatched_by === null && auth()->check()) {
+                $dispatch->dispatched_by = auth()->id();
+            }
+
+            $dispatch->dispatched_at ??= now();
         });
 
         self::created(function (self $dispatch): void {
             if (empty($dispatch->code)) {
-                $dispatch->code = 'DSP-'.$dispatch->dispatched_at->format('ymd').str($dispatch->id)->padLeft(4, '0');
+                $dispatchedAt = $dispatch->dispatched_at ?? now();
+                $dispatch->code = 'DSP-'.$dispatchedAt->format('ymd').str((string) $dispatch->id)->padLeft(4, '0');
                 $dispatch->saveQuietly();
             }
         });
     }
 
     /** @return array<string, string> */
+    #[Override]
     protected function casts(): array
     {
         return [
-            'dispatched_at' => 'immutable_date',
+            'dispatched_at' => 'immutable_datetime',
+            'approved_at' => 'immutable_datetime',
+            'voided_at' => 'immutable_datetime',
             'metadata' => 'array',
             'state' => DispatchState::class,
         ];

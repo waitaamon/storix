@@ -9,7 +9,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Storix\Models\Container;
 use Storix\Support\FinancialYear;
@@ -40,21 +39,22 @@ final class DispatchForm
                         ->default(now())
                         ->closeOnDateSelection()
                         ->native(false)
-                        ->minDate($year?->start_date ?? today())
-                        ->maxDate($year?->end_date ?? today())
+                        ->minDate($year?->start_date)
+                        ->maxDate($year?->end_date)
                         ->required(),
 
-                    Select::make('containers')
-                        ->relationship(
-                            name: 'containers',
-                            titleAttribute: 'serial',
-                            modifyQueryUsing: static fn (Builder $query): Builder => $query->availableForDispatch()
-                        )
-                        ->getOptionLabelFromRecordUsing(static fn (Container $record): string => $record->serial)
+                    Select::make('container_ids')
+                        ->label(str(Config::string('storix.labels.container'))->plural()->headline()->toString())
+                        ->options(static fn (): array => Container::query()
+                            ->availableForDispatch()
+                            ->orderBy('serial')
+                            ->pluck('serial', 'id')
+                            ->all())
                         ->multiple()
                         ->searchable()
                         ->preload()
                         ->nullable()
+                        ->visibleOn('create')
                         ->columnSpanFull(),
 
                     Textarea::make('dispatch_note')

@@ -20,7 +20,7 @@ final class ListDispatches extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-o-plus')
                 ->slideOver()
-                ->authorize(fn () => auth()->user()->can('create', DispatchResource::getModel())),
+                ->authorize(fn () => auth()->user()?->can('create', DispatchResource::getModel()) ?? false),
         ];
     }
 }

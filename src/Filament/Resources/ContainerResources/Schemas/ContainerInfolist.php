@@ -21,6 +21,8 @@ final class ContainerInfolist
                     TextEntry::make('name'),
                     TextEntry::make('serial'),
                     IconEntry::make('is_active')->boolean(),
+                    TextEntry::make('replacement_cost')
+                        ->money(fn ($record): string => $record->replacement_currency),
                     TextEntry::make('description'),
                 ]),
         ]);

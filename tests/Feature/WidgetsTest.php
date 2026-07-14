@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
+use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Contracts\Support\Htmlable;
 use Storix\Enums\ReturnCondition;
 use Storix\Filament\Widgets\ContainerAgingReportWidget;
 use Storix\Filament\Widgets\ContainerUtilizationWidget;
@@ -22,14 +24,27 @@ use Storix\Tests\Fixtures\Models\User;
 function widgetStatValues(array $stats): array
 {
     return collect($stats)
-        ->mapWithKeys(static fn (Stat $stat): array => [(string) $stat->getLabel() => (string) $stat->getValue()])
+        ->mapWithKeys(static fn (Stat $stat): array => [stringifyWidgetStat($stat->getLabel()) => stringifyWidgetStat($stat->getValue())])
         ->all();
+}
+
+function stringifyWidgetStat(mixed $value): string
+{
+    if ($value instanceof Htmlable) {
+        return $value->toHtml();
+    }
+
+    if (is_scalar($value) || $value === null) {
+        return (string) $value;
+    }
+
+    return '';
 }
 
 /**
  * @return array<int, Stat>
  */
-function widgetStatsFor(object $widget): array
+function widgetStatsFor(StatsOverviewWidget $widget): array
 {
     /** @var array<int, Stat> $resolved */
     $resolved = (fn (): array => $this->getStats())->call($widget);
@@ -47,21 +62,18 @@ it('computes container utilization from active dispatch entries', function (): v
         'dispatched_by' => $dispatcher->id,
         'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-12',
+        'state' => 'approved',
     ]);
 
     $dispatchB = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
         'delivery_note_id' => $deliveryNote->id,
         'dispatched_at' => '2026-02-13',
+        'state' => 'approved',
     ]);
 
     DispatchEntry::query()->create([
         'dispatch_id' => $dispatchA->id,
-        'container_id' => $containerOne->id,
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatchB->id,
         'container_id' => $containerOne->id,
     ]);
 
@@ -140,18 +152,21 @@ it('computes aging metrics from open dispatch entries', function (): void {
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-12',
+            'state' => 'approved',
         ]);
 
         $dispatchTwoDays = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-15',
+            'state' => 'approved',
         ]);
 
         $dispatchReturned = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
             'dispatched_at' => '2026-02-14',
+            'state' => 'approved',
         ]);
 
         DispatchEntry::query()->create([
@@ -187,9 +202,9 @@ it('computes lost exposure from container replacement costs', function (): void 
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Loss report']);
 
-    $lostOne = Container::factory()->create(['metadata' => ['replacement_cost' => 100.50]]);
-    $lostTwo = Container::factory()->create(['metadata' => ['replacement_cost' => 25]]);
-    $good = Container::factory()->create(['metadata' => ['replacement_cost' => 9999]]);
+    $lostOne = Container::factory()->create(['replacement_cost' => 100.50]);
+    $lostTwo = Container::factory()->create(['replacement_cost' => 25]);
+    $good = Container::factory()->create(['replacement_cost' => 9999]);
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,

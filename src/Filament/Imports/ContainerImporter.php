@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
+use Override;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
@@ -32,6 +33,13 @@ final class ContainerImporter extends Importer
                 ->boolean()
                 ->rules(['nullable', 'boolean']),
 
+            ImportColumn::make('replacement_cost')
+                ->numeric()
+                ->rules(['nullable', 'numeric', 'min:0']),
+
+            ImportColumn::make('replacement_currency')
+                ->rules(['nullable', 'string', 'size:3']),
+
             ImportColumn::make('description')
                 ->rules(['nullable', 'string']),
         ];
@@ -48,7 +56,8 @@ final class ContainerImporter extends Importer
         return $body;
     }
 
-    public function resolveRecord(): ?Container
+    #[Override]
+    public function resolveRecord(): Container
     {
         return Container::query()->firstOrNew([
             'serial' => (string) $this->data['serial'],

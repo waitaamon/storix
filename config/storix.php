@@ -33,13 +33,18 @@ return [
     'delivery_note_query_modifier' => static function (Builder $query): Builder {
         $year = FinancialYear::selected();
 
-        return $query
+        $query
             ->whereNull('dispatched_at')
-            ->where('state', 'approved')
-            ->whereBetween('transaction_date', [
-                $year?->start_date ?? today(),
-                $year?->end_date ?? today(),
+            ->where('state', 'approved');
+
+        if ($year) {
+            $query->whereBetween('transaction_date', [
+                $year->start_date,
+                $year->end_date,
             ]);
+        }
+
+        return $query;
     },
 
     'permissions' => [

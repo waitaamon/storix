@@ -28,9 +28,9 @@ final class EditDispatch extends EditRecord
         return [
             ActionGroup::make([
                 ViewAction::make()
-                    ->authorize(fn (Dispatch $record) => auth()->user()->can('view', $record)),
+                    ->authorize(fn (Dispatch $record) => auth()->user()?->can('view', $record) ?? false),
                 DeleteAction::make()
-                    ->authorize(fn (Dispatch $record) => auth()->user()->can('delete', $record)),
+                    ->authorize(fn (Dispatch $record) => auth()->user()?->can('delete', $record) ?? false),
             ]),
         ];
     }

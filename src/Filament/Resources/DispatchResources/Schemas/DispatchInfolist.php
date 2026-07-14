@@ -33,9 +33,22 @@ final class DispatchInfolist
 
                     TextEntry::make('state'),
 
+                    TextEntry::make('approvedBy.name')
+                        ->label('Approved By'),
+
+                    TextEntry::make('approved_at')->dateTime(),
+
+                    TextEntry::make('voidedBy.name')
+                        ->label('Voided By'),
+
+                    TextEntry::make('voided_at')->dateTime(),
+
                     TextEntry::make('created_at')->dateTime(),
 
                     TextEntry::make('dispatch_note')
+                        ->columnSpanFull(),
+
+                    TextEntry::make('void_reason')
                         ->columnSpanFull(),
                 ]),
         ]);

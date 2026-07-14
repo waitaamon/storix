@@ -6,7 +6,6 @@ namespace Storix\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
-use Illuminate\Contracts\Support\Htmlable;
 
 enum ReturnCondition: string implements HasColor, HasLabel
 {
@@ -14,7 +13,7 @@ enum ReturnCondition: string implements HasColor, HasLabel
     case Damaged = 'damaged';
     case Lost = 'lost';
 
-    public function getColor(): string|null|array
+    public function getColor(): string
     {
         return match ($this) {
             self::Good => 'success',
@@ -23,7 +22,7 @@ enum ReturnCondition: string implements HasColor, HasLabel
         };
     }
 
-    public function getLabel(): string|Htmlable|null
+    public function getLabel(): string
     {
         return match ($this) {
             self::Good => 'Returned Good',

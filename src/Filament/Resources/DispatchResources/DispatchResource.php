@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources;
 
+use Storix\Filament\Resources\DispatchResources\Pages\ListDispatches;
+use Storix\Filament\Resources\DispatchResources\Pages\CreateDispatch;
+use Storix\Filament\Resources\DispatchResources\Pages\ViewDispatch;
+use Storix\Filament\Resources\DispatchResources\Pages\EditDispatch;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
@@ -24,6 +29,14 @@ final class DispatchResource extends Resource
     protected static ?string $model = Dispatch::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
+
+    #[Override]
+    public static function getModel(): string
+    {
+        $model = Config::string('storix.models.dispatch', Dispatch::class);
+
+        return is_a($model, Model::class, true) ? $model : Dispatch::class;
+    }
 
     #[Override]
     public static function getModelLabel(): string
@@ -52,6 +65,7 @@ final class DispatchResource extends Resource
     /**
      * @return array<class-string<RelationManager>>
      */
+    #[Override]
     public static function getRelations(): array
     {
         return [
@@ -59,19 +73,18 @@ final class DispatchResource extends Resource
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
+    #[Override]
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDispatches::route('/'),
-            'create' => Pages\CreateDispatch::route('/create'),
-            'view' => Pages\ViewDispatch::route('/{record}'),
-            'edit' => Pages\EditDispatch::route('/{record}/edit'),
+            'index' => ListDispatches::route('/'),
+            'create' => CreateDispatch::route('/create'),
+            'view' => ViewDispatch::route('/{record}'),
+            'edit' => EditDispatch::route('/{record}/edit'),
         ];
     }
 
+    #[Override]
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);

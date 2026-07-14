@@ -28,6 +28,17 @@ final class ContainerForm
                 ->default(true)
                 ->required(),
 
+            TextInput::make('replacement_cost')
+                ->numeric()
+                ->minValue(0)
+                ->default(0)
+                ->required(),
+
+            TextInput::make('replacement_currency')
+                ->maxLength(3)
+                ->default('USD')
+                ->required(),
+
             Textarea::make('description')
                 ->columnSpanFull(),
         ]);

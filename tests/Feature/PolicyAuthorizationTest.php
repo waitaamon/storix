@@ -29,7 +29,7 @@ it('enforces container permissions', function (): void {
 
     expect($policy->viewAny($user))->toBeTrue();
     expect($policy->create($user))->toBeTrue();
-    expect($policy->delete($user, new Container()))->toBeFalse();
+    expect($policy->delete($user))->toBeFalse();
 });
 
 it('enforces dispatch permissions including receive containers', function (): void {
@@ -40,7 +40,7 @@ it('enforces dispatch permissions including receive containers', function (): vo
         /**
          * @var list<string>
          */
-        private array $permissions = ['viewAny.dispatches', 'receive.containers'];
+        private array $permissions = ['viewAny.dispatches', 'approve.dispatches', 'void.dispatches'];
 
         public function can(string $permission): bool
         {
@@ -49,8 +49,28 @@ it('enforces dispatch permissions including receive containers', function (): vo
     };
 
     expect($policy->viewAny($user))->toBeTrue();
-    expect($policy->receive($user))->toBeTrue();
+    expect($policy->approve($user, new Dispatch(['state' => 'draft'])))->toBeTrue();
+    expect($policy->void($user, new Dispatch(['state' => 'approved'])))->toBeTrue();
     expect($policy->forceDelete($user, new Dispatch()))->toBeFalse();
+});
+
+it('enforces dispatch entry receive permissions', function (): void {
+    $policy = new DispatchEntryPolicy();
+
+    $user = new class
+    {
+        /**
+         * @var list<string>
+         */
+        private array $permissions = ['receive.dispatch-entries'];
+
+        public function can(string $permission): bool
+        {
+            return in_array($permission, $this->permissions, true);
+        }
+    };
+
+    expect($policy->receive($user, new DispatchEntry()))->toBeTrue();
 });
 
 it('registers storix policies and morph aliases in the service provider', function (): void {

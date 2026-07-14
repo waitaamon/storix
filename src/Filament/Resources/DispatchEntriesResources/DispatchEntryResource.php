@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchEntriesResources;
 
+use Storix\Filament\Resources\DispatchEntriesResources\Pages\ListDispatchEntries;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ImportAction;
-use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
@@ -16,14 +17,16 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Size;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Override;
+use Storix\Actions\ReceiveContainerReturnAction;
+use Storix\Data\ReceiveContainerReturnData;
 use Storix\Enums\ReturnCondition;
-use Storix\Support\FinancialYear;
 use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Filament\Imports\DispatchReturnImporter;
-use Storix\Models\Container;
 use Storix\Models\DispatchEntry;
+use Storix\Support\FinancialYear;
 use UnitEnum;
 
 final class DispatchEntryResource extends Resource
@@ -31,6 +34,14 @@ final class DispatchEntryResource extends Resource
     protected static ?string $model = DispatchEntry::class;
 
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
+
+    #[Override]
+    public static function getModel(): string
+    {
+        $model = Config::string('storix.models.dispatch_entry', DispatchEntry::class);
+
+        return is_a($model, Model::class, true) ? $model : DispatchEntry::class;
+    }
 
     #[Override]
     public static function getModelLabel(): string
@@ -45,10 +56,10 @@ final class DispatchEntryResource extends Resource
 
         return $schema
             ->components([
-                DatePicker::make('return_date')
+                DateTimePicker::make('return_date')
                     ->native(false)
-                    ->minDate($year->start_date ?? today())
-                    ->maxDate($year->end_date ?? today())
+                    ->minDate($year?->start_date)
+                    ->maxDate($year?->end_date)
                     ->closeOnDateSelection()
                     ->required(),
                 Select::make('return_condition')
@@ -91,7 +102,7 @@ final class DispatchEntryResource extends Resource
                     ->date()
                     ->label('Date'),
 
-                TextColumn::make('dispatchedBy.name')
+                TextColumn::make('dispatch.dispatchedBy.name')
                     ->label('Dispatched By')
                     ->toggleable(isToggledHiddenByDefault: true),
 
@@ -121,7 +132,16 @@ final class DispatchEntryResource extends Resource
                     ->iconButton()
                     ->icon('heroicon-o-archive-box-arrow-down')
                     ->modalHeading('Update Dispatch Entry')
-                    ->authorize(fn () => auth()->user()->can('receive', Container::class)),
+                    ->authorize(fn (DispatchEntry $record) => auth()->user()?->can('receive', $record) ?? false)
+                    ->using(fn (DispatchEntry $record, array $data): DispatchEntry => app(ReceiveContainerReturnAction::class)->handle(
+                        $record,
+                        new ReceiveContainerReturnData(
+                            returnDate: $data['return_date'],
+                            condition: $data['return_condition'],
+                            receivedBy: auth()->id(),
+                            note: $data['return_note'] ?? null,
+                        ),
+                    )),
             ])
             ->toolbarActions([
                 ImportAction::make('Bulk Returns Import')
@@ -139,10 +159,11 @@ final class DispatchEntryResource extends Resource
             ]);
     }
 
+    #[Override]
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListDispatchEntries::route('/'),
+            'index' => ListDispatchEntries::route('/'),
         ];
     }
 }

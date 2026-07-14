@@ -12,7 +12,7 @@ use Storix\Models\DispatchEntry;
 it('defines container import columns', function (): void {
     $columns = ContainerImporter::getColumns();
 
-    expect($columns)->toHaveCount(4);
+    expect($columns)->toHaveCount(6);
 });
 
 it('defines dispatch import and return import columns', function (): void {

@@ -12,6 +12,10 @@ final class FinancialYear
     {
         $class = Config::string('storix.financial_year_service_class', 'App\\Services\\FinancialYearService');
 
-        return (new $class)::selectedFinancialYear();
+        if (! class_exists($class) || ! method_exists($class, 'selectedFinancialYear')) {
+            return null;
+        }
+
+        return $class::selectedFinancialYear();
     }
 }

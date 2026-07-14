@@ -22,6 +22,8 @@ final class ContainerExporter extends Exporter
             ExportColumn::make('name'),
             ExportColumn::make('serial'),
             ExportColumn::make('is_active'),
+            ExportColumn::make('replacement_cost'),
+            ExportColumn::make('replacement_currency'),
             ExportColumn::make('description'),
             ExportColumn::make('created_at'),
         ];

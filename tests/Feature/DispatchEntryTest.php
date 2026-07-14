@@ -56,7 +56,7 @@ it('records return information on a dispatch entry', function (): void {
 
     expect($entry->return_condition)->toBe(ReturnCondition::Good)
         ->and($entry->return_note)->toBe('Returned in good condition')
-        ->and($entry->receivedBy->id)->toBe($receiver->id);
+        ->and($entry->received_by)->toBe($receiver->id);
 });
 
 it('deletes a dispatch entry', function (): void {
@@ -139,7 +139,7 @@ it('scopes availableForDispatch to active containers without unreturned entries'
         ->and($result)->not->toContain($dispatched->id);
 });
 
-it('includes containers on draft dispatches in availableForDispatch', function (): void {
+it('excludes containers reserved on draft dispatches from availableForDispatch', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Test']);
 
@@ -151,7 +151,7 @@ it('includes containers on draft dispatches in availableForDispatch', function (
         // state defaults to draft
     ]);
 
-    // Entry is unreturned but dispatch is still in draft — container should be available
+    // Draft entries reserve containers until they are returned or the dispatch is voided.
     DispatchEntry::query()->create([
         'dispatch_id' => $dispatch->id,
         'container_id' => $container->id,
@@ -159,5 +159,5 @@ it('includes containers on draft dispatches in availableForDispatch', function (
 
     $result = Container::query()->availableForDispatch()->pluck('id');
 
-    expect($result)->toContain($container->id);
+    expect($result)->not->toContain($container->id);
 });
