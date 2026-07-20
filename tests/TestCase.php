@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace Storix\Tests;
 
-use Storix\Tests\Fixtures\Models\User;
-use Storix\Tests\Fixtures\Models\DeliveryNote;
+use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
+use BladeUI\Icons\BladeIconsServiceProvider;
+use Filament\Schemas\SchemasServiceProvider;
+use Filament\Support\SupportServiceProvider;
+use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Livewire\LivewireServiceProvider;
+use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Permission\PermissionServiceProvider;
 use Storix\StorixServiceProvider;
+use Storix\Tests\Fixtures\Models\DeliveryNote;
+use Storix\Tests\Fixtures\Models\User;
 
 abstract class TestCase extends Orchestra
 {
@@ -21,12 +28,21 @@ abstract class TestCase extends Orchestra
     {
         return [
             PermissionServiceProvider::class,
+            BladeIconsServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
+            LivewireServiceProvider::class,
+            SupportServiceProvider::class,
+            SchemasServiceProvider::class,
+            WidgetsServiceProvider::class,
             StorixServiceProvider::class,
         ];
     }
 
     protected function getEnvironmentSetUp($app): void
     {
+        $app->singleton(DataStore::class);
+
+        $app['config']->set('app.key', 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',

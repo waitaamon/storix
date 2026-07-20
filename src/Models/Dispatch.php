@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Override;
-use Carbon\CarbonInterface;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Collection;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
+use Override;
 use Spatie\ModelStates\HasStates;
 use Spatie\ModelStates\HasStatesContract;
 use Storix\Database\Factories\DispatchFactory;
@@ -28,6 +28,8 @@ use Storix\Support\TableNames;
  * @property int|string $delivery_note_id
  * @property int|string|null $dispatched_by
  * @property string|null $code
+ * @property string|null $idempotency_key
+ * @property string|null $idempotency_fingerprint
  * @property CarbonInterface|null $dispatched_at
  * @property string|null $dispatch_note
  * @property DispatchState $state
@@ -44,6 +46,8 @@ use Storix\Support\TableNames;
     'delivery_note_id',
     'dispatched_by',
     'code',
+    'idempotency_key',
+    'idempotency_fingerprint',
     'dispatched_at',
     'dispatch_note',
     'state',

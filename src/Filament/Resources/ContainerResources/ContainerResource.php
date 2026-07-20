@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\ContainerResources;
 
-use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
-use Storix\Filament\Resources\ContainerResources\Pages\CreateContainer;
-use Storix\Filament\Resources\ContainerResources\Pages\ViewContainer;
-use Storix\Filament\Resources\ContainerResources\Pages\EditContainer;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,14 +13,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
+use Storix\Filament\Resources\ContainerResources\Pages\CreateContainer;
+use Storix\Filament\Resources\ContainerResources\Pages\EditContainer;
+use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
+use Storix\Filament\Resources\ContainerResources\Pages\ViewContainer;
 use Storix\Filament\Resources\ContainerResources\RelationManagers\DispatchesRelationManager;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerForm;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerInfolist;
 use Storix\Filament\Resources\ContainerResources\Tables\ContainersTable;
-use Storix\Filament\Widgets\ContainerAgingReportWidget;
-use Storix\Filament\Widgets\ContainerUtilizationWidget;
-use Storix\Filament\Widgets\DamageRateWidget;
-use Storix\Filament\Widgets\LostExposureWidget;
+use Storix\Filament\Widgets\ContainerFleetOverviewWidget;
 use Storix\Models\Container;
 use UnitEnum;
 
@@ -70,10 +67,7 @@ final class ContainerResource extends Resource
     public static function getWidgets(): array
     {
         return [
-            ContainerUtilizationWidget::class,
-            DamageRateWidget::class,
-            ContainerAgingReportWidget::class,
-            LostExposureWidget::class,
+            ContainerFleetOverviewWidget::class,
         ];
     }
 

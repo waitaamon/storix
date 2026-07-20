@@ -3,32 +3,21 @@
 declare(strict_types=1);
 
 use Carbon\CarbonImmutable;
-use Filament\Widgets\StatsOverviewWidget;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Contracts\Support\Htmlable;
+use Livewire\Livewire;
 use Storix\Enums\ReturnCondition;
-use Storix\Filament\Widgets\ContainerAgingReportWidget;
-use Storix\Filament\Widgets\ContainerUtilizationWidget;
-use Storix\Filament\Widgets\DamageRateWidget;
-use Storix\Filament\Widgets\LostExposureWidget;
+use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
+use Storix\Filament\Widgets\ContainerFleetOverviewWidget;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Storix\Tests\Fixtures\Models\User;
 
-/**
- * @param  array<int, Stat>  $stats
- * @return array<string, string>
- */
-function widgetStatValues(array $stats): array
-{
-    return collect($stats)
-        ->mapWithKeys(static fn (Stat $stat): array => [stringifyWidgetStat($stat->getLabel()) => stringifyWidgetStat($stat->getValue())])
-        ->all();
-}
-
-function stringifyWidgetStat(mixed $value): string
+function stringifyWidgetValue(mixed $value): string
 {
     if ($value instanceof Htmlable) {
         return $value->toHtml();
@@ -44,167 +33,245 @@ function stringifyWidgetStat(mixed $value): string
 /**
  * @return array<int, Stat>
  */
-function widgetStatsFor(StatsOverviewWidget $widget): array
+function containerFleetStats(): array
 {
-    /** @var array<int, Stat> $resolved */
-    $resolved = (fn (): array => $this->getStats())->call($widget);
+    /** @var array<int, Stat> $stats */
+    $stats = (fn (): array => $this->getStats())->call(new ContainerFleetOverviewWidget());
 
-    return $resolved;
+    return $stats;
 }
 
-it('computes container utilization from active dispatch entries', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Utilization test']);
+/**
+ * @param  array<int, Stat>  $stats
+ * @return array<string, Stat>
+ */
+function indexWidgetStats(array $stats): array
+{
+    return collect($stats)
+        ->mapWithKeys(static fn (Stat $stat): array => [stringifyWidgetValue($stat->getLabel()) => $stat])
+        ->all();
+}
 
-    [$containerOne, $containerTwo, $containerThree, $containerFour] = Container::factory()->count(4)->create();
+/**
+ * @param  array<string, Stat>  $stats
+ * @return array<string, string>
+ */
+function widgetStatValues(array $stats): array
+{
+    return collect($stats)
+        ->map(static fn (Stat $stat): string => stringifyWidgetValue($stat->getValue()))
+        ->all();
+}
 
-    $dispatchA = Dispatch::query()->create([
-        'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => $deliveryNote->id,
-        'dispatched_at' => '2026-02-12',
-        'state' => 'approved',
-    ]);
+it('registers one consolidated overview that renders exactly six stats', function (): void {
+    $resourceWidgets = ContainerResource::getWidgets();
+    $pageWidgets = (fn (): array => $this->getHeaderWidgets())->call(new ListContainers());
+    $widget = new ContainerFleetOverviewWidget();
+    $stats = (fn (): array => $this->getStats())->call($widget);
+    $columns = (fn (): int|array|null => $this->getColumns())->call($widget);
 
-    $dispatchB = Dispatch::query()->create([
-        'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => $deliveryNote->id,
-        'dispatched_at' => '2026-02-13',
-        'state' => 'approved',
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatchA->id,
-        'container_id' => $containerOne->id,
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatchA->id,
-        'container_id' => $containerTwo->id,
-        'return_date' => '2026-02-15',
-        'return_condition' => ReturnCondition::Good,
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatchB->id,
-        'container_id' => $containerThree->id,
-        'return_date' => '2026-02-16',
-        'return_condition' => ReturnCondition::Damaged,
-    ]);
-
-    $stats = widgetStatValues(widgetStatsFor(new ContainerUtilizationWidget()));
-
-    expect($stats)->toBe([
-        'Total Containers' => '4',
-        'Containers In Use' => '1',
-        'Utilization %' => '25.00%',
-    ]);
+    expect($resourceWidgets)
+        ->toBe([ContainerFleetOverviewWidget::class])
+        ->and($pageWidgets)->toBe($resourceWidgets)
+        ->and($stats)->toHaveCount(6)
+        ->and($columns)->toBe(['md' => 2, 'xl' => 3])
+        ->and(array_keys(indexWidgetStats($stats)))->toBe([
+            'Total Containers',
+            'Containers In Use',
+            'Fleet Utilization',
+            'Return Damage Rate',
+            'Average Dispatch Age',
+            'Loss Exposure',
+        ]);
 });
 
-it('computes damage rate from returned entries only', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-    $containers = Container::factory()->count(3)->create();
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Damage check']);
+it('renders a clear empty state with no division errors', function (): void {
+    $stats = indexWidgetStats(containerFleetStats());
 
-    $dispatch = Dispatch::query()->create([
-        'dispatched_by' => $dispatcher->id,
-        'delivery_note_id' => $deliveryNote->id,
-        'dispatched_at' => '2026-02-12',
-    ]);
+    expect(widgetStatValues($stats))->toBe([
+        'Total Containers' => '0',
+        'Containers In Use' => '0',
+        'Fleet Utilization' => '0.00%',
+        'Return Damage Rate' => '0.00%',
+        'Average Dispatch Age' => '0 days',
+        'Loss Exposure' => '0.00',
+    ])->and(stringifyWidgetValue($stats['Fleet Utilization']->getDescription()))
+        ->toBe('No fleet capacity data')
+        ->and(stringifyWidgetValue($stats['Average Dispatch Age']->getDescription()))
+        ->toBe('No open approved dispatches')
+        ->and(stringifyWidgetValue($stats['Loss Exposure']->getDescription()))
+        ->toBe('No recorded losses')
+        ->and($stats['Fleet Utilization']->getColor())->toBe('gray')
+        ->and($stats['Return Damage Rate']->getColor())->toBe('gray')
+        ->and($stats['Average Dispatch Age']->getColor())->toBe('gray')
+        ->and($stats['Loss Exposure']->getColor())->toBe('success');
 
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $containers[0]->id,
-        'return_date' => '2026-02-14',
-        'return_condition' => ReturnCondition::Good,
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $containers[1]->id,
-        'return_date' => '2026-02-15',
-        'return_condition' => ReturnCondition::Damaged,
-    ]);
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $containers[2]->id,
-        'return_condition' => ReturnCondition::Damaged,
-    ]);
-
-    $stats = widgetStatValues(widgetStatsFor(new DamageRateWidget()));
-
-    expect($stats)->toBe([
-        'Returned Dispatches' => '2',
-        'Damaged Returns' => '1',
-        'Damage Rate' => '50.00%',
-    ]);
+    Livewire::test(ContainerFleetOverviewWidget::class)
+        ->assertDontSee('Fleet overview')
+        ->assertDontSee('Live lifecycle health')
+        ->assertSee('No recorded losses');
 });
 
-it('computes aging metrics from open dispatch entries', function (): void {
-    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-17'));
+it('combines lifecycle metrics while excluding drafts and soft-deleted containers', function (): void {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-17 12:00:00'));
 
     try {
         $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-        $containers = Container::factory()->count(3)->create();
-        $deliveryNote = DeliveryNote::query()->create(['name' => 'Aging test']);
+        $deliveryNote = DeliveryNote::query()->create(['name' => 'Fleet overview test']);
+        $containers = Container::factory()->count(9)->create();
 
-        $dispatchFiveDays = Dispatch::query()->create([
+        $containers[4]->update(['replacement_cost' => 100.50, 'replacement_currency' => 'USD']);
+        $containers[5]->update(['replacement_cost' => 25, 'replacement_currency' => 'USD']);
+        $containers[6]->update(['is_active' => false]);
+
+        $fiveDaysOld = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
-            'dispatched_at' => '2026-02-12',
+            'dispatched_at' => '2026-02-12 12:00:00',
             'state' => 'approved',
         ]);
 
-        $dispatchTwoDays = Dispatch::query()->create([
+        $twoDaysOld = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
-            'dispatched_at' => '2026-02-15',
+            'dispatched_at' => '2026-02-15 12:00:00',
             'state' => 'approved',
         ]);
 
-        $dispatchReturned = Dispatch::query()->create([
+        $returnedDispatch = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
-            'dispatched_at' => '2026-02-14',
+            'dispatched_at' => '2026-02-10 12:00:00',
             'state' => 'approved',
+        ]);
+
+        $draftDispatch = Dispatch::query()->create([
+            'dispatched_by' => $dispatcher->id,
+            'delivery_note_id' => $deliveryNote->id,
+            'dispatched_at' => '2026-01-01 12:00:00',
+            'state' => 'draft',
         ]);
 
         DispatchEntry::query()->create([
-            'dispatch_id' => $dispatchFiveDays->id,
+            'dispatch_id' => $fiveDaysOld->id,
             'container_id' => $containers[0]->id,
         ]);
 
         DispatchEntry::query()->create([
-            'dispatch_id' => $dispatchTwoDays->id,
+            'dispatch_id' => $twoDaysOld->id,
             'container_id' => $containers[1]->id,
         ]);
 
+        foreach ([
+            [$containers[2], ReturnCondition::Good],
+            [$containers[3], ReturnCondition::Damaged],
+            [$containers[4], ReturnCondition::Lost],
+            [$containers[5], ReturnCondition::Lost],
+        ] as [$container, $condition]) {
+            DispatchEntry::query()->create([
+                'dispatch_id' => $returnedDispatch->id,
+                'container_id' => $container->id,
+                'return_date' => '2026-02-16 12:00:00',
+                'return_condition' => $condition,
+            ]);
+        }
+
         DispatchEntry::query()->create([
-            'dispatch_id' => $dispatchReturned->id,
-            'container_id' => $containers[2]->id,
-            'return_date' => '2026-02-16',
-            'return_condition' => ReturnCondition::Good,
+            'dispatch_id' => $draftDispatch->id,
+            'container_id' => $containers[7]->id,
         ]);
 
-        $stats = widgetStatValues(widgetStatsFor(new ContainerAgingReportWidget()));
-
-        expect($stats)->toBe([
-            'Open Dispatches' => '2',
-            'Average Aging (days)' => '3.5',
-            'Oldest Open (days)' => '5',
+        DispatchEntry::query()->create([
+            'dispatch_id' => $returnedDispatch->id,
+            'container_id' => $containers[8]->id,
+            'return_date' => '2026-02-16 12:00:00',
+            'return_condition' => ReturnCondition::Damaged,
         ]);
+
+        $containers[8]->delete();
+
+        $stats = indexWidgetStats(containerFleetStats());
+
+        expect(widgetStatValues($stats))->toBe([
+            'Total Containers' => '8',
+            'Containers In Use' => '2',
+            'Fleet Utilization' => '25.00%',
+            'Return Damage Rate' => '25.00%',
+            'Average Dispatch Age' => '3.5 days',
+            'Loss Exposure' => 'USD 125.50',
+        ])->and(stringifyWidgetValue($stats['Total Containers']->getDescription()))
+            ->toBe('7 active · 1 inactive')
+            ->and(stringifyWidgetValue($stats['Return Damage Rate']->getDescription()))
+            ->toBe('1 damaged of 4 returned')
+            ->and(stringifyWidgetValue($stats['Average Dispatch Age']->getDescription()))
+            ->toBe('2 open · oldest 5 days')
+            ->and(stringifyWidgetValue($stats['Loss Exposure']->getDescription()))
+            ->toBe('2 lost containers')
+            ->and($stats['Fleet Utilization']->getColor())->toBe('success')
+            ->and($stats['Return Damage Rate']->getColor())->toBe('danger')
+            ->and($stats['Average Dispatch Age']->getColor())->toBe('success')
+            ->and($stats['Loss Exposure']->getColor())->toBe('danger');
     } finally {
         CarbonImmutable::setTestNow();
     }
 });
 
-it('computes lost exposure from container replacement costs', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Loss report']);
+it('flags tightening capacity and aging with warning treatments', function (): void {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-03-01 12:00:00'));
 
-    $lostOne = Container::factory()->create(['replacement_cost' => 100.50]);
-    $lostTwo = Container::factory()->create(['replacement_cost' => 25]);
-    $good = Container::factory()->create(['replacement_cost' => 9999]);
+    try {
+        $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'warnings@example.com']);
+        $deliveryNote = DeliveryNote::query()->create(['name' => 'Warning thresholds']);
+        $containers = Container::factory()->count(4)->create();
+
+        $dispatch = Dispatch::query()->create([
+            'dispatched_by' => $dispatcher->id,
+            'delivery_note_id' => $deliveryNote->id,
+            'dispatched_at' => '2026-02-15 12:00:00',
+            'state' => 'approved',
+        ]);
+
+        foreach ($containers->take(3) as $container) {
+            DispatchEntry::query()->create([
+                'dispatch_id' => $dispatch->id,
+                'container_id' => $container->id,
+            ]);
+        }
+
+        foreach (range(1, 10) as $index) {
+            DispatchEntry::query()->create([
+                'dispatch_id' => $dispatch->id,
+                'container_id' => $containers[3]->id,
+                'return_date' => '2026-02-20 12:00:00',
+                'return_condition' => $index === 1 ? ReturnCondition::Damaged : ReturnCondition::Good,
+            ]);
+        }
+
+        $stats = indexWidgetStats(containerFleetStats());
+
+        expect($stats['Fleet Utilization']->getColor())->toBe('warning')
+            ->and(stringifyWidgetValue($stats['Fleet Utilization']->getDescription()))
+            ->toBe('Capacity is tightening')
+            ->and($stats['Return Damage Rate']->getColor())->toBe('warning')
+            ->and($stats['Average Dispatch Age']->getColor())->toBe('warning')
+            ->and($stats['Fleet Utilization']->getDescriptionIcon())->toBe(Heroicon::OutlinedArrowTrendingUp)
+            ->and($stats['Average Dispatch Age']->getDescriptionIcon())->toBe(Heroicon::OutlinedExclamationTriangle);
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
+
+it('keeps loss exposure separated by currency', function (): void {
+    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'losses@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Multi-currency losses']);
+    $usdContainer = Container::factory()->create([
+        'replacement_cost' => 100,
+        'replacement_currency' => 'USD',
+    ]);
+    $kesContainer = Container::factory()->create([
+        'replacement_cost' => 250,
+        'replacement_currency' => 'KES',
+    ]);
 
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
@@ -212,28 +279,17 @@ it('computes lost exposure from container replacement costs', function (): void 
         'dispatched_at' => '2026-02-12',
     ]);
 
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $lostOne->id,
-        'return_condition' => ReturnCondition::Lost,
-    ]);
+    foreach ([$usdContainer, $kesContainer] as $container) {
+        DispatchEntry::query()->create([
+            'dispatch_id' => $dispatch->id,
+            'container_id' => $container->id,
+            'return_condition' => ReturnCondition::Lost,
+        ]);
+    }
 
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $lostTwo->id,
-        'return_condition' => ReturnCondition::Lost,
-    ]);
+    $lossStat = indexWidgetStats(containerFleetStats())['Loss Exposure'];
 
-    DispatchEntry::query()->create([
-        'dispatch_id' => $dispatch->id,
-        'container_id' => $good->id,
-        'return_condition' => ReturnCondition::Good,
-    ]);
-
-    $stats = widgetStatValues(widgetStatsFor(new LostExposureWidget()));
-
-    expect($stats)->toBe([
-        'Lost Containers' => '2',
-        'Estimated Exposure' => '125.50',
-    ]);
+    expect(stringifyWidgetValue($lossStat->getValue()))->toBe('2 currencies')
+        ->and(stringifyWidgetValue($lossStat->getDescription()))
+        ->toBe('2 lost · KES 250.00 · USD 100.00');
 });

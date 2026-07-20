@@ -8,10 +8,6 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Override;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
-use Storix\Filament\Widgets\ContainerAgingReportWidget;
-use Storix\Filament\Widgets\ContainerUtilizationWidget;
-use Storix\Filament\Widgets\DamageRateWidget;
-use Storix\Filament\Widgets\LostExposureWidget;
 
 final class ListContainers extends ListRecords
 {
@@ -31,11 +27,6 @@ final class ListContainers extends ListRecords
     #[Override]
     protected function getHeaderWidgets(): array
     {
-        return [
-            ContainerUtilizationWidget::class,
-            DamageRateWidget::class,
-            ContainerAgingReportWidget::class,
-            LostExposureWidget::class,
-        ];
+        return ContainerResource::getWidgets();
     }
 }

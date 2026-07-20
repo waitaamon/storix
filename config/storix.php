@@ -15,9 +15,9 @@ return [
     ],
 
     'tables' => [
-        'containers' => env('STORIX_CONTAINERS_TABLE', 'containers'),
-        'dispatches' => env('STORIX_DISPATCHES_TABLE', 'dispatches'),
-        'dispatch_entries' => env('STORIX_DISPATCH_ENTRIES_TABLE', 'dispatch_entries'),
+        'containers' => env('STORIX_CONTAINERS_TABLE', 'storix_containers'),
+        'dispatches' => env('STORIX_DISPATCHES_TABLE', 'storix_dispatches'),
+        'dispatch_entries' => env('STORIX_DISPATCH_ENTRIES_TABLE', 'storix_dispatch_entries'),
         'delivery_notes' => env('STORIX_DELIVERY_NOTE_TABLE', 'delivery_notes'),
         'users' => env('STORIX_USER_TABLE', 'users'),
     ],

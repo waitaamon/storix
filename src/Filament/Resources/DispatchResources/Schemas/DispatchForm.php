@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Storix\Models\Container;
 use Storix\Support\FinancialYear;
@@ -85,8 +86,13 @@ final class DispatchForm
         ]);
     }
 
-    private static function deliveryNoteLabel($record): string
+    private static function deliveryNoteLabel(Model $record): string
     {
-        return $record->code.' - '.$record->customer?->name;
+        $customer = $record->getRelationValue('customer');
+        $customerName = $customer instanceof Model
+            ? (string) $customer->getAttribute('name')
+            : '';
+
+        return (string) $record->getAttribute('code').' - '.$customerName;
     }
 }
