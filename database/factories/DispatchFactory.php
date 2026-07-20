@@ -36,6 +36,7 @@ final class DispatchFactory extends Factory
             'delivery_note_id' => $deliveryNoteModel::query()->create([
                 'name' => $this->faker->words(3, true),
             ])->getKey(),
+            'quantity' => $this->faker->numberBetween(1, 25),
             'dispatched_at' => CarbonImmutable::instance($this->faker->dateTimeThisMonth()),
             'dispatch_note' => $this->faker->optional()->paragraph(),
         ];

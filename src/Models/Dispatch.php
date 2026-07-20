@@ -6,6 +6,7 @@ namespace Storix\Models;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use DomainException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,6 +29,7 @@ use Storix\Support\TableNames;
  * @property int|string $delivery_note_id
  * @property int|string|null $dispatched_by
  * @property string|null $code
+ * @property int $quantity
  * @property string|null $idempotency_key
  * @property string|null $idempotency_fingerprint
  * @property CarbonInterface|null $dispatched_at
@@ -46,6 +48,7 @@ use Storix\Support\TableNames;
     'delivery_note_id',
     'dispatched_by',
     'code',
+    'quantity',
     'idempotency_key',
     'idempotency_fingerprint',
     'dispatched_at',
@@ -167,6 +170,12 @@ final class Dispatch extends Model implements HasStatesContract
             $dispatch->dispatched_at ??= now();
         });
 
+        self::saving(function (self $dispatch): void {
+            if ($dispatch->quantity < 1) {
+                throw new DomainException('The dispatch quantity must be at least 1.');
+            }
+        });
+
         self::created(function (self $dispatch): void {
             if (empty($dispatch->code)) {
                 $dispatchedAt = $dispatch->dispatched_at ?? now();
@@ -181,6 +190,7 @@ final class Dispatch extends Model implements HasStatesContract
     protected function casts(): array
     {
         return [
+            'quantity' => 'integer',
             'dispatched_at' => 'immutable_datetime',
             'approved_at' => 'immutable_datetime',
             'voided_at' => 'immutable_datetime',

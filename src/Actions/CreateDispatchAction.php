@@ -27,6 +27,7 @@ final readonly class CreateDispatchAction
             $values = [
                 'delivery_note_id' => $data->deliveryNoteId,
                 'dispatched_by' => $data->dispatchedBy,
+                'quantity' => $data->quantity,
                 'dispatched_at' => $data->dispatchedAt ? CarbonImmutable::parse($data->dispatchedAt) : now(),
                 'dispatch_note' => $data->dispatchNote,
                 'metadata' => $data->metadata === [] ? null : $data->metadata,
@@ -94,6 +95,7 @@ final readonly class CreateDispatchAction
         $payload = [
             'delivery_note_id' => (string) $data->deliveryNoteId,
             'dispatched_by' => (string) $data->dispatchedBy,
+            'quantity' => $data->quantity,
             'dispatched_at' => $data->dispatchedAt === null
                 ? null
                 : CarbonImmutable::parse($data->dispatchedAt)->utc()->toISOString(),

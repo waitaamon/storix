@@ -127,6 +127,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
         $fiveDaysOld = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
+            'quantity' => 1,
             'dispatched_at' => '2026-02-12 12:00:00',
             'state' => 'approved',
         ]);
@@ -134,6 +135,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
         $twoDaysOld = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
+            'quantity' => 1,
             'dispatched_at' => '2026-02-15 12:00:00',
             'state' => 'approved',
         ]);
@@ -141,6 +143,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
         $returnedDispatch = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
+            'quantity' => 1,
             'dispatched_at' => '2026-02-10 12:00:00',
             'state' => 'approved',
         ]);
@@ -148,6 +151,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
         $draftDispatch = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
+            'quantity' => 1,
             'dispatched_at' => '2026-01-01 12:00:00',
             'state' => 'draft',
         ]);
@@ -227,6 +231,7 @@ it('flags tightening capacity and aging with warning treatments', function (): v
         $dispatch = Dispatch::query()->create([
             'dispatched_by' => $dispatcher->id,
             'delivery_note_id' => $deliveryNote->id,
+            'quantity' => 4,
             'dispatched_at' => '2026-02-15 12:00:00',
             'state' => 'approved',
         ]);
@@ -276,6 +281,7 @@ it('keeps loss exposure separated by currency', function (): void {
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 2,
         'dispatched_at' => '2026-02-12',
     ]);
 

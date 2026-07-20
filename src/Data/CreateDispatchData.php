@@ -15,6 +15,7 @@ final readonly class CreateDispatchData
     public function __construct(
         public int|string $deliveryNoteId,
         public int|string $dispatchedBy,
+        public int $quantity,
         public CarbonInterface|string|null $dispatchedAt = null,
         public ?string $dispatchNote = null,
         public array $containerIds = [],

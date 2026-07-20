@@ -17,6 +17,7 @@ it('creates a dispatch entry linking a container to a dispatch', function (): vo
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -38,6 +39,7 @@ it('records return information on a dispatch entry', function (): void {
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $dispatcher->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -67,6 +69,7 @@ it('deletes a dispatch entry', function (): void {
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
     ]);
 
     $entry = DispatchEntry::query()->create([
@@ -88,6 +91,7 @@ it('associates multiple containers with a single dispatch', function (): void {
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 3,
     ]);
 
     foreach ($containers as $container) {
@@ -114,6 +118,7 @@ it('scopes availableForDispatch to active containers without unreturned entries'
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 2,
         'state' => 'approved',
     ]);
 
@@ -148,6 +153,7 @@ it('excludes containers reserved on draft dispatches from availableForDispatch',
     $dispatch = Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
         // state defaults to draft
     ]);
 
