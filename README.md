@@ -157,6 +157,8 @@ Draft generation only reserves containers. It does not post journals or trigger 
 
 Storix does not post general ledger journals by itself. It emits lifecycle events that a host ERP can consume for accounting integration:
 
+Successful dispatch approval also mirrors the approval timestamp to the `dispatched_at` column of the delivery note identified by `delivery_note_id`, using the table configured at `storix.tables.delivery_notes`. This update participates in the approval transaction. For compatibility with host applications that do not expose the table or column, synchronization is skipped when either is absent and approval continues normally.
+
 - `DispatchApproved`
 - `DispatchVoided`
 - `ContainerDispatched`

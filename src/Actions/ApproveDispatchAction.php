@@ -13,8 +13,12 @@ use Storix\Models\States\DispatchApprovedState;
 use Storix\Models\States\DispatchDraftState;
 use Throwable;
 
-final class ApproveDispatchAction
+final readonly class ApproveDispatchAction
 {
+    public function __construct(
+        private MarkDeliveryNoteAsDispatchedAction $markDeliveryNoteAsDispatched,
+    ) {}
+
     /**
      * @throws Throwable
      */
@@ -65,12 +69,15 @@ final class ApproveDispatchAction
                 }
             }
 
+            $approvedAt = now();
+
             $dispatch->forceFill([
                 'approved_by' => $approvedBy,
-                'approved_at' => now(),
+                'approved_at' => $approvedAt,
             ]);
 
             $dispatch->state->transitionTo(DispatchApprovedState::class);
+            $this->markDeliveryNoteAsDispatched->handle($dispatch->delivery_note_id, $approvedAt);
             $dispatch = $dispatch->refresh();
 
             foreach ($entries as $entry) {

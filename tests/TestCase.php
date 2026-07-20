@@ -93,6 +93,7 @@ abstract class TestCase extends Orchestra
         Schema::create('delivery_notes', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
+            $table->timestampTz('dispatched_at')->nullable();
             $table->timestamps();
         });
 

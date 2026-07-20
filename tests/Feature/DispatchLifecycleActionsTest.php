@@ -3,8 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Storix\Actions\ApproveDispatchAction;
 use Storix\Actions\CreateDispatchAction;
 use Storix\Actions\ReceiveContainerReturnAction;
@@ -92,8 +96,13 @@ it('does not approve a dispatch without containers', function (): void {
         'quantity' => 1,
     ]);
 
-    app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
-})->throws(DomainException::class, 'A dispatch cannot be approved without containers.');
+    expect(fn () => app(ApproveDispatchAction::class)->handle($dispatch, $user->id))
+        ->toThrow(DomainException::class, 'A dispatch cannot be approved without containers.');
+
+    expect(DB::table(TableNames::deliveryNotes())
+        ->where('id', $deliveryNote->id)
+        ->value('dispatched_at'))->toBeNull();
+});
 
 it('approves a reserved dispatch with audit fields', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
@@ -113,6 +122,123 @@ it('approves a reserved dispatch with audit fields', function (): void {
     expect((string) $approved->state)->toBe('approved')
         ->and($approved->approved_by)->toBe($user->id)
         ->and($approved->approved_at)->not->toBeNull();
+});
+
+it('marks only the approved dispatch delivery note as dispatched at the approval time', function (): void {
+    $user = User::query()->create(['name' => 'Timestamp Dispatcher', 'email' => 'timestamp@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Timestamp delivery']);
+    $unrelatedDeliveryNote = DeliveryNote::query()->create(['name' => 'Unrelated delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [$container->id],
+    ));
+
+    $approvalTime = Carbon::parse('2026-07-20 09:30:00');
+    Carbon::setTestNow($approvalTime);
+
+    try {
+        $approved = app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
+        $deliveryNoteDispatchedAt = DB::table(TableNames::deliveryNotes())
+            ->where('id', $deliveryNote->id)
+            ->value('dispatched_at');
+
+        expect($deliveryNoteDispatchedAt)->not->toBeNull()
+            ->and(Carbon::parse((string) $deliveryNoteDispatchedAt)->equalTo($approvalTime))->toBeTrue()
+            ->and($approved->approved_at?->equalTo($approvalTime))->toBeTrue()
+            ->and(DB::table(TableNames::deliveryNotes())
+                ->where('id', $unrelatedDeliveryNote->id)
+                ->value('dispatched_at'))->toBeNull();
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+it('updates the delivery note table configured by the host application', function (): void {
+    $user = User::query()->create(['name' => 'Configured Dispatcher', 'email' => 'configured@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Configured delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [$container->id],
+    ));
+
+    Schema::create('host_delivery_notes', function (Blueprint $table): void {
+        $table->id();
+        $table->timestampTz('dispatched_at')->nullable();
+    });
+    DB::table('host_delivery_notes')->insert(['id' => $deliveryNote->id]);
+    Config::set('storix.tables.delivery_notes', 'host_delivery_notes');
+
+    $approvalTime = Carbon::parse('2026-07-20 10:45:00');
+    Carbon::setTestNow($approvalTime);
+
+    try {
+        app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
+        $dispatchedAt = DB::table('host_delivery_notes')
+            ->where('id', $deliveryNote->id)
+            ->value('dispatched_at');
+
+        expect($dispatchedAt)->not->toBeNull()
+            ->and(Carbon::parse((string) $dispatchedAt)->equalTo($approvalTime))->toBeTrue()
+            ->and(DB::table('delivery_notes')
+                ->where('id', $deliveryNote->id)
+                ->value('dispatched_at'))->toBeNull();
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
+it('approves a dispatch when the configured delivery note table does not exist', function (): void {
+    $user = User::query()->create(['name' => 'Missing Table Dispatcher', 'email' => 'missing-table@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Missing table delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [$container->id],
+    ));
+
+    Config::set('storix.tables.delivery_notes', 'missing_delivery_notes');
+
+    $approved = app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
+
+    expect((string) $approved->state)->toBe('approved');
+});
+
+it('approves a dispatch when the configured delivery note table has no dispatched timestamp', function (): void {
+    $user = User::query()->create(['name' => 'Legacy Dispatcher', 'email' => 'legacy-table@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Legacy delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [$container->id],
+    ));
+
+    Schema::create('legacy_delivery_notes', function (Blueprint $table): void {
+        $table->id();
+        $table->string('name');
+    });
+    DB::table('legacy_delivery_notes')->insert([
+        'id' => $deliveryNote->id,
+        'name' => 'Legacy delivery',
+    ]);
+    Config::set('storix.tables.delivery_notes', 'legacy_delivery_notes');
+
+    $approved = app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
+
+    expect((string) $approved->state)->toBe('approved');
 });
 
 it('rejects approval when dispatch entry count does not match quantity', function (int $quantity, int $containerCount): void {
