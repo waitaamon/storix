@@ -14,6 +14,7 @@ use Storix\Filament\Exports\DispatchExporter;
 
 final class DispatchesRelationManager extends RelationManager
 {
+    #[Override]
     protected static string $relationship = 'dispatches';
 
     #[Override]

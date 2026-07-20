@@ -10,6 +10,4 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable(['name'])]
 #[Table(name: 'delivery_notes')]
-final class DeliveryNote extends Model
-{
-}
+final class DeliveryNote extends Model {}

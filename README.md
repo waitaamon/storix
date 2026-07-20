@@ -126,6 +126,33 @@ php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
 - Container loss exposure is based on typed `replacement_cost` and `replacement_currency` fields, not JSON metadata.
 - Table names are config-driven through `Storix\\Support\\TableNames`.
 
+## Event-Driven Draft Generation
+
+Host application events, jobs, and actions can request a draft dispatch without depending on Filament or duplicating lifecycle logic:
+
+```php
+use App\Events\DeliveryNoteApproved;
+use Storix\Data\CreateDispatchData;
+use Storix\Events\DraftDispatchGenerationRequested;
+
+DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+    deliveryNoteId: $deliveryNote->getKey(),
+    dispatchedBy: $actor->getKey(),
+    dispatchedAt: now(),
+    dispatchNote: 'Generated after delivery note approval',
+    containerIds: $containerIds,
+    idempotencyKey: sprintf('delivery-note:%s:draft-dispatch', $deliveryNote->getKey()),
+    metadata: [
+        'source' => DeliveryNoteApproved::class,
+        'correlation_id' => $correlationId,
+    ],
+));
+```
+
+The event is dispatched after the surrounding database transaction commits. Its listener synchronously delegates to `CreateDispatchAction`, so validation failures remain visible to the caller. Retryable producers should supply a stable `idempotencyKey`: repeating the same request is a no-op, while reusing the key for a different payload raises a `DomainException`. The key is optional so existing direct and Filament creation workflows remain compatible.
+
+Draft generation only reserves containers. It does not post journals or trigger dispatch accounting; approval remains the operational and accounting integration boundary.
+
 ## Accounting And ERP Controls
 
 Storix does not post general ledger journals by itself. It emits lifecycle events that a host ERP can consume for accounting integration:
@@ -142,7 +169,7 @@ Use these events to create host-specific GL, AR recovery, write-off, repair, tax
 ## Testing
 
 ```bash
-composer test
-composer analyse
-vendor/bin/pint --test
+composer lint
 ```
+
+This runs Rector, the Pint style check, PHPStan analysis, the complete Pest suite, and a 95% minimum type-coverage check.

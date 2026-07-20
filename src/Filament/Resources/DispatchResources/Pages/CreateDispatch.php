@@ -14,6 +14,7 @@ use Storix\Filament\Resources\DispatchResources\DispatchResource;
 
 final class CreateDispatch extends CreateRecord
 {
+    #[Override]
     protected static string $resource = DispatchResource::class;
 
     /**

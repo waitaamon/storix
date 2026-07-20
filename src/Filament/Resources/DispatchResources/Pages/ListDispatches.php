@@ -11,6 +11,7 @@ use Storix\Filament\Resources\DispatchResources\DispatchResource;
 
 final class ListDispatches extends ListRecords
 {
+    #[Override]
     protected static string $resource = DispatchResource::class;
 
     #[Override]

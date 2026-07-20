@@ -113,7 +113,7 @@ final readonly class CreateDispatchAction
 
         if (array_is_list($value)) {
             return array_map(
-                fn (mixed $item): mixed => $this->normalizeForFingerprint($item),
+                $this->normalizeForFingerprint(...),
                 $value,
             );
         }

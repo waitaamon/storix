@@ -8,9 +8,9 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Storix\Data\CreateDispatchData;
 
-final class DraftDispatchGenerationRequested implements ShouldDispatchAfterCommit
+final readonly class DraftDispatchGenerationRequested implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
 
-    public function __construct(public readonly CreateDispatchData $data) {}
+    public function __construct(public CreateDispatchData $data) {}
 }

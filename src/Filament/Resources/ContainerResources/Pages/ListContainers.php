@@ -11,6 +11,7 @@ use Storix\Filament\Resources\ContainerResources\ContainerResource;
 
 final class ListContainers extends ListRecords
 {
+    #[Override]
     protected static string $resource = ContainerResource::class;
 
     #[Override]

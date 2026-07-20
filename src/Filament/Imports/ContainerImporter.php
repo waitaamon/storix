@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
-use Override;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Override;
 use Storix\Models\Container;
 
 final class ContainerImporter extends Importer
 {
+    #[Override]
     protected static ?string $model = Container::class;
 
     /**

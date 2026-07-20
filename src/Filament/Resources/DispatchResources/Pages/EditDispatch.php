@@ -14,6 +14,7 @@ use Storix\Models\Dispatch;
 
 final class EditDispatch extends EditRecord
 {
+    #[Override]
     protected static string $resource = DispatchResource::class;
 
     #[Override]

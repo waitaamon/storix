@@ -19,6 +19,7 @@ use Storix\Models\Dispatch;
 
 final class ViewDispatch extends ViewRecord
 {
+    #[Override]
     protected static string $resource = DispatchResource::class;
 
     #[Override]

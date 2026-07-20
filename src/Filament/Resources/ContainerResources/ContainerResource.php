@@ -27,8 +27,10 @@ use UnitEnum;
 
 final class ContainerResource extends Resource
 {
+    #[Override]
     protected static ?string $model = Container::class;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]

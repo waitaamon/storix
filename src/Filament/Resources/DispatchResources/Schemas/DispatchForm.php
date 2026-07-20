@@ -35,7 +35,7 @@ final class DispatchForm
                                 : $query->with('customer')
 
                         )
-                        ->getOptionLabelFromRecordUsing(fn ($record): string => self::deliveryNoteLabel($record))
+                        ->getOptionLabelFromRecordUsing(fn (Model $record): string => self::deliveryNoteLabel($record))
                         ->getSearchResultsUsing(function (string $search): array {
                             $model = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
 
@@ -51,7 +51,7 @@ final class DispatchForm
                                     ->orWhereHas('customer', fn ($query) => $query->where('name', 'like', "%{$search}%")))
                                 ->limit(50)
                                 ->get()
-                                ->mapWithKeys(fn ($record): array => [$record->getKey() => self::deliveryNoteLabel($record)])
+                                ->mapWithKeys(fn (Model $record): array => [$record->getKey() => self::deliveryNoteLabel($record)])
                                 ->all();
                         })
                         ->searchable()
@@ -93,6 +93,6 @@ final class DispatchForm
             ? (string) $customer->getAttribute('name')
             : '';
 
-        return (string) $record->getAttribute('code').' - '.$customerName;
+        return $record->getAttribute('code').' - '.$customerName;
     }
 }

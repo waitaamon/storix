@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchEntriesResources;
 
-use Storix\Filament\Resources\DispatchEntriesResources\Pages\ListDispatchEntries;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -25,14 +24,17 @@ use Storix\Data\ReceiveContainerReturnData;
 use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Filament\Imports\DispatchReturnImporter;
+use Storix\Filament\Resources\DispatchEntriesResources\Pages\ListDispatchEntries;
 use Storix\Models\DispatchEntry;
 use Storix\Support\FinancialYear;
 use UnitEnum;
 
 final class DispatchEntryResource extends Resource
 {
+    #[Override]
     protected static ?string $model = DispatchEntry::class;
 
+    #[Override]
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]

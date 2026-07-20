@@ -14,6 +14,7 @@ use Storix\Models\Container;
 
 final class ViewContainer extends ViewRecord
 {
+    #[Override]
     protected static string $resource = ContainerResource::class;
 
     #[Override]

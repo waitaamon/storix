@@ -16,9 +16,11 @@ use Storix\Models\States\DispatchApprovedState;
 
 final class ContainerFleetOverviewWidget extends StatsOverviewWidget
 {
+    #[Override]
     protected ?string $pollingInterval = '60s';
 
     /** @var array<string, int> */
+    #[Override]
     protected int|array|null $columns = [
         'md' => 2,
         'xl' => 3,
@@ -217,7 +219,7 @@ final class ContainerFleetOverviewWidget extends StatsOverviewWidget
         }
 
         $currency = (string) $exposureByCurrency->keys()->first();
-        $amount = (float) $exposureByCurrency->first();
+        $amount = $exposureByCurrency->first();
 
         return $currency.' '.number_format($amount, 2, '.', ',');
     }

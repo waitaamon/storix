@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Override;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
+use Override;
 use Storix\Database\Factories\DispatchEntryFactory;
 use Storix\Enums\ReturnCondition;
 use Storix\Support\TableNames;

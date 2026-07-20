@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
-use Override;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Override;
 use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
@@ -17,6 +17,7 @@ use Storix\Models\DispatchEntry;
 
 final class DispatchEntryImporter extends Importer
 {
+    #[Override]
     protected static ?string $model = DispatchEntry::class;
 
     /**

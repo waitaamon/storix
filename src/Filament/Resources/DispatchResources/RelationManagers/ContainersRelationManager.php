@@ -25,6 +25,7 @@ use Storix\Models\DispatchEntry;
  */
 final class ContainersRelationManager extends RelationManager
 {
+    #[Override]
     protected static string $relationship = 'entries';
 
     #[Override]

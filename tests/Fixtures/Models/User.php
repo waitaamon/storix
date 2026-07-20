@@ -10,6 +10,4 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Table(name: 'users')]
-final class User extends Authenticatable
-{
-}
+final class User extends Authenticatable {}

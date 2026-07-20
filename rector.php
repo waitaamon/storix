@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
 use Rector\Config\RectorConfig;
 use Rector\Exception\Configuration\InvalidConfigurationException;
 use RectorLaravel\Rector\StaticCall\EloquentMagicMethodToQueryBuilderRector;
@@ -15,6 +16,11 @@ try {
         ])
         ->withRules([
             EloquentMagicMethodToQueryBuilderRector::class,
+        ])
+        ->withSkip([
+            ArrowFunctionDelegatingCallToFirstClassCallableRector::class => [
+                __DIR__.'/tests/Feature/WidgetsTest.php',
+            ],
         ])
         ->withPreparedSets(
             deadCode: true,

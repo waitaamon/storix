@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Imports;
 
-use Override;
 use Filament\Actions\Imports\Exceptions\RowImportFailedException;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
@@ -12,6 +11,7 @@ use Filament\Actions\Imports\Models\Import;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Number;
+use Override;
 use Storix\Actions\ReceiveContainerReturnAction;
 use Storix\Data\ReceiveContainerReturnData;
 use Storix\Models\DispatchEntry;
@@ -20,6 +20,7 @@ use Storix\Support\TableNames;
 
 final class DispatchReturnImporter extends Importer
 {
+    #[Override]
     protected static ?string $model = DispatchEntry::class;
 
     /**
