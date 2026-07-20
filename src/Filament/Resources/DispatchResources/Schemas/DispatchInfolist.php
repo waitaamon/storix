@@ -28,6 +28,8 @@ final class DispatchInfolist
                     TextEntry::make('dispatched_at')
                         ->date(),
 
+                    TextEntry::make('quantity'),
+
                     TextEntry::make('dispatchedBy.name')
                         ->label('Dispatched By'),
 

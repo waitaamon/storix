@@ -50,6 +50,9 @@ final class DispatchesTable
                 TextColumn::make('dispatchedBy.name')
                     ->label('Dispatched By'),
 
+                TextColumn::make('quantity')
+                    ->sortable(),
+
                 TextColumn::make('containers_count')
                     ->label(fn (): string => str(Config::string('storix.labels.container'))->plural()->headline().' count')
                     ->counts('containers'),

@@ -27,6 +27,7 @@ it('defines export columns for containers and dispatches', function (): void {
 
     expect(ContainerExporter::getColumns())->not->toBeEmpty()
         ->and($dispatchColumns)->toContain('deliveryNote.customer.name')
+        ->and($dispatchColumns)->toContain('quantity')
         ->and($dispatchColumns)->toContain('state')
         ->and($dispatchColumns)->not->toContain('containers.serial')
         ->and($dispatchColumns)->not->toContain('entries.return_date');

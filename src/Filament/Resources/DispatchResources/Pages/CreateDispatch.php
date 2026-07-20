@@ -29,7 +29,7 @@ final class CreateDispatch extends CreateRecord
         return app(CreateDispatchAction::class)->handle(new CreateDispatchData(
             deliveryNoteId: $data['delivery_note_id'],
             dispatchedBy: $data['dispatched_by'] ?? Filament::auth()->id(),
-            quantity: (int) ($data['quantity'] ?? 1),
+            quantity: (int) $data['quantity'],
             dispatchedAt: $data['dispatched_at'] ?? null,
             dispatchNote: $data['dispatch_note'] ?? null,
             containerIds: $containerIds,

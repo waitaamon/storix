@@ -7,6 +7,7 @@ namespace Storix\Filament\Resources\DispatchResources\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
@@ -64,6 +65,11 @@ final class DispatchForm
                         ->native(false)
                         ->minDate($year?->start_date)
                         ->maxDate($year?->end_date)
+                        ->required(),
+
+                    TextInput::make('quantity')
+                        ->integer()
+                        ->minValue(1)
                         ->required(),
 
                     Select::make('container_ids')

@@ -23,6 +23,7 @@ final class DispatchExporter extends Exporter
         return [
             ExportColumn::make('deliveryNote.customer.name')->label('Customer'),
             ExportColumn::make('deliveryNote.code')->label('Delivery note'),
+            ExportColumn::make('quantity'),
             ExportColumn::make('dispatchedBy.name'),
             ExportColumn::make('dispatch_note'),
             ExportColumn::make('dispatched_at'),
