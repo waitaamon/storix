@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Storix\Listeners;
 
 use Storix\Actions\CreateDispatchAction;
-use Storix\Events\DraftDispatchGenerationRequested;
+use Storix\Events\GenerateDraftDispatchRequested;
 use Throwable;
 
 final readonly class GenerateDraftDispatch
@@ -17,7 +17,7 @@ final readonly class GenerateDraftDispatch
     /**
      * @throws Throwable
      */
-    public function handle(DraftDispatchGenerationRequested $event): void
+    public function handle(GenerateDraftDispatchRequested $event): void
     {
         $this->createDispatch->handle($event->data);
     }

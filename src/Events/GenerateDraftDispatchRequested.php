@@ -8,7 +8,7 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Storix\Data\CreateDispatchData;
 
-final readonly class DraftDispatchGenerationRequested implements ShouldDispatchAfterCommit
+final readonly class GenerateDraftDispatchRequested implements ShouldDispatchAfterCommit
 {
     use Dispatchable;
 

@@ -133,9 +133,9 @@ Host application events, jobs, and actions can request a draft dispatch without 
 ```php
 use App\Events\DeliveryNoteApproved;
 use Storix\Data\CreateDispatchData;
-use Storix\Events\DraftDispatchGenerationRequested;
+use Storix\Events\GenerateDraftDispatchRequested;
 
-DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
     deliveryNoteId: $deliveryNote->getKey(),
     dispatchedBy: $actor->getKey(),
     dispatchedAt: now(),

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Storix\Actions\CreateDispatchAction;
 use Storix\Data\CreateDispatchData;
-use Storix\Events\DraftDispatchGenerationRequested;
+use Storix\Events\GenerateDraftDispatchRequested;
 use Storix\Listeners\GenerateDraftDispatch;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
@@ -26,7 +26,7 @@ it('encapsulates an immutable draft generation request that dispatches after com
         metadata: ['source' => 'delivery-note-approved'],
     );
 
-    $event = new DraftDispatchGenerationRequested($data);
+    $event = new GenerateDraftDispatchRequested($data);
 
     expect($event)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
         ->and($event->data)->toBe($data)
@@ -39,7 +39,7 @@ it('registers the draft generation listener with the package event dispatcher', 
     Event::fake();
 
     Event::assertListening(
-        DraftDispatchGenerationRequested::class,
+        GenerateDraftDispatchRequested::class,
         GenerateDraftDispatch::class,
     );
 });
@@ -49,7 +49,7 @@ it('generates a draft dispatch with reservations and audit context', function ()
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Event delivery']);
     $container = Container::factory()->create();
 
-    DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+    GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         dispatchedAt: '2026-07-20 09:30:00',
@@ -88,7 +88,7 @@ it('defers generation until the surrounding transaction commits', function (): v
     DB::beginTransaction();
 
     try {
-        DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+        GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
             deliveryNoteId: $deliveryNote->id,
             dispatchedBy: $user->id,
             idempotencyKey: 'delivery-note:commit:draft-dispatch',
@@ -116,7 +116,7 @@ it('discards generation when the surrounding transaction rolls back', function (
     DB::beginTransaction();
 
     try {
-        DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+        GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
             deliveryNoteId: $deliveryNote->id,
             dispatchedBy: $user->id,
             idempotencyKey: 'delivery-note:rollback:draft-dispatch',
@@ -167,8 +167,8 @@ it('handles equivalent retries without creating duplicate dispatches or reservat
         ],
     );
 
-    DraftDispatchGenerationRequested::dispatch($firstRequest);
-    DraftDispatchGenerationRequested::dispatch($equivalentRetry);
+    GenerateDraftDispatchRequested::dispatch($firstRequest);
+    GenerateDraftDispatchRequested::dispatch($equivalentRetry);
 
     $dispatch = Dispatch::query()
         ->where('idempotency_key', 'delivery-note:retry:draft-dispatch')
@@ -184,7 +184,7 @@ it('rejects conflicting reuse of an idempotency key', function (): void {
     $user = User::query()->create(['name' => 'Conflict Dispatcher', 'email' => 'conflict@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Conflict delivery']);
 
-    DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+    GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         dispatchedAt: '2026-07-20 10:30:00',
@@ -192,7 +192,7 @@ it('rejects conflicting reuse of an idempotency key', function (): void {
         idempotencyKey: 'delivery-note:conflict:draft-dispatch',
     ));
 
-    expect(fn () => DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+    expect(fn () => GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         dispatchedAt: '2026-07-20 10:30:00',
@@ -211,7 +211,7 @@ it('rolls back the complete draft when reservation validation fails', function (
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Invalid delivery']);
     $container = Container::factory()->create(['is_active' => false]);
 
-    expect(fn () => DraftDispatchGenerationRequested::dispatch(new CreateDispatchData(
+    expect(fn () => GenerateDraftDispatchRequested::dispatch(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         containerIds: [$container->id],

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Storix\Events\DraftDispatchGenerationRequested;
+use Storix\Events\GenerateDraftDispatchRequested;
 use Storix\Listeners\GenerateDraftDispatch;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
@@ -34,7 +34,7 @@ final class StorixServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        Event::listen(DraftDispatchGenerationRequested::class, GenerateDraftDispatch::class);
+        Event::listen(GenerateDraftDispatchRequested::class, GenerateDraftDispatch::class);
 
         $containerModel = Config::string('storix.models.container', Container::class);
         $dispatchModel = Config::string('storix.models.dispatch', Dispatch::class);
