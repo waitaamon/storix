@@ -31,6 +31,7 @@ return [
     'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
 
     'delivery_note_query_modifier' => static function (Builder $query): Builder {
+
         $year = FinancialYear::selected();
 
         $query

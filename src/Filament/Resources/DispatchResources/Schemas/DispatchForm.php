@@ -29,8 +29,30 @@ final class DispatchForm
                         ->relationship(
                             name: 'deliveryNote',
                             titleAttribute: 'code',
-                            modifyQueryUsing: Config::get('storix.delivery_note_query_modifier') ?? fn ($query) => $query
+                            modifyQueryUsing: fn ($query) => ($modifier = Config::get('storix.delivery_note_query_modifier'))
+                                ? $modifier($query)->with('customer')
+                                : $query->with('customer')
+
                         )
+                        ->getOptionLabelFromRecordUsing(fn ($record): string => self::deliveryNoteLabel($record))
+                        ->getSearchResultsUsing(function (string $search): array {
+                            $model = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
+
+                            $query = $model::query()->with('customer');
+
+                            if ($modifier = Config::get('storix.delivery_note_query_modifier')) {
+                                $query = $modifier($query);
+                            }
+
+                            return $query
+                                ->where(fn ($query) => $query
+                                    ->where('code', 'like', "%{$search}%")
+                                    ->orWhereHas('customer', fn ($query) => $query->where('name', 'like', "%{$search}%")))
+                                ->limit(50)
+                                ->get()
+                                ->mapWithKeys(fn ($record): array => [$record->getKey() => self::deliveryNoteLabel($record)])
+                                ->all();
+                        })
                         ->searchable()
                         ->preload()
                         ->required(),
@@ -61,5 +83,10 @@ final class DispatchForm
                         ->columnSpanFull(),
                 ]),
         ]);
+    }
+
+    private static function deliveryNoteLabel($record): string
+    {
+        return $record->code.' - '.$record->customer?->name;
     }
 }
