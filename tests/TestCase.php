@@ -6,8 +6,14 @@ namespace Storix\Tests;
 
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
+use Filament\Actions\ActionsServiceProvider;
+use Filament\FilamentServiceProvider;
+use Filament\Forms\FormsServiceProvider;
+use Filament\Infolists\InfolistsServiceProvider;
+use Filament\Notifications\NotificationsServiceProvider;
 use Filament\Schemas\SchemasServiceProvider;
 use Filament\Support\SupportServiceProvider;
+use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,6 +24,7 @@ use Spatie\Permission\PermissionServiceProvider;
 use Storix\StorixServiceProvider;
 use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Storix\Tests\Fixtures\Models\User;
+use Storix\Tests\Fixtures\Providers\TestPanelProvider;
 
 abstract class TestCase extends Orchestra
 {
@@ -32,8 +39,15 @@ abstract class TestCase extends Orchestra
             BladeHeroiconsServiceProvider::class,
             LivewireServiceProvider::class,
             SupportServiceProvider::class,
+            NotificationsServiceProvider::class,
+            ActionsServiceProvider::class,
+            FormsServiceProvider::class,
+            InfolistsServiceProvider::class,
             SchemasServiceProvider::class,
+            TablesServiceProvider::class,
             WidgetsServiceProvider::class,
+            FilamentServiceProvider::class,
+            TestPanelProvider::class,
             StorixServiceProvider::class,
         ];
     }

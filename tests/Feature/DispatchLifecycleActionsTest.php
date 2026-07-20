@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Storix\Actions\ApproveDispatchAction;
 use Storix\Actions\CreateDispatchAction;
 use Storix\Actions\ReceiveContainerReturnAction;
@@ -12,6 +13,8 @@ use Storix\Data\CreateDispatchData;
 use Storix\Data\ReceiveContainerReturnData;
 use Storix\Data\VoidDispatchData;
 use Storix\Enums\ReturnCondition;
+use Storix\Events\ContainerDispatched;
+use Storix\Events\DispatchApproved;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
@@ -95,14 +98,14 @@ it('does not approve a dispatch without containers', function (): void {
 it('approves a reserved dispatch with audit fields', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Approval delivery']);
-    $container = Container::factory()->create();
+    $containers = Container::factory()->count(2)->create();
 
     $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
-        quantity: 1,
+        quantity: 2,
         dispatchedAt: '2026-02-12',
-        containerIds: [$container->id],
+        containerIds: $containers->modelKeys(),
     ));
 
     $approved = app(ApproveDispatchAction::class)->handle($dispatch, $user->id);
@@ -110,6 +113,69 @@ it('approves a reserved dispatch with audit fields', function (): void {
     expect((string) $approved->state)->toBe('approved')
         ->and($approved->approved_by)->toBe($user->id)
         ->and($approved->approved_at)->not->toBeNull();
+});
+
+it('rejects approval when dispatch entry count does not match quantity', function (int $quantity, int $containerCount): void {
+    Event::fake([DispatchApproved::class, ContainerDispatched::class]);
+
+    $user = User::query()->create([
+        'name' => 'Mismatch Dispatcher',
+        'email' => "mismatch-{$quantity}-{$containerCount}@example.com",
+    ]);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Mismatch delivery']);
+    $containers = Container::factory()->count($containerCount)->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: $quantity,
+        containerIds: $containers->modelKeys(),
+    ));
+
+    expect(fn () => app(ApproveDispatchAction::class)->handle($dispatch, $user->id))
+        ->toThrow(
+            DomainException::class,
+            "The dispatch quantity [{$quantity}] must match the attached container count [{$containerCount}].",
+        );
+
+    $dispatch->refresh();
+
+    expect((string) $dispatch->state)->toBe('draft')
+        ->and($dispatch->approved_by)->toBeNull()
+        ->and($dispatch->approved_at)->toBeNull();
+
+    Event::assertNotDispatched(DispatchApproved::class);
+    Event::assertNotDispatched(ContainerDispatched::class);
+})->with([
+    'under-allocated' => [2, 1],
+    'over-allocated' => [1, 2],
+]);
+
+it('excludes soft-deleted dispatch entries from the approval quantity count', function (): void {
+    $user = User::query()->create(['name' => 'Deleted Entry Dispatcher', 'email' => 'deleted-entry@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Deleted entry delivery']);
+    $containers = Container::factory()->count(2)->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 2,
+        containerIds: $containers->modelKeys(),
+    ));
+
+    $dispatch->entries()->firstOrFail()->delete();
+
+    expect(fn () => app(ApproveDispatchAction::class)->handle($dispatch, $user->id))
+        ->toThrow(
+            DomainException::class,
+            'The dispatch quantity [2] must match the attached container count [1].',
+        );
+
+    expect((string) $dispatch->refresh()->state)->toBe('draft')
+        ->and($dispatch->approved_by)->toBeNull()
+        ->and($dispatch->approved_at)->toBeNull()
+        ->and($dispatch->entries()->count())->toBe(1)
+        ->and(DispatchEntry::withTrashed()->where('dispatch_id', $dispatch->id)->count())->toBe(2);
 });
 
 it('receives a returned container through the lifecycle action', function (): void {

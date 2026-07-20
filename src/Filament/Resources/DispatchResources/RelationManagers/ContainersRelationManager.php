@@ -66,33 +66,62 @@ final class ContainersRelationManager extends RelationManager
                     ->importer(DispatchEntryImporter::class)
                     ->options(['dispatch_id' => $this->ownerRecord->id]),
 
-                CreateAction::make('addContainer')
+                CreateAction::make('addContainers')
                     ->schema([
-                        Select::make('container_id')
-                            ->label(Config::string('storix.labels.container'))
+                        Select::make('container_ids')
+                            ->label(fn (): string => str(Config::string('storix.labels.container'))->plural()->headline()->toString())
                             ->options(static fn (): array => Container::query()
                                 ->availableForDispatch()
                                 ->orderBy('serial')
                                 ->pluck('serial', 'id')
                                 ->all())
+                            ->multiple()
                             ->searchable()
                             ->preload()
                             ->required(),
                     ])
                     ->using(function (array $data): DispatchEntry {
-                        app(AttachContainersToDispatchAction::class)->handle($this->ownerRecord, [(int) $data['container_id']]);
+                        $containerIds = $this->containerIds($data);
+
+                        app(AttachContainersToDispatchAction::class)->handle($this->ownerRecord, $containerIds);
 
                         return DispatchEntry::query()
                             ->where('dispatch_id', $this->ownerRecord->id)
-                            ->where('container_id', $data['container_id'])
+                            ->whereIn('container_id', $containerIds)
                             ->firstOrFail();
                     })
+                    ->createAnother(false)
                     ->icon('heroicon-o-plus')
-                    ->label(fn (): string => 'Add '.Config::string('storix.labels.container')),
+                    ->label('Add')
+                    ->modalHeading(fn (): string => 'Add '.str(Config::string('storix.labels.container'))->plural()->headline()->toString())
+                    ->modalSubmitActionLabel('Add'),
             ])
             ->recordActions([
                 DeleteAction::make()
                     ->iconButton(),
             ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return list<int|string>
+     */
+    private function containerIds(array $data): array
+    {
+        $selectedIds = $data['container_ids'] ?? [];
+
+        if (! is_array($selectedIds)) {
+            return [];
+        }
+
+        $containerIds = [];
+
+        foreach ($selectedIds as $selectedId) {
+            if (is_int($selectedId) || is_string($selectedId)) {
+                $containerIds[] = $selectedId;
+            }
+        }
+
+        return $containerIds;
     }
 }

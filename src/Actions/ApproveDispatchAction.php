@@ -40,6 +40,14 @@ final class ApproveDispatchAction
                 throw new DomainException('A dispatch cannot be approved without containers.');
             }
 
+            $entryCount = $entries->count();
+
+            if ($entryCount !== $dispatch->quantity) {
+                throw new DomainException(
+                    "The dispatch quantity [{$dispatch->quantity}] must match the attached container count [{$entryCount}].",
+                );
+            }
+
             foreach ($entries as $entry) {
                 if (! $entry->container->is_active) {
                     throw new DomainException('All containers must be active before approval.');
