@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources\RelationManagers;
 
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ImportAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -15,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Actions\AttachContainersToDispatchAction;
+use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Filament\Imports\DispatchEntryImporter;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
@@ -95,6 +98,12 @@ final class ContainersRelationManager extends RelationManager
                     ->label('Add')
                     ->modalHeading(fn (): string => 'Add '.str(Config::string('storix.labels.container'))->plural()->headline()->toString())
                     ->modalSubmitActionLabel('Add'),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    ExportBulkAction::make()
+                        ->exporter(DispatchEntryExporter::class),
+                ]),
             ])
             ->recordActions([
                 DeleteAction::make()

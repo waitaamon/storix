@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use Filament\Actions\CreateAction;
+use Filament\Actions\ExportBulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+use Storix\Filament\Exports\DispatchEntryExporter;
 use Storix\Filament\Resources\DispatchResources\Pages\ViewDispatch;
 use Storix\Filament\Resources\DispatchResources\RelationManagers\ContainersRelationManager;
 use Storix\Models\Container;
@@ -113,4 +115,83 @@ it('configures the add action and available options from the container label', f
         ->and($containerSelect->isRequired())->toBeTrue()
         ->and($containerSelect->getOptions())->toHaveKey($availableContainer->id)
         ->and($containerSelect->getOptions())->not->toHaveKey($reservedContainer->id);
+});
+
+it('configures dispatch entry exports for the relation manager', function (): void {
+    Gate::before(static fn (mixed $user, string $ability): bool => true);
+
+    $user = User::query()->create(['name' => 'Export Manager', 'email' => 'export-manager@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Export delivery']);
+    $dispatch = Dispatch::query()->create([
+        'dispatched_by' => $user->id,
+        'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
+    ]);
+
+    actingAs($user);
+
+    $component = Livewire::test(ContainersRelationManager::class, [
+        'ownerRecord' => $dispatch,
+        'pageClass' => ViewDispatch::class,
+    ]);
+    $manager = $component->instance();
+
+    if (! $manager instanceof ContainersRelationManager) {
+        throw new LogicException('The Livewire component is not a containers relation manager.');
+    }
+
+    $exportAction = $manager->getTable()->getBulkAction('export');
+
+    expect($exportAction)->toBeInstanceOf(ExportBulkAction::class);
+
+    if (! $exportAction instanceof ExportBulkAction) {
+        throw new LogicException('The export action is not a bulk export action.');
+    }
+
+    expect($exportAction->getExporter())->toBe(DispatchEntryExporter::class)
+        ->and($exportAction->isVisible())->toBeTrue();
+});
+
+it('scopes relation manager exports to the owner dispatch', function (): void {
+    Gate::before(static fn (mixed $user, string $ability): bool => true);
+
+    $user = User::query()->create(['name' => 'Scoped Export Manager', 'email' => 'scoped-export@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Scoped export delivery']);
+    $ownerDispatch = Dispatch::query()->create([
+        'dispatched_by' => $user->id,
+        'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
+    ]);
+    $otherDispatch = Dispatch::query()->create([
+        'dispatched_by' => $user->id,
+        'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
+    ]);
+    $ownerEntry = DispatchEntry::query()->create([
+        'dispatch_id' => $ownerDispatch->id,
+        'container_id' => Container::factory()->create()->id,
+    ]);
+    $otherEntry = DispatchEntry::query()->create([
+        'dispatch_id' => $otherDispatch->id,
+        'container_id' => Container::factory()->create()->id,
+    ]);
+
+    actingAs($user);
+
+    $component = Livewire::test(ContainersRelationManager::class, [
+        'ownerRecord' => $ownerDispatch,
+        'pageClass' => ViewDispatch::class,
+    ]);
+    $manager = $component->instance();
+
+    if (! $manager instanceof ContainersRelationManager) {
+        throw new LogicException('The Livewire component is not a containers relation manager.');
+    }
+
+    $exportEntryIds = $manager->getTableQueryForExport()
+        ->pluck('id')
+        ->all();
+
+    expect($exportEntryIds)->toBe([$ownerEntry->id])
+        ->and($exportEntryIds)->not->toContain($otherEntry->id);
 });
