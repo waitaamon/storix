@@ -36,7 +36,7 @@ final class DispatchesRelationManager extends RelationManager
                     ->sortable(),
 
                 TextColumn::make('pivot.return_date')
-                    ->dateTime()
+                    ->date()
                     ->label('Return Date'),
 
                 TextColumn::make('pivot.return_condition')

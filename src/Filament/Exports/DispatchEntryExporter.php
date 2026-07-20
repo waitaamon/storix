@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Exports;
 
+use Carbon\CarbonInterface;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
@@ -30,7 +31,8 @@ final class DispatchEntryExporter extends Exporter
             ExportColumn::make('dispatch.dispatched_at'),
             ExportColumn::make('dispatch.dispatch_note'),
             ExportColumn::make('receivedBy.name'),
-            ExportColumn::make('return_date'),
+            ExportColumn::make('return_date')
+                ->formatStateUsing(static fn (?CarbonInterface $state): ?string => $state?->toDateString()),
             ExportColumn::make('return_condition'),
             ExportColumn::make('return_note'),
         ];

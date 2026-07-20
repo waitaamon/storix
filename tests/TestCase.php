@@ -90,8 +90,15 @@ abstract class TestCase extends Orchestra
             $table->unique(['name', 'guard_name']);
         });
 
+        Schema::create('customers', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
         Schema::create('delivery_notes', function (Blueprint $table): void {
             $table->id();
+            $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->timestampTz('dispatched_at')->nullable();
             $table->timestamps();

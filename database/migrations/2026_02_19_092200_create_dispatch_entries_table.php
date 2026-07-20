@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('container_id')->constrained(TableNames::containers())->restrictOnDelete();
             $table->foreignId('dispatch_id')->constrained(TableNames::dispatches())->cascadeOnDelete();
             $table->foreignId('received_by')->nullable()->constrained(TableNames::users())->nullOnDelete();
-            $table->timestampTz('return_date')->nullable()->index();
+            $table->date('return_date')->nullable()->index();
             $table->string('return_condition')->nullable()->index();
             $table->text('return_note')->nullable();
             $table->jsonb('metadata')->nullable();

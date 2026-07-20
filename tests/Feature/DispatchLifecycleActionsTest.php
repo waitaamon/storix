@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
+use Filament\Facades\Filament;
+use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
@@ -10,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Storix\Actions\ApproveDispatchAction;
+use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Actions\CreateDispatchAction;
+use Storix\Actions\MarkDeliveryNoteAsDispatchedAction;
 use Storix\Actions\ReceiveContainerReturnAction;
 use Storix\Actions\VoidDispatchAction;
 use Storix\Data\CreateDispatchData;
@@ -333,6 +338,59 @@ it('receives a returned container through the lifecycle action', function (): vo
         ->and(Container::query()->availableForDispatch()->pluck('id'))->toContain($container->id);
 });
 
+it('normalizes a time-bearing return value and allows a same-date return', function (): void {
+    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'same-day-dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Same-day return delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $dispatcher->id,
+        quantity: 1,
+        dispatchedAt: '2026-02-12 18:00:00',
+        containerIds: [$container->id],
+    ));
+    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
+
+    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
+
+    $received = app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
+        returnDate: '2026-02-12T08:00:00+14:00',
+        condition: ReturnCondition::Good,
+        receivedBy: $dispatcher->id,
+    ));
+
+    expect($received->return_date)->toBeInstanceOf(CarbonImmutable::class)
+        ->and($received->return_date?->toDateString())->toBe('2026-02-12')
+        ->and($received->return_date?->isStartOfDay())->toBeTrue();
+});
+
+it('rejects a return date earlier than the dispatch date', function (): void {
+    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'earlier-return@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Earlier return delivery']);
+    $container = Container::factory()->create();
+
+    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $dispatcher->id,
+        quantity: 1,
+        dispatchedAt: '2026-02-12 08:00:00',
+        containerIds: [$container->id],
+    ));
+    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
+
+    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
+
+    expect(fn () => app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
+        returnDate: '2026-02-11 23:59:59',
+        condition: ReturnCondition::Good,
+        receivedBy: $dispatcher->id,
+    )))->toThrow(DomainException::class, 'Return date cannot be earlier than dispatch date.');
+
+    expect($entry->refresh()->return_date)->toBeNull()
+        ->and($entry->return_condition)->toBeNull();
+});
+
 it('marks lost containers inactive when loss is recorded', function (): void {
     $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Lost delivery']);
@@ -380,4 +438,110 @@ it('voids draft dispatches and releases reserved containers', function (): void 
         ->and($voided->void_reason)->toBe('Entered in error')
         ->and(DispatchEntry::withTrashed()->where('dispatch_id', $dispatch->id)->first()?->trashed())->toBeTrue()
         ->and(Container::query()->availableForDispatch()->pluck('id'))->toContain($container->id);
+});
+
+it('shows action exceptions as danger notifications while Filament is serving', function (): void {
+    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'notifications@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Notification delivery']);
+    $container = Container::factory()->create();
+
+    $emptyDispatch = Dispatch::query()->create([
+        'dispatched_by' => $user->id,
+        'delivery_note_id' => $deliveryNote->id,
+        'quantity' => 1,
+    ]);
+
+    $draftDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [$container->id],
+    ));
+    $draftEntry = DispatchEntry::query()
+        ->where('dispatch_id', $draftDispatch->getKey())
+        ->firstOrFail();
+
+    $approvedDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        containerIds: [Container::factory()->create()->id],
+    ));
+    app(ApproveDispatchAction::class)->handle($approvedDispatch, $user->id);
+
+    $assertDangerNotification = function (Closure $callback, ?string $message = null): void {
+        session()->forget('filament.notifications');
+
+        try {
+            $callback();
+            throw new LogicException('The action did not halt after throwing an exception.');
+        } catch (Halt $exception) {
+            $originalException = $exception->getPrevious();
+            $notifications = session('filament.notifications', []);
+
+            expect($exception->shouldRollbackDatabaseTransaction())->toBeTrue()
+                ->and($originalException)->not->toBeNull()
+                ->and($notifications)->toHaveCount(1)
+                ->and($notifications[0]['status'])->toBe('danger')
+                ->and($notifications[0]['title'])->toBe($originalException?->getMessage());
+
+            if ($message !== null) {
+                expect($originalException?->getMessage())->toBe($message);
+            }
+        }
+    };
+
+    Filament::setServingStatus();
+
+    try {
+        $assertDangerNotification(
+            fn () => app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+                deliveryNoteId: $deliveryNote->id,
+                dispatchedBy: $user->id,
+                quantity: 1,
+                idempotencyKey: str_repeat('x', 256),
+            )),
+            'The dispatch idempotency key may not exceed 255 characters.',
+        );
+
+        $assertDangerNotification(
+            fn () => app(ApproveDispatchAction::class)->handle($emptyDispatch, $user->id),
+            'A dispatch cannot be approved without containers.',
+        );
+
+        $assertDangerNotification(
+            fn () => app(AttachContainersToDispatchAction::class)->handle(
+                $approvedDispatch,
+                [Container::factory()->create()->id],
+            ),
+            'Containers can only be attached to draft dispatches.',
+        );
+
+        $assertDangerNotification(
+            fn () => app(ReceiveContainerReturnAction::class)->handle($draftEntry, new ReceiveContainerReturnData(
+                returnDate: today(),
+                condition: ReturnCondition::Good,
+                receivedBy: $user->id,
+            )),
+            'Only containers from approved dispatches can be received.',
+        );
+
+        $assertDangerNotification(
+            fn () => app(VoidDispatchAction::class)->handle($draftDispatch, new VoidDispatchData(
+                voidedBy: $user->id,
+                reason: '',
+            )),
+            'A void reason is required.',
+        );
+
+        Config::set('storix.tables.delivery_notes', []);
+
+        $assertDangerNotification(fn () => app(MarkDeliveryNoteAsDispatchedAction::class)->handle(
+            $deliveryNote->id,
+            now(),
+        ));
+    } finally {
+        Filament::setServingStatus(false);
+        Config::set('storix.tables.delivery_notes', 'delivery_notes');
+    }
 });

@@ -72,7 +72,7 @@ Create **Dispatches module** representing full lifecycle.
 
 ### Return Tracking Fields
 
--   return_date → timestamp nullable
+-   return_date → date nullable
 -   return_condition → nullabe string
 -   return_note → text nullable
 

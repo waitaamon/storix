@@ -14,6 +14,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Enums\Size;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Actions\AttachContainersToDispatchAction;
@@ -30,6 +31,12 @@ final class ContainersRelationManager extends RelationManager
 {
     #[Override]
     protected static string $relationship = 'entries';
+
+    #[Override]
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return true;
+    }
 
     #[Override]
     public function isReadOnly(): bool
@@ -106,8 +113,7 @@ final class ContainersRelationManager extends RelationManager
                 ]),
             ])
             ->recordActions([
-                DeleteAction::make()
-                    ->iconButton(),
+                DeleteAction::make()->iconButton(),
             ]);
     }
 

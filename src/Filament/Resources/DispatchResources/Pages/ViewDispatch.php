@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Storix\Filament\Resources\DispatchResources\Pages;
 
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Override;
 use Storix\Actions\ApproveDispatchAction;
@@ -31,7 +33,20 @@ final class ViewDispatch extends ViewRecord
                 ->label('Approve')
                 ->icon('heroicon-o-check')
                 ->authorize(fn (Dispatch $record) => auth()->user()?->can('approve', $record) ?? false)
-                ->action(fn (Dispatch $dispatch) => app(ApproveDispatchAction::class)->handle($dispatch, auth()->id()))
+                ->action(function (Action $action, Dispatch $dispatch): void {
+                    try {
+                        app(ApproveDispatchAction::class)->handle($dispatch, auth()->id());
+                    } catch (DomainException $exception) {
+                        Notification::make()
+                            ->title('Dispatch approval failed')
+                            ->body($exception->getMessage())
+                            ->danger()
+                            ->send();
+
+                        $action->cancel();
+                    }
+                })
+                ->successRedirectUrl(fn (): string => DispatchResource::getUrl('index'))
                 ->requiresConfirmation(),
 
             Action::make('void')

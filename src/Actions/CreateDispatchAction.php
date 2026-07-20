@@ -7,12 +7,15 @@ namespace Storix\Actions;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Data\CreateDispatchData;
 use Storix\Models\Dispatch;
 use Throwable;
 
 final readonly class CreateDispatchAction
 {
+    use NotifiesFilamentOfExceptions;
+
     public function __construct(
         private AttachContainersToDispatchAction $attachContainers,
     ) {}
@@ -22,41 +25,45 @@ final readonly class CreateDispatchAction
      */
     public function handle(CreateDispatchData $data): Dispatch
     {
-        return DB::transaction(function () use ($data): Dispatch {
-            $idempotencyKey = $this->normalizeIdempotencyKey($data->idempotencyKey);
-            $values = [
-                'delivery_note_id' => $data->deliveryNoteId,
-                'dispatched_by' => $data->dispatchedBy,
-                'quantity' => $data->quantity,
-                'dispatched_at' => $data->dispatchedAt ? CarbonImmutable::parse($data->dispatchedAt) : now(),
-                'dispatch_note' => $data->dispatchNote,
-                'metadata' => $data->metadata === [] ? null : $data->metadata,
-            ];
+        try {
+            return DB::transaction(function () use ($data): Dispatch {
+                $idempotencyKey = $this->normalizeIdempotencyKey($data->idempotencyKey);
+                $values = [
+                    'delivery_note_id' => $data->deliveryNoteId,
+                    'dispatched_by' => $data->dispatchedBy,
+                    'quantity' => $data->quantity,
+                    'dispatched_at' => $data->dispatchedAt ? CarbonImmutable::parse($data->dispatchedAt) : now(),
+                    'dispatch_note' => $data->dispatchNote,
+                    'metadata' => $data->metadata === [] ? null : $data->metadata,
+                ];
 
-            if ($idempotencyKey === null) {
-                $dispatch = Dispatch::query()->create($values);
-            } else {
-                $fingerprint = $this->idempotencyFingerprint($data);
-                $values['idempotency_fingerprint'] = $fingerprint;
+                if ($idempotencyKey === null) {
+                    $dispatch = Dispatch::query()->create($values);
+                } else {
+                    $fingerprint = $this->idempotencyFingerprint($data);
+                    $values['idempotency_fingerprint'] = $fingerprint;
 
-                $dispatch = Dispatch::withTrashed()->createOrFirst(
-                    ['idempotency_key' => $idempotencyKey],
-                    $values,
-                );
+                    $dispatch = Dispatch::withTrashed()->createOrFirst(
+                        ['idempotency_key' => $idempotencyKey],
+                        $values,
+                    );
 
-                if (! $dispatch->wasRecentlyCreated) {
-                    $this->ensureIdempotencyKeyMatchesRequest($dispatch, $fingerprint);
+                    if (! $dispatch->wasRecentlyCreated) {
+                        $this->ensureIdempotencyKeyMatchesRequest($dispatch, $fingerprint);
 
-                    return $dispatch->refresh();
+                        return $dispatch->refresh();
+                    }
                 }
-            }
 
-            if ($data->containerIds !== []) {
-                $this->attachContainers->handle($dispatch, $data->containerIds);
-            }
+                if ($data->containerIds !== []) {
+                    $this->attachContainers->handle($dispatch, $data->containerIds);
+                }
 
-            return $dispatch->refresh();
-        });
+                return $dispatch->refresh();
+            });
+        } catch (Throwable $exception) {
+            $this->handleException($exception);
+        }
     }
 
     private function normalizeIdempotencyKey(?string $idempotencyKey): ?string

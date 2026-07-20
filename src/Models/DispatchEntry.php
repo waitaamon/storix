@@ -101,7 +101,7 @@ final class DispatchEntry extends Model
     protected function casts(): array
     {
         return [
-            'return_date' => 'immutable_datetime',
+            'return_date' => 'immutable_date',
             'return_condition' => ReturnCondition::class,
             'metadata' => 'array',
         ];

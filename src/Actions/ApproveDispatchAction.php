@@ -6,6 +6,7 @@ namespace Storix\Actions;
 
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Events\ContainerDispatched;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
@@ -15,6 +16,8 @@ use Throwable;
 
 final readonly class ApproveDispatchAction
 {
+    use NotifiesFilamentOfExceptions;
+
     public function __construct(
         private MarkDeliveryNoteAsDispatchedAction $markDeliveryNoteAsDispatched,
     ) {}
@@ -24,67 +27,71 @@ final readonly class ApproveDispatchAction
      */
     public function handle(Dispatch $dispatch, int|string|null $approvedBy = null): Dispatch
     {
-        return DB::transaction(function () use ($dispatch, $approvedBy): Dispatch {
-            $dispatch = Dispatch::query()
-                ->whereKey($dispatch->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if (! $dispatch->state->equals(DispatchDraftState::class)) {
-                throw new DomainException('Only draft dispatches can be approved.');
-            }
-
-            $entries = DispatchEntry::query()
-                ->with('container')
-                ->where('dispatch_id', $dispatch->getKey())
-                ->lockForUpdate()
-                ->get();
-
-            if ($entries->isEmpty()) {
-                throw new DomainException('A dispatch cannot be approved without containers.');
-            }
-
-            $entryCount = $entries->count();
-
-            if ($entryCount !== $dispatch->quantity) {
-                throw new DomainException(
-                    "The dispatch quantity [{$dispatch->quantity}] must match the attached container count [{$entryCount}].",
-                );
-            }
-
-            foreach ($entries as $entry) {
-                if (! $entry->container->is_active) {
-                    throw new DomainException('All containers must be active before approval.');
-                }
-
-                $conflictingEntry = DispatchEntry::query()
-                    ->where('container_id', $entry->container_id)
-                    ->whereNull('return_date')
-                    ->whereKeyNot($entry->getKey())
+        try {
+            return DB::transaction(function () use ($dispatch, $approvedBy): Dispatch {
+                $dispatch = Dispatch::query()
+                    ->whereKey($dispatch->getKey())
                     ->lockForUpdate()
-                    ->first();
+                    ->firstOrFail();
 
-                if ($conflictingEntry) {
-                    throw new DomainException("Container [{$entry->container->serial}] is already reserved or dispatched.");
+                if (! $dispatch->state->equals(DispatchDraftState::class)) {
+                    throw new DomainException('Only draft dispatches can be approved.');
                 }
-            }
 
-            $approvedAt = now();
+                $entries = DispatchEntry::query()
+                    ->with('container')
+                    ->where('dispatch_id', $dispatch->getKey())
+                    ->lockForUpdate()
+                    ->get();
 
-            $dispatch->forceFill([
-                'approved_by' => $approvedBy,
-                'approved_at' => $approvedAt,
-            ]);
+                if ($entries->isEmpty()) {
+                    throw new DomainException('A dispatch cannot be approved without containers.');
+                }
 
-            $dispatch->state->transitionTo(DispatchApprovedState::class);
-            $this->markDeliveryNoteAsDispatched->handle($dispatch->delivery_note_id, $approvedAt);
-            $dispatch = $dispatch->refresh();
+                $entryCount = $entries->count();
 
-            foreach ($entries as $entry) {
-                ContainerDispatched::dispatch($entry->refresh());
-            }
+                if ($entryCount !== $dispatch->quantity) {
+                    throw new DomainException(
+                        "The dispatch quantity [{$dispatch->quantity}] must match the attached container count [{$entryCount}].",
+                    );
+                }
 
-            return $dispatch;
-        });
+                foreach ($entries as $entry) {
+                    if (! $entry->container->is_active) {
+                        throw new DomainException('All containers must be active before approval.');
+                    }
+
+                    $conflictingEntry = DispatchEntry::query()
+                        ->where('container_id', $entry->container_id)
+                        ->whereNull('return_date')
+                        ->whereKeyNot($entry->getKey())
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($conflictingEntry) {
+                        throw new DomainException("Container [{$entry->container->serial}] is already reserved or dispatched.");
+                    }
+                }
+
+                $approvedAt = now();
+
+                $dispatch->forceFill([
+                    'approved_by' => $approvedBy,
+                    'approved_at' => $approvedAt,
+                ]);
+
+                $dispatch->state->transitionTo(DispatchApprovedState::class);
+                $this->markDeliveryNoteAsDispatched->handle($dispatch->delivery_note_id, $approvedAt);
+                $dispatch = $dispatch->refresh();
+
+                foreach ($entries as $entry) {
+                    ContainerDispatched::dispatch($entry->refresh());
+                }
+
+                return $dispatch;
+            });
+        } catch (Throwable $exception) {
+            $this->handleException($exception);
+        }
     }
 }

@@ -123,6 +123,7 @@ php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
 - Approval records `approved_by` and `approved_at`; voiding records `voided_by`, `voided_at`, and `void_reason`.
 - A unique partial index prevents one container from having more than one open dispatch entry.
 - `dispatches.metadata` uses `jsonb`.
+- `dispatch_entries.return_date` is a date-only business value; audit timestamps retain the precise recording time.
 - Container loss exposure is based on typed `replacement_cost` and `replacement_currency` fields, not JSON metadata.
 - Table names are config-driven through `Storix\\Support\\TableNames`.
 

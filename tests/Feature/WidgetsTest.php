@@ -175,7 +175,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
             DispatchEntry::query()->create([
                 'dispatch_id' => $returnedDispatch->id,
                 'container_id' => $container->id,
-                'return_date' => '2026-02-16 12:00:00',
+                'return_date' => '2026-02-16',
                 'return_condition' => $condition,
             ]);
         }
@@ -188,7 +188,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
         DispatchEntry::query()->create([
             'dispatch_id' => $returnedDispatch->id,
             'container_id' => $containers[8]->id,
-            'return_date' => '2026-02-16 12:00:00',
+            'return_date' => '2026-02-16',
             'return_condition' => ReturnCondition::Damaged,
         ]);
 
@@ -247,7 +247,7 @@ it('flags tightening capacity and aging with warning treatments', function (): v
             DispatchEntry::query()->create([
                 'dispatch_id' => $dispatch->id,
                 'container_id' => $containers[3]->id,
-                'return_date' => '2026-02-20 12:00:00',
+                'return_date' => '2026-02-20',
                 'return_condition' => $index === 1 ? ReturnCondition::Damaged : ReturnCondition::Good,
             ]);
         }

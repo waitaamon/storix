@@ -8,11 +8,15 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
+use Storix\Enums\ReturnCondition;
 use Storix\Filament\Exports\DispatchExporter;
 use Storix\Models\Dispatch;
 use Storix\Support\FinancialYear;
@@ -61,6 +65,73 @@ final class DispatchesTable
                     ->icon(false),
             ])
             ->filters([
+                SelectFilter::make('customer')
+                    ->relationship('deliveryNote.customer', 'name')
+                    ->searchable(),
+
+                Filter::make('dispatched_at')
+                    ->label('Date')
+                    ->schema([
+                        DatePicker::make('from')
+                            ->label('From')
+                            ->native(false),
+                        DatePicker::make('until')
+                            ->label('Until')
+                            ->native(false),
+                    ])
+                    ->columns(2)
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when(
+                            $data['from'] ?? null,
+                            fn (Builder $query, string $date): Builder => $query->whereDate('dispatched_at', '>=', $date),
+                        )
+                        ->when(
+                            $data['until'] ?? null,
+                            fn (Builder $query, string $date): Builder => $query->whereDate('dispatched_at', '<=', $date),
+                        ))
+                    ->indicateUsing(fn (array $data): array => self::dateRangeIndicators($data, 'Date')),
+
+                SelectFilter::make('return_condition')
+                    ->label('Condition')
+                    ->options(ReturnCondition::class)
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        $data['value'] ?? null,
+                        fn (Builder $query, string $condition): Builder => $query->whereHas(
+                            'entries',
+                            fn (Builder $query): Builder => $query->where('return_condition', $condition),
+                        ),
+                    )),
+
+                Filter::make('return_date')
+                    ->schema([
+                        DatePicker::make('from')
+                            ->label('From')
+                            ->native(false),
+                        DatePicker::make('until')
+                            ->label('Until')
+                            ->native(false),
+                    ])
+                    ->columns(2)
+                    ->query(function (Builder $query, array $data): Builder {
+                        $from = $data['from'] ?? null;
+                        $until = $data['until'] ?? null;
+
+                        if (! $from && ! $until) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('entries', fn (Builder $query): Builder => $query
+                            ->when(
+                                $from,
+                                fn (Builder $query, string $date): Builder => $query->whereDate('return_date', '>=', $date),
+                            )
+                            ->when(
+                                $until,
+                                fn (Builder $query, string $date): Builder => $query->whereDate('return_date', '<=', $date),
+                            ));
+                    })
+                    ->indicateUsing(fn (array $data): array => self::dateRangeIndicators($data, 'Return date')),
+
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -77,5 +148,24 @@ final class DispatchesTable
                         ->exporter(DispatchExporter::class),
                 ]),
             ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, string>
+     */
+    private static function dateRangeIndicators(array $data, string $label): array
+    {
+        $indicators = [];
+
+        if ($from = $data['from'] ?? null) {
+            $indicators['from'] = "{$label} from {$from}";
+        }
+
+        if ($until = $data['until'] ?? null) {
+            $indicators['until'] = "{$label} until {$until}";
+        }
+
+        return $indicators;
     }
 }
