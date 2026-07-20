@@ -10,9 +10,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
+use LogicException;
 use Storix\Models\Container;
+use Storix\Support\DeliveryNoteQuery;
 use Storix\Support\FinancialYear;
 
 final class DispatchForm
@@ -31,20 +34,11 @@ final class DispatchForm
                         ->relationship(
                             name: 'deliveryNote',
                             titleAttribute: 'code',
-                            modifyQueryUsing: fn ($query) => ($modifier = Config::get('storix.delivery_note_query_modifier'))
-                                ? $modifier($query)->with('customer')
-                                : $query->with('customer')
-
+                            modifyQueryUsing: fn (Builder $query) => DeliveryNoteQuery::modify($query)->with('customer'),
                         )
                         ->getOptionLabelFromRecordUsing(fn (Model $record): string => self::deliveryNoteLabel($record))
                         ->getSearchResultsUsing(function (string $search): array {
-                            $model = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
-
-                            $query = $model::query()->with('customer');
-
-                            if ($modifier = Config::get('storix.delivery_note_query_modifier')) {
-                                $query = $modifier($query);
-                            }
+                            $query = DeliveryNoteQuery::modify(self::deliveryNoteQuery()->with('customer'));
 
                             return $query
                                 ->where(fn ($query) => $query
@@ -100,5 +94,17 @@ final class DispatchForm
             : '';
 
         return $record->getAttribute('code').' - '.$customerName;
+    }
+
+    /** @return Builder<Model> */
+    private static function deliveryNoteQuery(): Builder
+    {
+        $model = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
+
+        if (! is_a($model, Model::class, true)) {
+            throw new LogicException("The configured Storix delivery note model [{$model}] must extend Eloquent's model class.");
+        }
+
+        return $model::query();
     }
 }

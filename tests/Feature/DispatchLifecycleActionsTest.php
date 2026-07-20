@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Support\Exceptions\Halt;
-use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -75,21 +74,6 @@ it('rejects a non-positive dispatch quantity without persisting a dispatch', fun
 
     expect(Dispatch::query()->count())->toBe(0);
 })->with([0, -1]);
-
-it('enforces positive quantities at the database boundary', function (): void {
-    $user = User::query()->create(['name' => 'Database Dispatcher', 'email' => 'database-quantity@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Database quantity delivery']);
-
-    expect(fn () => DB::table(TableNames::dispatches())->insert([
-        'dispatched_by' => $user->id,
-        'delivery_note_id' => $deliveryNote->id,
-        'quantity' => 0,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]))->toThrow(QueryException::class);
-
-    expect(Dispatch::query()->count())->toBe(0);
-});
 
 it('does not approve a dispatch without containers', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);

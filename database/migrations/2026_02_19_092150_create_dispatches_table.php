@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create(TableNames::dispatches(), function (Blueprint $table): void {
             $table->id();
             $table->string('code')->nullable()->unique();
+            $table->integer('quantity')->unsigned()->nullable()->index();
             $table->foreignId('dispatched_by')->constrained(TableNames::users())->restrictOnDelete();
             $table->foreignId('delivery_note_id')->constrained(TableNames::deliveryNotes())->restrictOnDelete();
             $table->timestampTz('dispatched_at')->nullable()->index();

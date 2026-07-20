@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Eloquent\Builder;
-use Storix\Support\FinancialYear;
+use Storix\Support\DefaultDeliveryNoteQueryModifier;
 
 return [
     'models' => [
@@ -30,23 +29,10 @@ return [
 
     'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
 
-    'delivery_note_query_modifier' => static function (Builder $query): Builder {
-
-        $year = FinancialYear::selected();
-
-        $query
-            ->whereNull('dispatched_at')
-            ->where('state', 'approved');
-
-        if ($year) {
-            $query->whereBetween('transaction_date', [
-                $year->start_date,
-                $year->end_date,
-            ]);
-        }
-
-        return $query;
-    },
+    'delivery_note_query_modifier' => env(
+        'STORIX_DELIVERY_NOTE_QUERY_MODIFIER',
+        DefaultDeliveryNoteQueryModifier::class,
+    ),
 
     'permissions' => [
         'register' => true,
