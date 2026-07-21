@@ -9,7 +9,7 @@ It provides:
 - Per-container dispatch entries and return-condition tracking.
 - Transactional actions for creation, reservation, approval, receipt, and voiding.
 - Filament resources, bulk imports and exports, filters, relation managers, and fleet metrics.
-- Spatie Permission policies and automatic permission registration.
+- Spatie Permission policies and explicit, idempotent permission synchronization.
 - After-commit lifecycle events for host ERP and accounting integrations.
 
 ## Requirements
@@ -43,14 +43,14 @@ php artisan make:notifications-table
 php artisan vendor:publish --tag=filament-actions-migrations
 ```
 
-Run all application and package migrations, then register Storix permissions deterministically:
+Run all application and package migrations, then sync Storix permissions deterministically:
 
 ```bash
 php artisan migrate
-php artisan db:seed --class="Storix\\Database\\Seeders\\StorixPermissionSeeder"
+php artisan storix:sync-permissions
 ```
 
-The permission seeder is optional when the standard `permissions` table already exists before the Storix service provider boots, because permissions are also registered automatically.
+Run the sync command after every Storix update that adds permissions. It creates missing permissions and leaves existing role and user assignments intact. Storix never queries or writes the permissions table while its service provider boots.
 
 ## Registering The Filament Plugin
 
@@ -157,16 +157,13 @@ Storix still accepts the closure-based modifier used by previously published con
 
 ### Permissions
 
-The remaining permission settings are configured in `config/storix.php`:
+The permission guard is configured in `config/storix.php`:
 
 ```php
 'permissions' => [
-    'register' => true,
     'guard_name' => 'web',
 ],
 ```
-
-Set `register` to `false` if the host application manages permission records itself.
 
 ## Host Application Contract
 
@@ -336,7 +333,7 @@ Use the dispatch-entry export when container serials or return details are requi
 
 ## Permissions And Policies
 
-Storix registers the following permissions for the configured guard:
+The sync command creates the following permissions for the configured guard:
 
 ### Containers
 

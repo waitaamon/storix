@@ -11,6 +11,6 @@ final class StorixPermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        StorixPermissions::register();
+        StorixPermissions::sync();
     }
 }

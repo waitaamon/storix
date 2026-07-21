@@ -35,7 +35,6 @@ return [
     ),
 
     'permissions' => [
-        'register' => true,
         'guard_name' => 'web',
     ],
 ];

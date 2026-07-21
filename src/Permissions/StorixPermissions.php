@@ -4,30 +4,32 @@ declare(strict_types=1);
 
 namespace Storix\Permissions;
 
+use Deprecated;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Schema;
-use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Contracts\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 final class StorixPermissions
 {
-    public static function register(): void
+    public static function sync(?PermissionRegistrar $permissionRegistrar = null): void
     {
-        if (! class_exists(Permission::class)) {
-            return;
-        }
-
-        if (! Schema::hasTable('permissions')) {
-            return;
-        }
-
         $guardName = Config::string('storix.permissions.guard_name', 'web');
+        $permissionRegistrar ??= app(PermissionRegistrar::class);
+
+        /** @var class-string<Permission> $permissionModelClass */
+        $permissionModelClass = $permissionRegistrar->getPermissionClass();
 
         foreach (self::all() as $permission) {
-            Permission::findOrCreate($permission, $guardName);
+            $permissionModelClass::findOrCreate($permission, $guardName);
         }
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissionRegistrar->forgetCachedPermissions();
+    }
+
+    #[Deprecated(message: 'Use sync() instead.')]
+    public static function register(): void
+    {
+        self::sync();
     }
 
     /** @return list<string> */

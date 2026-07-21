@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Storix\Commands\SyncPermissionsCommand;
 use Storix\Events\GenerateDraftDispatchRequested;
 use Storix\Listeners\GenerateDraftDispatch;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
-use Storix\Permissions\StorixPermissions;
 use Storix\Policies\ContainerPolicy;
 use Storix\Policies\DispatchEntryPolicy;
 use Storix\Policies\DispatchPolicy;
@@ -28,6 +28,7 @@ final class StorixServiceProvider extends PackageServiceProvider
         $package
             ->name('storix')
             ->hasConfigFile()
+            ->hasCommand(SyncPermissionsCommand::class)
             ->discoversMigrations()
             ->runsMigrations();
     }
@@ -53,9 +54,5 @@ final class StorixServiceProvider extends PackageServiceProvider
             'storix_dispatch' => $dispatchModel,
             'storix_dispatch_entry' => $dispatchEntryModel,
         ]);
-
-        if (Config::boolean('storix.permissions.register', true)) {
-            StorixPermissions::register();
-        }
     }
 }
