@@ -41,3 +41,15 @@ it('resolves the configured delivery note query modifier from the container', fu
     expect($query->toSql())->toContain('"name" = ?')
         ->and($query->getBindings())->toBe(['custom']);
 });
+
+it('supports legacy closure delivery note query modifiers', function (): void {
+    Config::set(
+        'storix.delivery_note_query_modifier',
+        static fn (Builder $query): Builder => $query->where('name', 'legacy'),
+    );
+
+    $query = DeliveryNoteQuery::modify(DeliveryNote::query());
+
+    expect($query->toSql())->toContain('"name" = ?')
+        ->and($query->getBindings())->toBe(['legacy']);
+});

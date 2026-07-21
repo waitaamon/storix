@@ -153,6 +153,8 @@ STORIX_DELIVERY_NOTE_QUERY_MODIFIER="App\\Storix\\ApprovedDeliveryNoteQueryModif
 
 The modifier is resolved through Laravel's service container, so it may have constructor dependencies.
 
+Storix still accepts the closure-based modifier used by previously published configuration files. Replace that closure with a modifier class before running `php artisan config:cache`, because closures cannot be exported into Laravel's configuration cache.
+
 ### Permissions
 
 The remaining permission settings are configured in `config/storix.php`:
