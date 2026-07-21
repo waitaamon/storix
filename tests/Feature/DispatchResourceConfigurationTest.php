@@ -11,13 +11,14 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Schema as DatabaseSchema;
 use Livewire\Component;
 use Mockery\MockInterface;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchForm;
 use Storix\Filament\Resources\DispatchResources\Schemas\DispatchInfolist;
 use Storix\Filament\Resources\DispatchResources\Tables\DispatchesTable;
+use Storix\Support\TableNames;
 
 final class DispatchResourceSchemaTestComponent extends Component implements HasSchemas
 {
@@ -62,14 +63,18 @@ it('displays declared and attached container quantities in the dispatch table', 
         ->and($table->getColumn('containers_count'))->toBeInstanceOf(TextColumn::class);
 });
 
-it('configures dispatch lifecycle filters', function (): void {
+it('configures only the required dispatch filters in their business order', function (): void {
     /** @var HasTable&MockInterface $livewire */
     $livewire = Mockery::mock(HasTable::class);
     $table = DispatchesTable::configure(Table::make($livewire));
+    $filters = $table->getFilters();
 
-    expect($table->getFilter('customer'))->toBeInstanceOf(SelectFilter::class)
-        ->and($table->getFilter('dispatched_at'))->toBeInstanceOf(Filter::class)
-        ->and($table->getFilter('return_condition'))->toBeInstanceOf(SelectFilter::class)
-        ->and($table->getFilter('return_date'))->toBeInstanceOf(Filter::class)
-        ->and($table->getFilter('trashed'))->toBeInstanceOf(TrashedFilter::class);
+    expect(array_keys($filters))->toBe(['customer', 'approved_at'])
+        ->and($table->getFilter('customer'))->toBeInstanceOf(SelectFilter::class)
+        ->and($table->getFilter('approved_at'))->toBeInstanceOf(Filter::class)
+        ->and($table->getFilter('approved_at')?->getLabel())->toBe('Dispatch date');
+});
+
+it('indexes the approval timestamp used by the dispatch date filter', function (): void {
+    expect(DatabaseSchema::hasIndex(TableNames::dispatches(), ['approved_at']))->toBeTrue();
 });

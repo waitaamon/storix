@@ -11,6 +11,8 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Livewire\Component;
 use Mockery\MockInterface;
@@ -67,4 +69,24 @@ it('uses the configured container label in the receive modal heading', function 
     }
 
     expect($receiveAction->getModalHeading())->toBe('Receive Gas Cylinder');
+});
+
+it('configures only the required dispatch entry filters in their business order', function (): void {
+    /** @var HasTable&MockInterface $livewire */
+    $livewire = Mockery::mock(HasTable::class);
+    $table = DispatchEntryResource::table(Table::make($livewire));
+    $filters = $table->getFilters();
+
+    expect(array_keys($filters))->toBe([
+        'customer',
+        'approved_at',
+        'return_condition',
+        'return_date',
+    ])
+        ->and($table->getFilter('customer'))->toBeInstanceOf(SelectFilter::class)
+        ->and($table->getFilter('approved_at'))->toBeInstanceOf(Filter::class)
+        ->and($table->getFilter('approved_at')?->getLabel())->toBe('Dispatch date')
+        ->and($table->getFilter('return_condition'))->toBeInstanceOf(SelectFilter::class)
+        ->and($table->getFilter('return_condition')?->getLabel())->toBe('Condition')
+        ->and($table->getFilter('return_date'))->toBeInstanceOf(Filter::class);
 });

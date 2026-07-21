@@ -203,7 +203,7 @@ The package migrations use Laravel `id()` and `foreignId()` columns. The host us
 - State-aware editing and relation management for users governed by granular dispatch permissions.
 - Container attachment and approval services that always reject non-draft dispatches.
 - Approval and void actions with policy authorization and confirmation.
-- Filters for customer, dispatch date range, return condition, return date range, and soft-deleted records.
+- Filters for customer and approval timestamp, presented as the dispatch date range.
 - Export of dispatch-level data.
 
 ### Dispatch Entries And Returns
@@ -211,6 +211,7 @@ The package migrations use Laravel `id()` and `foreignId()` columns. The host us
 - A consolidated list of dispatched containers.
 - Individual and bulk receipt actions.
 - Return date, condition, note, and receiving-user capture.
+- Filters for customer, dispatch approval date range, return condition, and return date range.
 - Bulk return import by container serial.
 - Per-entry lifecycle export.
 

@@ -8,9 +8,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Filament\Resources\DispatchResources\Pages\CreateDispatch;
@@ -84,11 +82,5 @@ final class DispatchResource extends Resource
             'view' => ViewDispatch::route('/{record}'),
             'edit' => EditDispatch::route('/{record}/edit'),
         ];
-    }
-
-    #[Override]
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

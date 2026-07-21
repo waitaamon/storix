@@ -6,11 +6,8 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
-use Storix\Enums\ReturnCondition;
 use Storix\Filament\Resources\DispatchResources\Pages\ListDispatches;
-use Storix\Models\Container;
 use Storix\Models\Dispatch;
-use Storix\Models\DispatchEntry;
 use Storix\Tests\Fixtures\Models\Customer;
 use Storix\Tests\Fixtures\Models\DeliveryNote;
 use Storix\Tests\Fixtures\Models\User;
@@ -20,12 +17,13 @@ use function Pest\Laravel\actingAs;
 function dispatchForFilters(
     User $user,
     DeliveryNote $deliveryNote,
-    string $dispatchedAt,
+    ?string $approvedAt,
 ): Dispatch {
     return Dispatch::query()->create([
         'dispatched_by' => $user->id,
         'delivery_note_id' => $deliveryNote->id,
-        'dispatched_at' => $dispatchedAt,
+        'dispatched_at' => '2026-01-15 09:00:00',
+        'approved_at' => $approvedAt,
         'quantity' => 1,
     ]);
 }
@@ -64,78 +62,33 @@ it('filters dispatches by customer', function (): void {
         ->assertCanNotSeeTableRecords([$otherDispatch]);
 });
 
-it('filters dispatches by an inclusive dispatched date range', function (): void {
+it('filters dispatches by an inclusive approval date range used as the dispatch date', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'date-filter@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Date range delivery']);
     $before = dispatchForFilters($user, $deliveryNote, '2026-03-09 23:59:59');
     $fromBoundary = dispatchForFilters($user, $deliveryNote, '2026-03-10 00:00:00');
     $untilBoundary = dispatchForFilters($user, $deliveryNote, '2026-03-20 23:59:59');
     $after = dispatchForFilters($user, $deliveryNote, '2026-03-21 00:00:00');
+    $unapproved = dispatchForFilters($user, $deliveryNote, null);
 
     dispatchFiltersPage($user)
-        ->filterTable('dispatched_at', [
+        ->filterTable('approved_at', [
             'from' => '2026-03-10',
             'until' => '2026-03-20',
         ])
         ->assertCanSeeTableRecords([$fromBoundary, $untilBoundary])
-        ->assertCanNotSeeTableRecords([$before, $after]);
+        ->assertCanNotSeeTableRecords([$before, $after, $unapproved]);
 });
 
-it('filters dispatches by a related container return condition', function (): void {
-    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'condition-filter@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Condition delivery']);
-    $damagedDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-10 09:00:00');
-    $goodDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-10 10:00:00');
+it('excludes soft-deleted dispatches without exposing a deleted-record filter', function (): void {
+    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'deleted-dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Deleted dispatch delivery']);
+    $activeDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-10 09:00:00');
+    $deletedDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-10 10:00:00');
 
-    DispatchEntry::query()->create([
-        'dispatch_id' => $damagedDispatch->id,
-        'container_id' => Container::factory()->create()->id,
-        'return_date' => '2026-03-12',
-        'return_condition' => ReturnCondition::Damaged,
-    ]);
-    DispatchEntry::query()->create([
-        'dispatch_id' => $goodDispatch->id,
-        'container_id' => Container::factory()->create()->id,
-        'return_date' => '2026-03-12',
-        'return_condition' => ReturnCondition::Good,
-    ]);
+    $deletedDispatch->delete();
 
     dispatchFiltersPage($user)
-        ->filterTable('return_condition', ReturnCondition::Damaged)
-        ->assertCanSeeTableRecords([$damagedDispatch])
-        ->assertCanNotSeeTableRecords([$goodDispatch]);
-});
-
-it('filters dispatches when a single return falls within an inclusive date range', function (): void {
-    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'return-date-filter@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Return date delivery']);
-    $matchingDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-01 09:00:00');
-    $splitRangeDispatch = dispatchForFilters($user, $deliveryNote, '2026-03-01 10:00:00');
-
-    DispatchEntry::query()->create([
-        'dispatch_id' => $matchingDispatch->id,
-        'container_id' => Container::factory()->create()->id,
-        'return_date' => '2026-03-20',
-        'return_condition' => ReturnCondition::Good,
-    ]);
-    DispatchEntry::query()->create([
-        'dispatch_id' => $splitRangeDispatch->id,
-        'container_id' => Container::factory()->create()->id,
-        'return_date' => '2026-03-09',
-        'return_condition' => ReturnCondition::Good,
-    ]);
-    DispatchEntry::query()->create([
-        'dispatch_id' => $splitRangeDispatch->id,
-        'container_id' => Container::factory()->create()->id,
-        'return_date' => '2026-03-21',
-        'return_condition' => ReturnCondition::Good,
-    ]);
-
-    dispatchFiltersPage($user)
-        ->filterTable('return_date', [
-            'from' => '2026-03-10',
-            'until' => '2026-03-20',
-        ])
-        ->assertCanSeeTableRecords([$matchingDispatch])
-        ->assertCanNotSeeTableRecords([$splitRangeDispatch]);
+        ->assertCanSeeTableRecords([$activeDispatch])
+        ->assertCanNotSeeTableRecords([$deletedDispatch]);
 });
