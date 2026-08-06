@@ -33,6 +33,7 @@ use Storix\Support\TableNames;
  * @property array<string, mixed>|null $metadata
  * @property-read Collection<int, DispatchEntry> $entries
  * @property-read Collection<int, ContainerReturnEntry> $returnEntries
+ * @property-read Collection<int, ContainerMovement> $movements
  */
 #[UseFactory(ContainerFactory::class)]
 #[Fillable([
@@ -71,6 +72,19 @@ final class Container extends Model
     {
         /** @var class-string<Model> $model */
         $model = Config::string('storix.models.container_return_entry', ContainerReturnEntry::class);
+
+        return $this->hasMany($model, 'container_id');
+    }
+
+    /**
+     * Get the posted dispatch and return events for this container.
+     *
+     * @return HasMany<Model, $this>
+     */
+    public function movements(): HasMany
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.container_movement', ContainerMovement::class);
 
         return $this->hasMany($model, 'container_id');
     }

@@ -33,6 +33,11 @@ final class TableNames
         return Config::string('storix.tables.container_return_entries', 'storix_container_return_entries');
     }
 
+    public static function containerMovements(): string
+    {
+        return Config::string('storix.tables.container_movements', 'storix_container_movements');
+    }
+
     public static function customers(): string
     {
         return Config::string('storix.tables.customers', 'customers');

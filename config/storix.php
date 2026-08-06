@@ -12,6 +12,7 @@ return [
         'dispatch_entry' => env('STORIX_DISPATCH_ENTRY_MODEL', 'Storix\\Models\\DispatchEntry'),
         'container_return' => env('STORIX_CONTAINER_RETURN_MODEL', 'Storix\\Models\\ContainerReturn'),
         'container_return_entry' => env('STORIX_CONTAINER_RETURN_ENTRY_MODEL', 'Storix\\Models\\ContainerReturnEntry'),
+        'container_movement' => env('STORIX_CONTAINER_MOVEMENT_MODEL', 'Storix\\Models\\ContainerMovement'),
         'customer' => env('STORIX_CUSTOMER_MODEL', 'App\\Models\\Accounts\\Account'),
         'delivery_note' => env('STORIX_DELIVERY_NOTE_CLASS', 'App\\Models\\Sales\\DeliveryNote'),
         'user' => env('STORIX_USER_MODEL', 'App\\Models\\User'),
@@ -23,6 +24,7 @@ return [
         'dispatch_entries' => env('STORIX_DISPATCH_ENTRIES_TABLE', 'storix_dispatch_entries'),
         'container_returns' => env('STORIX_CONTAINER_RETURNS_TABLE', 'storix_container_returns'),
         'container_return_entries' => env('STORIX_CONTAINER_RETURN_ENTRIES_TABLE', 'storix_container_return_entries'),
+        'container_movements' => env('STORIX_CONTAINER_MOVEMENTS_VIEW', 'storix_container_movements'),
         'customers' => env('STORIX_CUSTOMER_TABLE', 'customers'),
         'delivery_notes' => env('STORIX_DELIVERY_NOTE_TABLE', 'delivery_notes'),
         'users' => env('STORIX_USER_TABLE', 'users'),
@@ -34,6 +36,7 @@ return [
         'dispatch_entry' => env('STORIX_DISPATCH_ENTRY_LABEL', 'dispatch entry'),
         'container_return' => env('STORIX_CONTAINER_RETURN_LABEL', 'container return'),
         'container_return_entry' => env('STORIX_CONTAINER_RETURN_ENTRY_LABEL', 'container return entry'),
+        'container_movement' => env('STORIX_CONTAINER_MOVEMENT_LABEL', 'container movement'),
     ],
 
     'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
