@@ -6,7 +6,6 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
-use Storix\Enums\ReturnCondition;
 use Storix\Filament\Resources\DispatchEntriesResources\Pages\ListDispatchEntries;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
@@ -31,16 +30,11 @@ function dispatchForEntryFilters(
     ]);
 }
 
-function dispatchEntryForFilters(
-    Dispatch $dispatch,
-    ?string $returnDate = null,
-    ?ReturnCondition $returnCondition = null,
-): DispatchEntry {
+function dispatchEntryForFilters(Dispatch $dispatch): DispatchEntry
+{
     return DispatchEntry::query()->create([
         'dispatch_id' => $dispatch->id,
         'container_id' => Container::factory()->create()->id,
-        'return_date' => $returnDate,
-        'return_condition' => $returnCondition,
     ]);
 }
 
@@ -100,39 +94,6 @@ it('filters dispatch entries by an inclusive dispatch approval date range', func
         ->assertCanNotSeeTableRecords([$before, $after, $unapproved]);
 });
 
-it('filters dispatch entries by return condition', function (): void {
-    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'entry-condition-filter@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Condition delivery']);
-    $dispatch = dispatchForEntryFilters($user, $deliveryNote, '2026-03-10 09:00:00');
-    $damagedEntry = dispatchEntryForFilters($dispatch, '2026-03-12', ReturnCondition::Damaged);
-    $goodEntry = dispatchEntryForFilters($dispatch, '2026-03-12', ReturnCondition::Good);
-    $outstandingEntry = dispatchEntryForFilters($dispatch);
-
-    dispatchEntryFiltersPage($user)
-        ->filterTable('return_condition', ReturnCondition::Damaged)
-        ->assertCanSeeTableRecords([$damagedEntry])
-        ->assertCanNotSeeTableRecords([$goodEntry, $outstandingEntry]);
-});
-
-it('filters dispatch entries by an inclusive return date range', function (): void {
-    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'entry-return-date-filter@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Return date delivery']);
-    $dispatch = dispatchForEntryFilters($user, $deliveryNote, '2026-03-01 09:00:00');
-    $before = dispatchEntryForFilters($dispatch, '2026-03-09', ReturnCondition::Good);
-    $fromBoundary = dispatchEntryForFilters($dispatch, '2026-03-10', ReturnCondition::Good);
-    $untilBoundary = dispatchEntryForFilters($dispatch, '2026-03-20', ReturnCondition::Good);
-    $after = dispatchEntryForFilters($dispatch, '2026-03-21', ReturnCondition::Good);
-    $outstandingEntry = dispatchEntryForFilters($dispatch);
-
-    dispatchEntryFiltersPage($user)
-        ->filterTable('return_date', [
-            'from' => '2026-03-10',
-            'until' => '2026-03-20',
-        ])
-        ->assertCanSeeTableRecords([$fromBoundary, $untilBoundary])
-        ->assertCanNotSeeTableRecords([$before, $after, $outstandingEntry]);
-});
-
 it('combines dispatch entry filters using intersection semantics', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'entry-combined-filter@example.com']);
     $selectedCustomer = Customer::query()->create(['name' => 'Selected Customer']);
@@ -146,22 +107,19 @@ it('combines dispatch entry filters using intersection semantics', function (): 
         'customer_id' => $otherCustomer->id,
     ]);
     $selectedDispatch = dispatchForEntryFilters($user, $selectedDeliveryNote, '2026-03-15 09:00:00');
-    $matchingEntry = dispatchEntryForFilters($selectedDispatch, '2026-03-18', ReturnCondition::Damaged);
-    $wrongCondition = dispatchEntryForFilters($selectedDispatch, '2026-03-18', ReturnCondition::Good);
+    $matchingEntry = dispatchEntryForFilters($selectedDispatch);
     $wrongCustomer = dispatchEntryForFilters(
         dispatchForEntryFilters($user, $otherDeliveryNote, '2026-03-15 10:00:00'),
-        '2026-03-18',
-        ReturnCondition::Damaged,
     );
-    $wrongReturnDate = dispatchEntryForFilters($selectedDispatch, '2026-03-21', ReturnCondition::Damaged);
+    $wrongDate = dispatchEntryForFilters(
+        dispatchForEntryFilters($user, $selectedDeliveryNote, '2026-03-21 10:00:00'),
+    );
 
     dispatchEntryFiltersPage($user)
         ->filterTable('customer', $selectedCustomer)
         ->filterTable('approved_at', ['from' => '2026-03-10', 'until' => '2026-03-20'])
-        ->filterTable('return_condition', ReturnCondition::Damaged)
-        ->filterTable('return_date', ['from' => '2026-03-10', 'until' => '2026-03-20'])
         ->assertCanSeeTableRecords([$matchingEntry])
-        ->assertCanNotSeeTableRecords([$wrongCondition, $wrongCustomer, $wrongReturnDate]);
+        ->assertCanNotSeeTableRecords([$wrongCustomer, $wrongDate]);
 });
 
 it('excludes soft-deleted dispatch entries without exposing a deleted-record filter', function (): void {

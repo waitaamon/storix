@@ -12,6 +12,8 @@ use Storix\Filament\Resources\ContainerResources\ContainerResource;
 use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
 use Storix\Filament\Widgets\ContainerFleetOverviewWidget;
 use Storix\Models\Container;
+use Storix\Models\ContainerReturn;
+use Storix\Models\ContainerReturnEntry;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 use Storix\Tests\Fixtures\Models\DeliveryNote;
@@ -61,6 +63,28 @@ function widgetStatValues(array $stats): array
     return collect($stats)
         ->map(static fn (Stat $stat): string => stringifyWidgetValue($stat->getValue()))
         ->all();
+}
+
+function recordPostedWidgetReturn(
+    Dispatch $dispatch,
+    Container $container,
+    ReturnCondition $condition,
+    string $date,
+): void {
+    $dispatchEntry = DispatchEntry::query()->create([
+        'dispatch_id' => $dispatch->id,
+        'container_id' => $container->id,
+    ]);
+    $containerReturn = ContainerReturn::factory()->approved()->create([
+        'customer_id' => $dispatch->customer_id,
+        'transaction_date' => $date,
+    ]);
+    $returnEntry = ContainerReturnEntry::query()->create([
+        'container_return_id' => $containerReturn->id,
+        'container_id' => $container->id,
+        'return_condition' => $condition,
+    ]);
+    $returnEntry->forceFill(['dispatch_entry_id' => $dispatchEntry->id])->save();
 }
 
 it('registers one consolidated overview that renders exactly six stats', function (): void {
@@ -172,12 +196,7 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
             [$containers[4], ReturnCondition::Lost],
             [$containers[5], ReturnCondition::Lost],
         ] as [$container, $condition]) {
-            DispatchEntry::query()->create([
-                'dispatch_id' => $returnedDispatch->id,
-                'container_id' => $container->id,
-                'return_date' => '2026-02-16',
-                'return_condition' => $condition,
-            ]);
+            recordPostedWidgetReturn($returnedDispatch, $container, $condition, '2026-02-16');
         }
 
         DispatchEntry::query()->create([
@@ -185,12 +204,12 @@ it('combines lifecycle metrics while excluding drafts and soft-deleted container
             'container_id' => $containers[7]->id,
         ]);
 
-        DispatchEntry::query()->create([
-            'dispatch_id' => $returnedDispatch->id,
-            'container_id' => $containers[8]->id,
-            'return_date' => '2026-02-16',
-            'return_condition' => ReturnCondition::Damaged,
-        ]);
+        recordPostedWidgetReturn(
+            $returnedDispatch,
+            $containers[8],
+            ReturnCondition::Damaged,
+            '2026-02-16',
+        );
 
         $containers[8]->delete();
 
@@ -244,12 +263,12 @@ it('flags tightening capacity and aging with warning treatments', function (): v
         }
 
         foreach (range(1, 10) as $index) {
-            DispatchEntry::query()->create([
-                'dispatch_id' => $dispatch->id,
-                'container_id' => $containers[3]->id,
-                'return_date' => '2026-02-20',
-                'return_condition' => $index === 1 ? ReturnCondition::Damaged : ReturnCondition::Good,
-            ]);
+            recordPostedWidgetReturn(
+                $dispatch,
+                $containers[3],
+                $index === 1 ? ReturnCondition::Damaged : ReturnCondition::Good,
+                '2026-02-20',
+            );
         }
 
         $stats = indexWidgetStats(containerFleetStats());
@@ -283,14 +302,12 @@ it('keeps loss exposure separated by currency', function (): void {
         'delivery_note_id' => $deliveryNote->id,
         'quantity' => 2,
         'dispatched_at' => '2026-02-12',
+        'state' => 'approved',
+        'approved_at' => '2026-02-12 09:00:00',
     ]);
 
     foreach ([$usdContainer, $kesContainer] as $container) {
-        DispatchEntry::query()->create([
-            'dispatch_id' => $dispatch->id,
-            'container_id' => $container->id,
-            'return_condition' => ReturnCondition::Lost,
-        ]);
+        recordPostedWidgetReturn($dispatch, $container, ReturnCondition::Lost, '2026-02-20');
     }
 
     $lossStat = indexWidgetStats(containerFleetStats())['Loss Exposure'];

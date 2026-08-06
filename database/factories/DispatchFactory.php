@@ -28,6 +28,13 @@ final class DispatchFactory extends Factory
         /** @var class-string<Model> $deliveryNoteModel */
         $deliveryNoteModel = Config::string('storix.models.delivery_note', 'App\\Models\\Sales\\DeliveryNote');
 
+        /** @var class-string<Model> $customerModel */
+        $customerModel = Config::string('storix.models.customer', 'App\\Models\\Sales\\Customer');
+
+        $customer = $customerModel::query()->create([
+            'name' => $this->faker->company(),
+        ]);
+
         return [
             'dispatched_by' => $userModel::query()->create([
                 'name' => $this->faker->name(),
@@ -35,7 +42,9 @@ final class DispatchFactory extends Factory
             ])->getKey(),
             'delivery_note_id' => $deliveryNoteModel::query()->create([
                 'name' => $this->faker->words(3, true),
+                'customer_id' => $customer->getKey(),
             ])->getKey(),
+            'customer_id' => $customer->getKey(),
             'quantity' => $this->faker->numberBetween(1, 25),
             'dispatched_at' => CarbonImmutable::instance($this->faker->dateTimeThisMonth()),
             'dispatch_note' => $this->faker->optional()->paragraph(),

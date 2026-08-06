@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Carbon\CarbonImmutable;
 use Filament\Facades\Filament;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,12 +14,9 @@ use Storix\Actions\ApproveDispatchAction;
 use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Actions\CreateDispatchAction;
 use Storix\Actions\MarkDeliveryNoteAsDispatchedAction;
-use Storix\Actions\ReceiveContainerReturnAction;
 use Storix\Actions\VoidDispatchAction;
 use Storix\Data\CreateDispatchData;
-use Storix\Data\ReceiveContainerReturnData;
 use Storix\Data\VoidDispatchData;
-use Storix\Enums\ReturnCondition;
 use Storix\Events\ContainerDispatched;
 use Storix\Events\DispatchApproved;
 use Storix\Models\Container;
@@ -39,6 +35,7 @@ it('creates a draft dispatch and reserves selected containers', function (): voi
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         dispatchedAt: '2026-02-12',
         containerIds: [$container->id],
     ));
@@ -46,6 +43,43 @@ it('creates a draft dispatch and reserves selected containers', function (): voi
     expect($dispatch->quantity)->toBe(1)
         ->and($dispatch->entries)->toHaveCount(1)
         ->and(Container::query()->availableForDispatch()->pluck('id'))->not->toContain($container->id);
+});
+
+it('can attach an unavailable container when the availability check is disabled', function (): void {
+    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'unchecked-dispatch@example.com']);
+    $deliveryNote = DeliveryNote::query()->create(['name' => 'Unchecked attachment delivery']);
+    $container = Container::factory()->create();
+
+    $reservedDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        customerId: $deliveryNote->customer_id,
+        containerIds: [$container->id],
+    ));
+    $otherDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $deliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        customerId: $deliveryNote->customer_id,
+    ));
+
+    expect(fn () => app(AttachContainersToDispatchAction::class)->handle(
+        $otherDispatch,
+        [$container->id],
+    ))->toThrow(
+        DomainException::class,
+        "Container [{$container->serial}] is already reserved or dispatched.",
+    );
+
+    app(AttachContainersToDispatchAction::class)->handle(
+        $otherDispatch,
+        [$container->id],
+        checkAvailability: false,
+    );
+
+    expect($reservedDispatch->entries()->where('container_id', $container->id)->exists())->toBeTrue()
+        ->and($otherDispatch->entries()->where('container_id', $container->id)->exists())->toBeTrue();
 });
 
 it('persists the declared quantity as an integer', function (): void {
@@ -56,6 +90,7 @@ it('persists the declared quantity as an integer', function (): void {
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 12,
+        customerId: $deliveryNote->customer_id,
     ));
 
     expect($dispatch->quantity)->toBe(12)
@@ -70,6 +105,7 @@ it('rejects a non-positive dispatch quantity without persisting a dispatch', fun
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: $quantity,
+        customerId: $deliveryNote->customer_id,
     )))->toThrow(DomainException::class, 'The dispatch quantity must be at least 1.');
 
     expect(Dispatch::query()->count())->toBe(0);
@@ -102,6 +138,7 @@ it('approves a reserved dispatch with audit fields', function (): void {
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 2,
+        customerId: $deliveryNote->customer_id,
         dispatchedAt: '2026-02-12',
         containerIds: $containers->modelKeys(),
     ));
@@ -111,6 +148,46 @@ it('approves a reserved dispatch with audit fields', function (): void {
     expect((string) $approved->state)->toBe('approved')
         ->and($approved->approved_by)->toBe($user->id)
         ->and($approved->approved_at)->not->toBeNull();
+});
+
+it('can approve conflicting dispatch entries when the conflict check is disabled', function (): void {
+    $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'unchecked-approval@example.com']);
+    $firstDeliveryNote = DeliveryNote::query()->create(['name' => 'First conflicting approval']);
+    $secondDeliveryNote = DeliveryNote::query()->create(['name' => 'Second conflicting approval']);
+    $container = Container::factory()->create();
+
+    $firstDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $firstDeliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        customerId: $firstDeliveryNote->customer_id,
+        containerIds: [$container->id],
+    ));
+    $secondDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
+        deliveryNoteId: $secondDeliveryNote->id,
+        dispatchedBy: $user->id,
+        quantity: 1,
+        customerId: $secondDeliveryNote->customer_id,
+    ));
+    app(AttachContainersToDispatchAction::class)->handle(
+        $secondDispatch,
+        [$container->id],
+        checkAvailability: false,
+    );
+
+    expect(fn () => app(ApproveDispatchAction::class)->handle($firstDispatch, $user->id))
+        ->toThrow(
+            DomainException::class,
+            "Container [{$container->serial}] is already reserved or dispatched.",
+        );
+
+    $approved = app(ApproveDispatchAction::class)->handle(
+        $firstDispatch,
+        $user->id,
+        checkForConflicts: false,
+    );
+
+    expect((string) $approved->state)->toBe('approved');
 });
 
 it('marks only the approved dispatch delivery note as dispatched at the approval time', function (): void {
@@ -123,6 +200,7 @@ it('marks only the approved dispatch delivery note as dispatched at the approval
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [$container->id],
     ));
 
@@ -155,6 +233,7 @@ it('updates the delivery note table configured by the host application', functio
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [$container->id],
     ));
 
@@ -193,6 +272,7 @@ it('approves a dispatch when the configured delivery note table does not exist',
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [$container->id],
     ));
 
@@ -212,6 +292,7 @@ it('approves a dispatch when the configured delivery note table has no dispatche
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [$container->id],
     ));
 
@@ -244,6 +325,7 @@ it('rejects approval when dispatch entry count does not match quantity', functio
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: $quantity,
+        customerId: $deliveryNote->customer_id,
         containerIds: $containers->modelKeys(),
     ));
 
@@ -275,6 +357,7 @@ it('excludes soft-deleted dispatch entries from the approval quantity count', fu
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 2,
+        customerId: $deliveryNote->customer_id,
         containerIds: $containers->modelKeys(),
     ));
 
@@ -293,113 +376,6 @@ it('excludes soft-deleted dispatch entries from the approval quantity count', fu
         ->and(DispatchEntry::withTrashed()->where('dispatch_id', $dispatch->id)->count())->toBe(2);
 });
 
-it('receives a returned container through the lifecycle action', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-    $receiver = User::query()->create(['name' => 'Receiver', 'email' => 'receive@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Return delivery']);
-    $container = Container::factory()->create();
-
-    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
-        deliveryNoteId: $deliveryNote->id,
-        dispatchedBy: $dispatcher->id,
-        quantity: 1,
-        dispatchedAt: '2026-02-12',
-        containerIds: [$container->id],
-    ));
-    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
-
-    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
-
-    $received = app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
-        returnDate: '2026-02-14',
-        condition: ReturnCondition::Good,
-        receivedBy: $receiver->id,
-        note: 'Returned clean',
-    ));
-
-    expect($received->received_by)->toBe($receiver->id)
-        ->and($received->return_condition)->toBe(ReturnCondition::Good)
-        ->and(Container::query()->availableForDispatch()->pluck('id'))->toContain($container->id);
-});
-
-it('normalizes a time-bearing return value and allows a same-date return', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'same-day-dispatch@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Same-day return delivery']);
-    $container = Container::factory()->create();
-
-    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
-        deliveryNoteId: $deliveryNote->id,
-        dispatchedBy: $dispatcher->id,
-        quantity: 1,
-        dispatchedAt: '2026-02-12 18:00:00',
-        containerIds: [$container->id],
-    ));
-    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
-
-    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
-
-    $received = app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
-        returnDate: '2026-02-12T08:00:00+14:00',
-        condition: ReturnCondition::Good,
-        receivedBy: $dispatcher->id,
-    ));
-
-    expect($received->return_date)->toBeInstanceOf(CarbonImmutable::class)
-        ->and($received->return_date?->toDateString())->toBe('2026-02-12')
-        ->and($received->return_date?->isStartOfDay())->toBeTrue();
-});
-
-it('rejects a return date earlier than the dispatch date', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'earlier-return@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Earlier return delivery']);
-    $container = Container::factory()->create();
-
-    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
-        deliveryNoteId: $deliveryNote->id,
-        dispatchedBy: $dispatcher->id,
-        quantity: 1,
-        dispatchedAt: '2026-02-12 08:00:00',
-        containerIds: [$container->id],
-    ));
-    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
-
-    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
-
-    expect(fn () => app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
-        returnDate: '2026-02-11 23:59:59',
-        condition: ReturnCondition::Good,
-        receivedBy: $dispatcher->id,
-    )))->toThrow(DomainException::class, 'Return date cannot be earlier than dispatch date.');
-
-    expect($entry->refresh()->return_date)->toBeNull()
-        ->and($entry->return_condition)->toBeNull();
-});
-
-it('marks lost containers inactive when loss is recorded', function (): void {
-    $dispatcher = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
-    $deliveryNote = DeliveryNote::query()->create(['name' => 'Lost delivery']);
-    $container = Container::factory()->create();
-
-    $dispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
-        deliveryNoteId: $deliveryNote->id,
-        dispatchedBy: $dispatcher->id,
-        quantity: 1,
-        dispatchedAt: '2026-02-12',
-        containerIds: [$container->id],
-    ));
-    app(ApproveDispatchAction::class)->handle($dispatch, $dispatcher->id);
-
-    $entry = DispatchEntry::query()->where('container_id', $container->id)->firstOrFail();
-
-    app(ReceiveContainerReturnAction::class)->handle($entry, new ReceiveContainerReturnData(
-        returnDate: '2026-02-18',
-        condition: ReturnCondition::Lost,
-        receivedBy: $dispatcher->id,
-    ));
-
-    expect($container->refresh()->is_active)->toBeFalse();
-});
-
 it('voids draft dispatches and releases reserved containers', function (): void {
     $user = User::query()->create(['name' => 'Dispatcher', 'email' => 'dispatch@example.com']);
     $deliveryNote = DeliveryNote::query()->create(['name' => 'Void delivery']);
@@ -409,6 +385,7 @@ it('voids draft dispatches and releases reserved containers', function (): void 
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         dispatchedAt: '2026-02-12',
         containerIds: [$container->id],
     ));
@@ -439,16 +416,14 @@ it('shows action exceptions as danger notifications while Filament is serving', 
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [$container->id],
     ));
-    $draftEntry = DispatchEntry::query()
-        ->where('dispatch_id', $draftDispatch->getKey())
-        ->firstOrFail();
-
     $approvedDispatch = app(CreateDispatchAction::class)->handle(new CreateDispatchData(
         deliveryNoteId: $deliveryNote->id,
         dispatchedBy: $user->id,
         quantity: 1,
+        customerId: $deliveryNote->customer_id,
         containerIds: [Container::factory()->create()->id],
     ));
     app(ApproveDispatchAction::class)->handle($approvedDispatch, $user->id);
@@ -483,6 +458,7 @@ it('shows action exceptions as danger notifications while Filament is serving', 
                 deliveryNoteId: $deliveryNote->id,
                 dispatchedBy: $user->id,
                 quantity: 1,
+                customerId: $deliveryNote->customer_id,
                 idempotencyKey: str_repeat('x', 256),
             )),
             'The dispatch idempotency key may not exceed 255 characters.',
@@ -499,15 +475,6 @@ it('shows action exceptions as danger notifications while Filament is serving', 
                 [Container::factory()->create()->id],
             ),
             'Containers can only be attached to draft dispatches.',
-        );
-
-        $assertDangerNotification(
-            fn () => app(ReceiveContainerReturnAction::class)->handle($draftEntry, new ReceiveContainerReturnData(
-                returnDate: today(),
-                condition: ReturnCondition::Good,
-                receivedBy: $user->id,
-            )),
-            'Only containers from approved dispatches can be received.',
         );
 
         $assertDangerNotification(
