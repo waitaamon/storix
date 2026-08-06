@@ -15,11 +15,4 @@ return new class extends Migration
             $table->index('approved_at');
         });
     }
-
-    public function down(): void
-    {
-        Schema::table(TableNames::dispatches(), function (Blueprint $table): void {
-            $table->dropIndex(['approved_at']);
-        });
-    }
 };

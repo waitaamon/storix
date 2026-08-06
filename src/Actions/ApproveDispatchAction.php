@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Storix\Actions;
 
 use DomainException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Events\ContainerDispatched;
@@ -12,27 +13,27 @@ use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 use Storix\Models\States\DispatchApprovedState;
 use Storix\Models\States\DispatchDraftState;
+use Storix\Support\OutstandingDispatchEntryQuery;
 use Throwable;
 
 final readonly class ApproveDispatchAction
 {
     use NotifiesFilamentOfExceptions;
 
-    public function __construct(
-        private MarkDeliveryNoteAsDispatchedAction $markDeliveryNoteAsDispatched,
-    ) {}
+    public function __construct(private MarkDeliveryNoteAsDispatchedAction $markDeliveryNoteAsDispatched) {}
 
     /**
      * @throws Throwable
      */
-    public function handle(Dispatch $dispatch, int|string|null $approvedBy = null): Dispatch
-    {
+    public function handle(
+        Dispatch $dispatch,
+        int|string|null $approvedBy = null,
+        bool $checkForConflicts = true,
+    ): Dispatch {
         try {
-            return DB::transaction(function () use ($dispatch, $approvedBy): Dispatch {
-                $dispatch = Dispatch::query()
-                    ->whereKey($dispatch->getKey())
-                    ->lockForUpdate()
-                    ->firstOrFail();
+            return DB::transaction(function () use ($dispatch, $approvedBy, $checkForConflicts): Dispatch {
+
+                $dispatch = Dispatch::query()->whereKey($dispatch->getKey())->lockForUpdate()->firstOrFail();
 
                 if (! $dispatch->state->equals(DispatchDraftState::class)) {
                     throw new DomainException('Only draft dispatches can be approved.');
@@ -51,9 +52,7 @@ final readonly class ApproveDispatchAction
                 $entryCount = $entries->count();
 
                 if ($entryCount !== $dispatch->quantity) {
-                    throw new DomainException(
-                        "The dispatch quantity [{$dispatch->quantity}] must match the attached container count [{$entryCount}].",
-                    );
+                    throw new DomainException("The dispatch quantity [{$dispatch->quantity}] must match the attached container count [{$entryCount}].");
                 }
 
                 foreach ($entries as $entry) {
@@ -61,15 +60,25 @@ final readonly class ApproveDispatchAction
                         throw new DomainException('All containers must be active before approval.');
                     }
 
-                    $conflictingEntry = DispatchEntry::query()
-                        ->where('container_id', $entry->container_id)
-                        ->whereNull('return_date')
-                        ->whereKeyNot($entry->getKey())
-                        ->lockForUpdate()
-                        ->first();
+                    if ($checkForConflicts) {
+                        $conflictingDraftEntry = DispatchEntry::query()
+                            ->where('container_id', $entry->container_id)
+                            ->whereKeyNot($entry->getKey())
+                            ->whereHas(
+                                'dispatch',
+                                fn (Builder $query): Builder => $query->whereState('state', DispatchDraftState::class),
+                            )
+                            ->lockForUpdate()
+                            ->first();
 
-                    if ($conflictingEntry) {
-                        throw new DomainException("Container [{$entry->container->serial}] is already reserved or dispatched.");
+                        $conflictingApprovedEntry = OutstandingDispatchEntryQuery::forContainer($entry->container_id)
+                            ->whereKeyNot($entry->getKey())
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($conflictingDraftEntry || $conflictingApprovedEntry) {
+                            throw new DomainException("Container [{$entry->container->serial}] is already reserved or dispatched.");
+                        }
                     }
                 }
 
@@ -81,7 +90,11 @@ final readonly class ApproveDispatchAction
                 ]);
 
                 $dispatch->state->transitionTo(DispatchApprovedState::class);
-                $this->markDeliveryNoteAsDispatched->handle($dispatch->delivery_note_id, $approvedAt);
+
+                if ($dispatch->delivery_note_id !== null) {
+                    $this->markDeliveryNoteAsDispatched->handle($dispatch->delivery_note_id, $approvedAt);
+                }
+
                 $dispatch = $dispatch->refresh();
 
                 foreach ($entries as $entry) {

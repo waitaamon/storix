@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Storix\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Storix\Models\DispatchEntry;
 
 final class DispatchEntryPolicy
 {
@@ -38,11 +37,6 @@ final class DispatchEntryPolicy
     public function update(mixed $user): bool
     {
         return $user->can('update.dispatch-entries');
-    }
-
-    public function receive(mixed $user, DispatchEntry $dispatchEntry): bool
-    {
-        return $user->can('receive.dispatch-entries') && $dispatchEntry->return_date === null;
     }
 
     public function delete(mixed $user): bool

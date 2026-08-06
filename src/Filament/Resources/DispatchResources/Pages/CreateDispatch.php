@@ -27,9 +27,10 @@ final class CreateDispatch extends CreateRecord
         unset($data['container_ids']);
 
         return app(CreateDispatchAction::class)->handle(new CreateDispatchData(
-            deliveryNoteId: $data['delivery_note_id'],
+            deliveryNoteId: $data['delivery_note_id'] ?? null,
             dispatchedBy: $data['dispatched_by'] ?? Filament::auth()->id(),
             quantity: (int) $data['quantity'],
+            customerId: $data['customer_id'],
             dispatchedAt: $data['dispatched_at'] ?? null,
             dispatchNote: $data['dispatch_note'] ?? null,
             containerIds: $containerIds,

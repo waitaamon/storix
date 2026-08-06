@@ -8,6 +8,8 @@ use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
+use Storix\Filament\Resources\ContainerReturnEntriesResources\ContainerReturnEntryResource;
+use Storix\Filament\Resources\ContainerReturnResources\ContainerReturnResource;
 use Storix\Filament\Resources\DispatchEntriesResources\DispatchEntryResource;
 use Storix\Filament\Resources\DispatchResources\DispatchResource;
 
@@ -30,6 +32,8 @@ final class StorixPlugin implements Plugin
                 ContainerResource::class,
                 DispatchResource::class,
                 DispatchEntryResource::class,
+                ContainerReturnResource::class,
+                ContainerReturnEntryResource::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make('Storix')

@@ -9,6 +9,7 @@ use Filament\Actions\ExportBulkAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Override;
 use Storix\Filament\Exports\DispatchExporter;
 
@@ -21,9 +22,13 @@ final class DispatchesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with([
+                'customer',
+                'deliveryNote',
+            ]))
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('deliveryNote.customer.name')
+                TextColumn::make('customer.name')
                     ->label('Customer')
                     ->searchable(),
 
@@ -35,13 +40,6 @@ final class DispatchesRelationManager extends RelationManager
                     ->date()
                     ->sortable(),
 
-                TextColumn::make('pivot.return_date')
-                    ->date()
-                    ->label('Return Date'),
-
-                TextColumn::make('pivot.return_condition')
-                    ->label('Return Condition')
-                    ->badge(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

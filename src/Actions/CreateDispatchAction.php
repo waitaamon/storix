@@ -6,6 +6,8 @@ namespace Storix\Actions;
 
 use Carbon\CarbonImmutable;
 use DomainException;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Data\CreateDispatchData;
@@ -27,8 +29,13 @@ final readonly class CreateDispatchAction
     {
         try {
             return DB::transaction(function () use ($data): Dispatch {
+
                 $idempotencyKey = $this->normalizeIdempotencyKey($data->idempotencyKey);
+
+                $this->ensureDeliveryNoteBelongsToCustomer($data);
+
                 $values = [
+                    'customer_id' => $data->customerId,
                     'delivery_note_id' => $data->deliveryNoteId,
                     'dispatched_by' => $data->dispatchedBy,
                     'quantity' => $data->quantity,
@@ -56,7 +63,7 @@ final readonly class CreateDispatchAction
                 }
 
                 if ($data->containerIds !== []) {
-                    $this->attachContainers->handle($dispatch, $data->containerIds);
+                    $this->attachContainers->handle(dispatch: $dispatch, containerIds: $data->containerIds, checkAvailability: $data->checkAvailability);
                 }
 
                 return $dispatch->refresh();
@@ -100,7 +107,8 @@ final readonly class CreateDispatchAction
         sort($containerIds);
 
         $payload = [
-            'delivery_note_id' => (string) $data->deliveryNoteId,
+            'customer_id' => (string) $data->customerId,
+            'delivery_note_id' => $data->deliveryNoteId === null ? null : (string) $data->deliveryNoteId,
             'dispatched_by' => (string) $data->dispatchedBy,
             'quantity' => $data->quantity,
             'dispatched_at' => $data->dispatchedAt === null
@@ -112,6 +120,35 @@ final readonly class CreateDispatchAction
         ];
 
         return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION));
+    }
+
+    private function ensureDeliveryNoteBelongsToCustomer(CreateDispatchData $data): void
+    {
+        if ($data->deliveryNoteId === null) {
+            return;
+        }
+
+        /** @var class-string<Model> $deliveryNoteModel */
+        $deliveryNoteModel = Config::string('storix.models.delivery_note');
+
+        $deliveryNote = $deliveryNoteModel::query()
+            ->whereKey($data->deliveryNoteId)
+            ->firstOrFail();
+
+        $deliveryNoteCustomerId = $deliveryNote->getAttribute('customer_id');
+
+        if ($deliveryNoteCustomerId === null) {
+            /** @var class-string<Model> $customerModel */
+            $customerModel = Config::string('storix.models.customer');
+
+            $customerName = $customerModel::query()->whereKey($data->customerId)->value('name');
+
+            throw new DomainException("Delivery note {$deliveryNote->getAttribute('code')} does not have a customer {$customerName}.");
+        }
+
+        if ((string) $deliveryNoteCustomerId !== (string) $data->customerId) {
+            throw new DomainException('The selected delivery note does not belong to the dispatch customer.');
+        }
     }
 
     private function normalizeForFingerprint(mixed $value): mixed

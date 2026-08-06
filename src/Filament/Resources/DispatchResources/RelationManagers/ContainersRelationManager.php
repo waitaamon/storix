@@ -57,14 +57,6 @@ final class ContainersRelationManager extends RelationManager
                     ->label('Name')
                     ->searchable(),
 
-                TextColumn::make('receivedBy.name')
-                    ->label('Received By'),
-
-                TextColumn::make('return_date')
-                    ->date(),
-
-                TextColumn::make('return_condition')
-                    ->badge(),
             ])
             ->headerActions([
                 ImportAction::make('Bulk Import')

@@ -18,6 +18,7 @@ use Storix\Filament\Resources\ContainerResources\Pages\EditContainer;
 use Storix\Filament\Resources\ContainerResources\Pages\ListContainers;
 use Storix\Filament\Resources\ContainerResources\Pages\ViewContainer;
 use Storix\Filament\Resources\ContainerResources\RelationManagers\DispatchesRelationManager;
+use Storix\Filament\Resources\ContainerResources\RelationManagers\ReturnsRelationManager;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerForm;
 use Storix\Filament\Resources\ContainerResources\Schemas\ContainerInfolist;
 use Storix\Filament\Resources\ContainerResources\Tables\ContainersTable;
@@ -81,6 +82,7 @@ final class ContainerResource extends Resource
     {
         return [
             DispatchesRelationManager::class,
+            ReturnsRelationManager::class,
         ];
     }
 

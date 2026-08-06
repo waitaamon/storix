@@ -8,6 +8,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Override;
@@ -82,5 +83,17 @@ final class DispatchResource extends Resource
             'view' => ViewDispatch::route('/{record}'),
             'edit' => EditDispatch::route('/{record}/edit'),
         ];
+    }
+
+    #[Override]
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with([
+            'customer',
+            'deliveryNote',
+            'dispatchedBy',
+            'approvedBy',
+            'voidedBy',
+        ]);
     }
 }

@@ -26,7 +26,8 @@ use Storix\Support\TableNames;
 
 /**
  * @property int $id
- * @property int|string $delivery_note_id
+ * @property int|string $customer_id
+ * @property int|string|null $delivery_note_id
  * @property int|string|null $dispatched_by
  * @property string|null $code
  * @property int $quantity
@@ -41,10 +42,12 @@ use Storix\Support\TableNames;
  * @property CarbonImmutable|null $voided_at
  * @property string|null $void_reason
  * @property array<string, mixed>|null $metadata
+ * @property-read Model $customer
  * @property-read Collection<int, DispatchEntry> $entries
  */
 #[UseFactory(DispatchFactory::class)]
 #[Fillable([
+    'customer_id',
     'delivery_note_id',
     'dispatched_by',
     'code',
@@ -65,6 +68,19 @@ final class Dispatch extends Model implements HasStatesContract
 {
     /** @use HasFactory<DispatchFactory> */
     use HasFactory, HasStates, SoftDeletes;
+
+    /**
+     * Get the customer associated with the dispatch.
+     *
+     * @return BelongsTo<Model, $this>
+     */
+    public function customer(): BelongsTo
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.customer');
+
+        return $this->belongsTo($model, 'customer_id');
+    }
 
     /**
      * Get the delivery note associated with the dispatch.
@@ -142,7 +158,7 @@ final class Dispatch extends Model implements HasStatesContract
         $model = Config::string('storix.models.container', Container::class);
 
         return $this->belongsToMany($model, TableNames::dispatchEntries())
-            ->withPivot('id', 'received_by', 'return_date', 'return_condition', 'return_note', 'deleted_at')
+            ->withPivot('id', 'deleted_at')
             ->wherePivotNull('deleted_at')
             ->withTimestamps();
     }
@@ -165,6 +181,21 @@ final class Dispatch extends Model implements HasStatesContract
         self::creating(function (self $dispatch): void {
             if ($dispatch->dispatched_by === null && auth()->check()) {
                 $dispatch->dispatched_by = auth()->id();
+            }
+
+            if ($dispatch->getAttribute('customer_id') === null && $dispatch->delivery_note_id !== null) {
+                /** @var class-string<Model> $deliveryNoteModel */
+                $deliveryNoteModel = Config::string(
+                    'storix.models.delivery_note',
+                    'App\\Models\\Sales\\DeliveryNote',
+                );
+                $customerId = $deliveryNoteModel::query()
+                    ->whereKey($dispatch->delivery_note_id)
+                    ->value('customer_id');
+
+                if ($customerId !== null) {
+                    $dispatch->setAttribute('customer_id', $customerId);
+                }
             }
 
             $dispatch->dispatched_at ??= now();

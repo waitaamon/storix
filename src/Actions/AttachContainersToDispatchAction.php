@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Storix\Actions;
 
 use DomainException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
+use Storix\Models\States\DispatchApprovedState;
 use Storix\Models\States\DispatchDraftState;
+use Storix\Support\OutstandingDispatchEntryQuery;
 use Throwable;
 
 final class AttachContainersToDispatchAction
@@ -22,37 +25,50 @@ final class AttachContainersToDispatchAction
      *
      * @throws Throwable
      */
-    public function handle(Dispatch $dispatch, array $containerIds): void
+    public function handle(Dispatch $dispatch, array $containerIds, bool $checkAvailability = true): void
     {
         try {
-            DB::transaction(function () use ($dispatch, $containerIds): void {
-                $dispatch = Dispatch::query()
-                    ->whereKey($dispatch->getKey())
-                    ->lockForUpdate()
-                    ->firstOrFail();
+            DB::transaction(function () use ($dispatch, $containerIds, $checkAvailability): void {
+
+                $dispatch = Dispatch::query()->whereKey($dispatch->getKey())->lockForUpdate()->firstOrFail();
 
                 if (! $dispatch->state->equals(DispatchDraftState::class)) {
                     throw new DomainException('Containers can only be attached to draft dispatches.');
                 }
 
                 foreach ($this->normalizeIds($containerIds) as $containerId) {
-                    $container = Container::query()
-                        ->whereKey($containerId)
-                        ->lockForUpdate()
-                        ->firstOrFail();
+                    $container = Container::query()->whereKey($containerId)->lockForUpdate()->firstOrFail();
 
                     if (! $container->is_active) {
                         throw new DomainException("Container [{$container->serial}] is inactive.");
                     }
 
-                    $openEntry = DispatchEntry::query()
-                        ->where('container_id', $container->getKey())
-                        ->whereNull('return_date')
-                        ->lockForUpdate()
-                        ->first();
+                    if ($checkAvailability) {
 
-                    if ($openEntry && (string) $openEntry->dispatch_id !== (string) $dispatch->getKey()) {
-                        throw new DomainException("Container [{$container->serial}] is already reserved or dispatched.");
+                        $reservedEntry = DispatchEntry::query()
+                            ->where('container_id', $container->getKey())
+                            ->whereHas(
+                                'dispatch',
+                                fn (Builder $query): Builder => $query->whereState('state', DispatchDraftState::class),
+                            )
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($reservedEntry && (string) $reservedEntry->dispatch_id !== (string) $dispatch->getKey()) {
+                            throw new DomainException("Container [{$container->serial}] is already reserved or dispatched.");
+                        }
+
+                        $outstandingEntry = OutstandingDispatchEntryQuery::forContainer($container->getKey())
+                            ->whereHas(
+                                'dispatch',
+                                fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class),
+                            )
+                            ->lockForUpdate()
+                            ->first();
+
+                        if ($outstandingEntry) {
+                            throw new DomainException("Container [{$container->serial}] is already reserved or dispatched.");
+                        }
                     }
 
                     DispatchEntry::query()->firstOrCreate([
@@ -72,9 +88,6 @@ final class AttachContainersToDispatchAction
      */
     private function normalizeIds(array $ids): array
     {
-        return array_values(array_unique(array_filter(
-            $ids,
-            filled(...),
-        )));
+        return array_values(array_unique(array_filter($ids, filled(...))));
     }
 }

@@ -19,7 +19,7 @@ final class DispatchInfolist
                 ->schema([
                     TextEntry::make('code'),
 
-                    TextEntry::make('deliveryNote.customer.name')
+                    TextEntry::make('customer.name')
                         ->label('Customer'),
 
                     TextEntry::make('deliveryNote.code')

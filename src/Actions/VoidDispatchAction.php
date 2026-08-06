@@ -8,8 +8,10 @@ use DomainException;
 use Illuminate\Support\Facades\DB;
 use Storix\Actions\Concerns\NotifiesFilamentOfExceptions;
 use Storix\Data\VoidDispatchData;
+use Storix\Models\ContainerReturnEntry;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
+use Storix\Models\States\ContainerReturnApprovedState;
 use Storix\Models\States\DispatchVoidedState;
 use Throwable;
 
@@ -42,7 +44,15 @@ final class VoidDispatchAction
                     ->lockForUpdate()
                     ->get();
 
-                if ($entries->contains(fn (DispatchEntry $entry): bool => $entry->return_date !== null || $entry->return_condition !== null)) {
+                $hasPostedReturns = ContainerReturnEntry::query()
+                    ->whereIn('dispatch_entry_id', $entries->modelKeys())
+                    ->whereHas(
+                        'containerReturn',
+                        fn ($query) => $query->whereState('state', ContainerReturnApprovedState::class),
+                    )
+                    ->exists();
+
+                if ($hasPostedReturns) {
                     throw new DomainException('Dispatches with return activity require a reversal workflow instead of voiding.');
                 }
 

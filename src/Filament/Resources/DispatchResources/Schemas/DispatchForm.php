@@ -9,12 +9,15 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use LogicException;
 use Storix\Models\Container;
+use Storix\Support\CustomerQuery;
 use Storix\Support\DeliveryNoteQuery;
 use Storix\Support\FinancialYear;
 
@@ -29,16 +32,35 @@ final class DispatchForm
                 ->columns()
                 ->columnSpanFull()
                 ->schema([
+                    Select::make('customer_id')
+                        ->relationship(
+                            name: 'customer',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query): Builder => CustomerQuery::modify($query),
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(function (Set $set): void {
+                            $set('delivery_note_id', null);
+                        })
+                        ->required(),
 
                     Select::make('delivery_note_id')
                         ->relationship(
                             name: 'deliveryNote',
                             titleAttribute: 'code',
-                            modifyQueryUsing: fn (Builder $query) => DeliveryNoteQuery::modify($query)->with('customer'),
+                            modifyQueryUsing: fn (Builder $query, Get $get): Builder => self::forCustomer(
+                                DeliveryNoteQuery::modify($query)->with('customer'),
+                                $get('customer_id'),
+                            ),
                         )
                         ->getOptionLabelFromRecordUsing(fn (Model $record): string => self::deliveryNoteLabel($record))
-                        ->getSearchResultsUsing(function (string $search): array {
-                            $query = DeliveryNoteQuery::modify(self::deliveryNoteQuery()->with('customer'));
+                        ->getSearchResultsUsing(function (string $search, Get $get): array {
+                            $query = self::forCustomer(
+                                DeliveryNoteQuery::modify(self::deliveryNoteQuery()->with('customer')),
+                                $get('customer_id'),
+                            );
 
                             return $query
                                 ->where(fn ($query) => $query
@@ -51,7 +73,7 @@ final class DispatchForm
                         })
                         ->searchable()
                         ->preload()
-                        ->required(),
+                        ->nullable(),
 
                     DateTimePicker::make('dispatched_at')
                         ->default(now())
@@ -106,5 +128,18 @@ final class DispatchForm
         }
 
         return $model::query();
+    }
+
+    /**
+     * @param  Builder<Model>  $query
+     * @return Builder<Model>
+     */
+    private static function forCustomer(Builder $query, mixed $customerId): Builder
+    {
+        if (! is_int($customerId) && ! is_string($customerId)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('customer_id', $customerId);
     }
 }

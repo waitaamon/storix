@@ -11,8 +11,10 @@ use Illuminate\Support\Collection;
 use Override;
 use Storix\Enums\ReturnCondition;
 use Storix\Models\Container;
+use Storix\Models\ContainerReturnEntry;
 use Storix\Models\DispatchEntry;
-use Storix\Models\States\DispatchApprovedState;
+use Storix\Models\States\ContainerReturnApprovedState;
+use Storix\Support\OutstandingDispatchEntryQuery;
 
 final class ContainerFleetOverviewWidget extends StatsOverviewWidget
 {
@@ -41,9 +43,7 @@ final class ContainerFleetOverviewWidget extends StatsOverviewWidget
         $activeContainers = (int) $containerCounts?->getAttribute('active_containers');
         $inactiveContainers = $totalContainers - $activeContainers;
 
-        $inUseContainers = DispatchEntry::query()
-            ->whereNull('return_date')
-            ->whereHas('dispatch', fn ($query) => $query->whereState('state', DispatchApprovedState::class))
+        $inUseContainers = OutstandingDispatchEntryQuery::query()
             ->whereHas('container')
             ->distinct('container_id')
             ->count('container_id');
@@ -52,9 +52,11 @@ final class ContainerFleetOverviewWidget extends StatsOverviewWidget
             ? 0.0
             : round(($inUseContainers / $totalContainers) * 100, 2);
 
-        $returnedEntriesQuery = DispatchEntry::query()
-            ->whereNotNull('return_date')
-            ->whereHas('dispatch')
+        $returnedEntriesQuery = ContainerReturnEntry::query()
+            ->whereHas(
+                'containerReturn',
+                fn ($query) => $query->whereState('state', ContainerReturnApprovedState::class),
+            )
             ->whereHas('container');
 
         $returnCounts = $returnedEntriesQuery
@@ -71,12 +73,9 @@ final class ContainerFleetOverviewWidget extends StatsOverviewWidget
             ? 0.0
             : round(($damagedEntries / $returnedEntries) * 100, 2);
 
-        $openEntries = DispatchEntry::query()
+        $openEntries = OutstandingDispatchEntryQuery::query()
             ->with('dispatch:id,dispatched_at')
-            ->whereNull('return_date')
-            ->whereHas('dispatch', fn ($query) => $query
-                ->whereState('state', DispatchApprovedState::class)
-                ->whereNotNull('dispatched_at'))
+            ->whereHas('dispatch', fn ($query) => $query->whereNotNull('dispatched_at'))
             ->whereHas('container')
             ->get(['id', 'dispatch_id']);
 
@@ -90,18 +89,21 @@ final class ContainerFleetOverviewWidget extends StatsOverviewWidget
         $averageAge = $ages->isEmpty() ? 0.0 : round((float) $ages->average(), 1);
         $oldestAge = $ages->isEmpty() ? 0 : (int) $ages->max();
 
-        $lostEntries = DispatchEntry::query()
+        $lostEntries = ContainerReturnEntry::query()
             ->with('container:id,replacement_cost,replacement_currency')
             ->where('return_condition', ReturnCondition::Lost)
-            ->whereHas('dispatch')
+            ->whereHas(
+                'containerReturn',
+                fn ($query) => $query->whereState('state', ContainerReturnApprovedState::class),
+            )
             ->whereHas('container')
             ->get(['id', 'container_id']);
 
         /** @var Collection<string, float> $exposureByCurrency */
         $exposureByCurrency = $lostEntries
-            ->groupBy(fn (DispatchEntry $entry): string => mb_strtoupper($entry->container->replacement_currency))
+            ->groupBy(fn (ContainerReturnEntry $entry): string => mb_strtoupper($entry->container->replacement_currency))
             ->map(fn (Collection $entries): float => (float) $entries->sum(
-                fn (DispatchEntry $entry): float => (float) $entry->container->replacement_cost,
+                fn (ContainerReturnEntry $entry): float => (float) $entry->container->replacement_cost,
             ))
             ->sortKeys();
 

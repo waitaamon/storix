@@ -28,6 +28,12 @@ final class DispatchesTable
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($year): Builder {
+                $query->with([
+                    'customer',
+                    'deliveryNote',
+                    'dispatchedBy',
+                ]);
+
                 if ($year) {
                     $query->whereBetween('dispatched_at', [$year->start_date, $year->end_date]);
                 }
@@ -38,7 +44,7 @@ final class DispatchesTable
                 TextColumn::make('code')
                     ->searchable(),
 
-                TextColumn::make('deliveryNote.customer.name')
+                TextColumn::make('customer.name')
                     ->label('Customer')
                     ->searchable(),
 
@@ -65,7 +71,7 @@ final class DispatchesTable
             ])
             ->filters([
                 SelectFilter::make('customer')
-                    ->relationship('deliveryNote.customer', 'name')
+                    ->relationship('customer', 'name')
                     ->searchable(),
 
                 Filter::make('approved_at')

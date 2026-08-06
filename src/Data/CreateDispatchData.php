@@ -13,13 +13,15 @@ final readonly class CreateDispatchData
      * @param  array<string, mixed>  $metadata
      */
     public function __construct(
-        public int|string $deliveryNoteId,
+        public int|string|null $deliveryNoteId,
         public int|string $dispatchedBy,
         public int $quantity,
+        public int|string $customerId,
         public CarbonInterface|string|null $dispatchedAt = null,
         public ?string $dispatchNote = null,
         public array $containerIds = [],
         public ?string $idempotencyKey = null,
         public array $metadata = [],
+        public bool $checkAvailability = true
     ) {}
 }

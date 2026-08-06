@@ -9,6 +9,7 @@ use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 use Override;
 use Storix\Models\Container;
+use Storix\Support\SpreadsheetSafeText;
 
 final class ContainerExporter extends Exporter
 {
@@ -21,12 +22,16 @@ final class ContainerExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('name'),
-            ExportColumn::make('serial'),
+            ExportColumn::make('name')
+                ->formatStateUsing(SpreadsheetSafeText::sanitize(...)),
+            ExportColumn::make('serial')
+                ->formatStateUsing(SpreadsheetSafeText::sanitize(...)),
             ExportColumn::make('is_active'),
             ExportColumn::make('replacement_cost'),
-            ExportColumn::make('replacement_currency'),
-            ExportColumn::make('description'),
+            ExportColumn::make('replacement_currency')
+                ->formatStateUsing(SpreadsheetSafeText::sanitize(...)),
+            ExportColumn::make('description')
+                ->formatStateUsing(SpreadsheetSafeText::sanitize(...)),
             ExportColumn::make('created_at'),
         ];
     }

@@ -17,7 +17,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Database\Factories\ContainerFactory;
+use Storix\Models\States\ContainerReturnApprovedState;
 use Storix\Models\States\DispatchApprovedState;
+use Storix\Models\States\DispatchDraftState;
 use Storix\Support\TableNames;
 
 /**
@@ -30,6 +32,7 @@ use Storix\Support\TableNames;
  * @property string|null $description
  * @property array<string, mixed>|null $metadata
  * @property-read Collection<int, DispatchEntry> $entries
+ * @property-read Collection<int, ContainerReturnEntry> $returnEntries
  */
 #[UseFactory(ContainerFactory::class)]
 #[Fillable([
@@ -60,6 +63,19 @@ final class Container extends Model
     }
 
     /**
+     * Get the return entries for this container.
+     *
+     * @return HasMany<Model, $this>
+     */
+    public function returnEntries(): HasMany
+    {
+        /** @var class-string<Model> $model */
+        $model = Config::string('storix.models.container_return_entry', ContainerReturnEntry::class);
+
+        return $this->hasMany($model, 'container_id');
+    }
+
+    /**
      * Get the dispatches for this container.
      *
      * @return BelongsToMany<Model, $this>
@@ -70,7 +86,7 @@ final class Container extends Model
         $model = Config::string('storix.models.dispatch', Dispatch::class);
 
         return $this->belongsToMany($model, TableNames::dispatchEntries())
-            ->withPivot(['id', 'received_by', 'return_date', 'return_condition', 'return_note', 'deleted_at'])
+            ->withPivot(['id', 'deleted_at'])
             ->wherePivotNull('deleted_at')
             ->withTimestamps();
     }
@@ -93,7 +109,23 @@ final class Container extends Model
     protected function availableForDispatch(Builder $query): void
     {
         $query->where('is_active', true)
-            ->whereDoesntHave('entries', fn (Builder $query): Builder => $query->whereNull('return_date'));
+            ->whereDoesntHave('entries', fn (Builder $query): Builder => $query
+                ->whereHas(
+                    'dispatch',
+                    fn (Builder $query): Builder => $query->whereState('state', DispatchDraftState::class),
+                )
+                ->orWhere(fn (Builder $query): Builder => $query
+                    ->whereHas(
+                        'dispatch',
+                        fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class),
+                    )
+                    ->whereDoesntHave(
+                        'containerReturnEntry.containerReturn',
+                        fn (Builder $query): Builder => $query->whereState(
+                            'state',
+                            ContainerReturnApprovedState::class,
+                        ),
+                    )));
     }
 
     /**
@@ -105,9 +137,18 @@ final class Container extends Model
     protected function currentlyDispatched(Builder $query): void
     {
         $query->where('is_active', true)
-            ->whereHas('entries', fn (Builder $query): Builder => $query->whereNull('return_date')
-                ->whereHas('dispatch', fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class))
-            );
+            ->whereHas('entries', fn (Builder $query): Builder => $query
+                ->whereHas(
+                    'dispatch',
+                    fn (Builder $query): Builder => $query->whereState('state', DispatchApprovedState::class),
+                )
+                ->whereDoesntHave(
+                    'containerReturnEntry.containerReturn',
+                    fn (Builder $query): Builder => $query->whereState(
+                        'state',
+                        ContainerReturnApprovedState::class,
+                    ),
+                ));
     }
 
     /**

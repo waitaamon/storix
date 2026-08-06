@@ -4,39 +4,31 @@ declare(strict_types=1);
 
 namespace Storix\Models;
 
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Config;
 use Override;
 use Storix\Database\Factories\DispatchEntryFactory;
-use Storix\Enums\ReturnCondition;
 use Storix\Support\TableNames;
 
 /**
  * @property int $id
  * @property int|string $dispatch_id
  * @property int|string $container_id
- * @property int|string|null $received_by
- * @property CarbonImmutable|null $return_date
- * @property ReturnCondition|null $return_condition
- * @property string|null $return_note
  * @property array<string, mixed>|null $metadata
  * @property-read Container $container
  * @property-read Dispatch $dispatch
+ * @property-read ContainerReturnEntry|null $containerReturnEntry
  */
 #[UseFactory(DispatchEntryFactory::class)]
 #[Fillable([
     'dispatch_id',
     'container_id',
-    'received_by',
-    'return_date',
-    'return_condition',
-    'return_note',
     'metadata',
 ])]
 final class DispatchEntry extends Model
@@ -71,16 +63,16 @@ final class DispatchEntry extends Model
     }
 
     /**
-     * Get the user that received this entry.
+     * Get the posted return entry reconciled to this dispatch entry.
      *
-     * @return BelongsTo<Model, $this>
+     * @return HasOne<Model, $this>
      */
-    public function receivedBy(): BelongsTo
+    public function containerReturnEntry(): HasOne
     {
         /** @var class-string<Model> $model */
-        $model = Config::string('storix.models.user', 'App\\Models\\User');
+        $model = Config::string('storix.models.container_return_entry', ContainerReturnEntry::class);
 
-        return $this->belongsTo($model, 'received_by');
+        return $this->hasOne($model, 'dispatch_entry_id');
     }
 
     /**
@@ -101,8 +93,6 @@ final class DispatchEntry extends Model
     protected function casts(): array
     {
         return [
-            'return_date' => 'immutable_date',
-            'return_condition' => ReturnCondition::class,
             'metadata' => 'array',
         ];
     }
