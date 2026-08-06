@@ -82,6 +82,7 @@ The published configuration is compatible with `php artisan config:cache`.
 | `storix.models.dispatch_entry` | `STORIX_DISPATCH_ENTRY_MODEL` | `Storix\Models\DispatchEntry` |
 | `storix.models.container_return` | `STORIX_CONTAINER_RETURN_MODEL` | `Storix\Models\ContainerReturn` |
 | `storix.models.container_return_entry` | `STORIX_CONTAINER_RETURN_ENTRY_MODEL` | `Storix\Models\ContainerReturnEntry` |
+| `storix.models.container_movement` | `STORIX_CONTAINER_MOVEMENT_MODEL` | `Storix\Models\ContainerMovement` |
 | `storix.models.customer` | `STORIX_CUSTOMER_MODEL` | `App\Models\Accounts\Account` |
 | `storix.models.delivery_note` | `STORIX_DELIVERY_NOTE_CLASS` | `App\Models\Sales\DeliveryNote` |
 | `storix.models.user` | `STORIX_USER_MODEL` | `App\Models\User` |
@@ -97,6 +98,7 @@ Overrides are used by relationships, resources, policy registration, and morph a
 | `storix.tables.dispatch_entries` | `STORIX_DISPATCH_ENTRIES_TABLE` | `storix_dispatch_entries` |
 | `storix.tables.container_returns` | `STORIX_CONTAINER_RETURNS_TABLE` | `storix_container_returns` |
 | `storix.tables.container_return_entries` | `STORIX_CONTAINER_RETURN_ENTRIES_TABLE` | `storix_container_return_entries` |
+| `storix.tables.container_movements` | `STORIX_CONTAINER_MOVEMENTS_VIEW` | `storix_container_movements` |
 | `storix.tables.customers` | `STORIX_CUSTOMER_TABLE` | `customers` |
 | `storix.tables.delivery_notes` | `STORIX_DELIVERY_NOTE_TABLE` | `delivery_notes` |
 | `storix.tables.users` | `STORIX_USER_TABLE` | `users` |
@@ -112,6 +114,9 @@ The customer and user tables must exist before Storix migrations run. The delive
 | `storix.labels.dispatch_entry` | `STORIX_DISPATCH_ENTRY_LABEL` | `dispatch entry` |
 | `storix.labels.container_return` | `STORIX_CONTAINER_RETURN_LABEL` | `container return` |
 | `storix.labels.container_return_entry` | `STORIX_CONTAINER_RETURN_ENTRY_LABEL` | `container return entry` |
+| `storix.labels.container_movement` | `STORIX_CONTAINER_MOVEMENT_LABEL` | `container movement` |
+
+`storix_container_movements` is a live, non-materialized database view. Configure its name before migrations run, just like the package tables; it does not require a refresh job.
 
 ### Financial year
 
@@ -311,6 +316,19 @@ Database control indexes support customer/state/date reporting and return/contai
 | `damaged` | Closes custody and emits `ContainerReturned` plus `ContainerDamaged`. |
 | `lost` | Closes custody, marks the serial inactive, and emits `ContainerLost` without `ContainerReturned`. |
 
+### Container movements
+
+`ContainerMovement` is a read-only event projection backed by the live `storix_container_movements` database view. It emits one row for every approved dispatch entry and one row for every approved return entry:
+
+```text
+approved dispatch entry ──► dispatch event
+approved return entry   ──► return event
+```
+
+Each event exposes its physical date, customer, document type, document code, and a nullable cross-return flag. Dispatch rows use the dispatch customer and leave `cross_return` null; return rows use the returning customer and expose the entry's derived cross-return value. Stable keys are namespaced as `dispatch:{entry-id}` and `return:{entry-id}`.
+
+Return events are selected by their own `container_id`; they do not depend on `dispatch_entry_id`. This keeps approved legacy returns visible even when historical reconciliation links are absent. Draft dispatches, voided or deleted outbound entries, submitted returns, and deleted return documents are excluded. Redispatching a returned serial simply appends another dispatch event. The view is live and requires no refresh process. Its model, table, and singular label remain configurable through `storix.models.container_movement`, `storix.tables.container_movements`, and `storix.labels.container_movement`.
+
 ### Cross returns
 
 A customer may return a physical serial originally dispatched to another customer.
@@ -358,6 +376,7 @@ This measures customer-attributed quantities. Physical serial custody is separat
 - CSV import and bulk export.
 - Dispatch-history relation manager.
 - Read-only return history showing document, returning customer, date, condition, state, source dispatch, and cross-return flag.
+- Read-only chronological movement history showing approved dispatch and return events with date, customer, document, document code, and return-only cross-return control.
 
 ### Dispatches
 
@@ -501,6 +520,7 @@ Importing entries does not submit or approve the return, reconcile dispatch cust
 - `DispatchEntryExporter`: outbound serial movements only.
 - `ContainerReturnExporter`: return document headers and audit data.
 - `ContainerReturnEntryExporter`: return serials, conditions, source dispatches, and cross-return controls.
+- `ContainerMovementExporter`: owner-scoped dispatch and return events with container identity, date, customer, document type, document code, and return-only cross-return control.
 
 Export queries eager-load their relationships. Text beginning with spreadsheet formula-control characters is prefixed safely before export.
 
