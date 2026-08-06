@@ -1,65 +1,65 @@
 {
-    "name": "waitaamon/storix",
-    "description": "Storix Filament v5 plugin for reusable container lifecycle tracking.",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.5",
-        "filament/filament": "^5.0",
-        "illuminate/contracts": "^13.0",
-        "illuminate/database": "^13.0",
-        "illuminate/support": "^13.0",
-        "livewire/livewire": "^4.0",
-        "spatie/laravel-package-tools": "^1.93",
-        "spatie/laravel-permission": "^7.4",
-        "spatie/laravel-model-states": "^2.12"
-    },
-    "require-dev": {
-        "laravel/pint": "^1.21",
-        "larastan/larastan": "^3.10",
-        "orchestra/testbench": "^11.0",
-        "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.1",
-        "pestphp/pest-plugin-type-coverage": "^4.0",
-        "rector/rector": "^2.4",
-        "driftingly/rector-laravel": "^2.5"
-    },
-    "autoload": {
-        "psr-4": {
-            "Storix\\": "src/",
-            "Storix\\Database\\Factories\\": "database/factories/",
-            "Storix\\Database\\Seeders\\": "database/seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Storix\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Storix\\StorixServiceProvider"
-            ]
-        }
-    },
-    "scripts": {
-        "test": "pest",
-        "analyse": "phpstan analyse --memory-limit=1G",
-        "format": "pint",
-        "lint": [
-            "rector",
-            "pint --test",
-            "@analyse",
-            "@test",
-            "./vendor/bin/pest --type-coverage --compact --min=95"
-        ]
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "config": {
-        "allow-plugins": {
-            "pestphp/pest-plugin": true
-        }
+  "name": "waitaamon/storix",
+  "description": "Storix Filament v5 plugin for reusable container lifecycle tracking.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.5",
+    "filament/filament": "^5.0",
+    "illuminate/contracts": "^13.0",
+    "illuminate/database": "^13.0",
+    "illuminate/support": "^13.0",
+    "livewire/livewire": "^4.0",
+    "spatie/laravel-package-tools": "^1.93",
+    "spatie/laravel-permission": "^7.4",
+    "spatie/laravel-model-states": "^2.12"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.21",
+    "larastan/larastan": "^3.10",
+    "orchestra/testbench": "^11.0",
+    "pestphp/pest": "^4.0",
+    "pestphp/pest-plugin-laravel": "^4.1",
+    "pestphp/pest-plugin-type-coverage": "^4.0",
+    "rector/rector": "^2.4",
+    "driftingly/rector-laravel": "^2.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Storix\\": "src/",
+      "Storix\\Database\\Factories\\": "database/factories/",
+      "Storix\\Database\\Seeders\\": "database/seeders/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Storix\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Storix\\StorixServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "analyse": "phpstan analyse --memory-limit=1G",
+    "format": "pint",
+    "lint": [
+      "rector",
+      "pint",
+      "@analyse",
+      "pest --parallel --compact --tia",
+      "pest --type-coverage --compact --min=95"
+    ]
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
 }
