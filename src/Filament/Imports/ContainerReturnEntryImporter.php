@@ -85,19 +85,13 @@ final class ContainerReturnEntryImporter extends Importer
         $containerReturn = $this->resolveContainerReturn();
 
         if (! $containerReturn->state->equals(ContainerReturnDraftState::class)) {
-            throw new RowImportFailedException(
-                'Container return entries can only be imported into a draft container return.',
-            );
+            throw new RowImportFailedException('Container return entries can only be imported into a draft container return.');
         }
 
         $user = auth()->user();
 
-        if ($user === null
-            || Gate::forUser($user)->denies('create', ContainerReturnEntry::class)
-            || Gate::forUser($user)->denies('update', $containerReturn)) {
-            throw new RowImportFailedException(
-                'You are not authorized to import entries into this container return.',
-            );
+        if ($user === null || Gate::forUser($user)->denies('create', ContainerReturnEntry::class) || Gate::forUser($user)->denies('update', $containerReturn)) {
+            throw new RowImportFailedException('You are not authorized to import entries into this container return.');
         }
 
         return new ContainerReturnEntry();

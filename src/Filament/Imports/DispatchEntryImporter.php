@@ -14,6 +14,7 @@ use Storix\Actions\AttachContainersToDispatchAction;
 use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
+use Throwable;
 
 final class DispatchEntryImporter extends Importer
 {
@@ -64,6 +65,10 @@ final class DispatchEntryImporter extends Importer
         ]);
     }
 
+    /**
+     * @throws RowImportFailedException
+     * @throws Throwable
+     */
     #[Override]
     public function saveRecord(): void
     {
@@ -78,6 +83,7 @@ final class DispatchEntryImporter extends Importer
         app(AttachContainersToDispatchAction::class)->handle(
             Dispatch::query()->whereKey($this->options['dispatch_id'])->firstOrFail(),
             [(int) $containerId],
+            checkAvailability: false
         );
     }
 }

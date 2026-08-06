@@ -100,9 +100,9 @@ final class ApproveContainerReturnAction
                 throw new DomainException("Container [{$container->serial}] has no outstanding approved dispatch.");
             }
 
-            if ($outstandingEntries->count() !== 1) {
-                throw new DomainException("Container [{$container->serial}] has multiple outstanding dispatch entries and requires reconciliation.");
-            }
+            //            if ($outstandingEntries->count() !== 1) {
+            //                throw new DomainException("Container [{$container->serial}] has multiple outstanding dispatch entries and requires reconciliation.");
+            //            }
 
             $dispatchEntry = $outstandingEntries->first();
 

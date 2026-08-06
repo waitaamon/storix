@@ -85,7 +85,7 @@ final class ContainersRelationManager extends RelationManager
                     ->using(function (array $data): DispatchEntry {
                         $containerIds = $this->containerIds($data);
 
-                        app(AttachContainersToDispatchAction::class)->handle($this->ownerRecord, $containerIds);
+                        app(AttachContainersToDispatchAction::class)->handle(dispatch: $this->ownerRecord, containerIds: $containerIds, checkAvailability: false);
 
                         return DispatchEntry::query()
                             ->where('dispatch_id', $this->ownerRecord->id)

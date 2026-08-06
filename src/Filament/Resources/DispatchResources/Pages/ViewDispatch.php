@@ -35,7 +35,7 @@ final class ViewDispatch extends ViewRecord
                 ->authorize(fn (Dispatch $record) => auth()->user()?->can('approve', $record) ?? false)
                 ->action(function (Action $action, Dispatch $dispatch): void {
                     try {
-                        app(ApproveDispatchAction::class)->handle($dispatch, auth()->id());
+                        app(ApproveDispatchAction::class)->handle(dispatch: $dispatch, approvedBy: auth()->id(), checkForConflicts: false);
                     } catch (DomainException $exception) {
                         Notification::make()
                             ->title('Dispatch approval failed')

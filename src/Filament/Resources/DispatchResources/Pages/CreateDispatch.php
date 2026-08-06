@@ -11,6 +11,7 @@ use Override;
 use Storix\Actions\CreateDispatchAction;
 use Storix\Data\CreateDispatchData;
 use Storix\Filament\Resources\DispatchResources\DispatchResource;
+use Throwable;
 
 final class CreateDispatch extends CreateRecord
 {
@@ -19,6 +20,8 @@ final class CreateDispatch extends CreateRecord
 
     /**
      * @param  array<string, mixed>  $data
+     *
+     * @throws Throwable
      */
     #[Override]
     protected function handleRecordCreation(array $data): Model
@@ -34,6 +37,7 @@ final class CreateDispatch extends CreateRecord
             dispatchedAt: $data['dispatched_at'] ?? null,
             dispatchNote: $data['dispatch_note'] ?? null,
             containerIds: $containerIds,
+            checkAvailability: false
         ));
     }
 }

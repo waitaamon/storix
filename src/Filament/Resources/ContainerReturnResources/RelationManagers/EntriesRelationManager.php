@@ -169,8 +169,6 @@ final class EntriesRelationManager extends RelationManager
     {
         $user = auth()->user();
 
-        return $user !== null
-            && $user->can('create', ContainerReturnEntry::class)
-            && $user->can('update', $this->ownerRecord);
+        return $user !== null && $user->can('create', ContainerReturnEntry::class) && $user->can('update', $this->ownerRecord);
     }
 }
