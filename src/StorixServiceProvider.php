@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Storix;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Config;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Storix\Commands\ReconcileCrossReturnsCommand;
 use Storix\Commands\SyncPermissionsCommand;
 use Storix\Events\GenerateDraftDispatchRequested;
 use Storix\Listeners\GenerateDraftDispatch;
@@ -32,6 +34,7 @@ final class StorixServiceProvider extends PackageServiceProvider
         $package
             ->name('storix')
             ->hasConfigFile()
+            ->hasCommand(ReconcileCrossReturnsCommand::class)
             ->hasCommand(SyncPermissionsCommand::class)
             ->discoversMigrations()
             ->runsMigrations();
@@ -40,6 +43,21 @@ final class StorixServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         Event::listen(GenerateDraftDispatchRequested::class, GenerateDraftDispatch::class);
+
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
+            if (! Config::boolean('storix.cross_return_reconciliation.schedule.enabled', true)) {
+                return;
+            }
+
+            $schedule->command('storix:reconcile-cross-returns')
+                ->daily()
+                ->timezone(Config::string(
+                    'storix.cross_return_reconciliation.schedule.timezone',
+                    'Africa/Nairobi',
+                ))
+                ->withoutOverlapping(120)
+                ->onOneServer();
+        });
 
         $containerModel = Config::string('storix.models.container', Container::class);
         $dispatchModel = Config::string('storix.models.dispatch', Dispatch::class);

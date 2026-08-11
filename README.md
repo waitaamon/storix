@@ -200,6 +200,27 @@ Use a class name instead of a closure so the configuration remains cacheable.
 ],
 ```
 
+### Cross-return reconciliation
+
+Storix registers its historical cross-return reconciliation command and daily schedule from the package service provider; the host application does not need to add anything to `routes/console.php`.
+
+```bash
+php artisan storix:reconcile-cross-returns
+php artisan storix:reconcile-cross-returns --dry-run
+```
+
+Every run writes a unique JSON Lines report under `storage/logs/storix/cross-return-reconciliation/` by default. The report is file-only and contains the run configuration, one structured result per evaluated approved cross return, controlled discrepancies, exceptions, and completion totals. A dry run performs the same analysis without database corrections.
+
+| Key | Environment variable | Default |
+| --- | --- | --- |
+| `storix.cross_return_reconciliation.report_directory` | `STORIX_CROSS_RETURN_RECONCILIATION_REPORT_DIRECTORY` | `storage/logs/storix/cross-return-reconciliation` |
+| `storix.cross_return_reconciliation.chunk_size` | `STORIX_CROSS_RETURN_RECONCILIATION_CHUNK_SIZE` | `500` |
+| `storix.cross_return_reconciliation.deadlock_retries` | `STORIX_CROSS_RETURN_RECONCILIATION_DEADLOCK_RETRIES` | `3` |
+| `storix.cross_return_reconciliation.schedule.enabled` | `STORIX_CROSS_RETURN_RECONCILIATION_SCHEDULE_ENABLED` | `true` |
+| `storix.cross_return_reconciliation.schedule.timezone` | `STORIX_CROSS_RETURN_RECONCILIATION_SCHEDULE_TIMEZONE` | `Africa/Nairobi` |
+
+The automatic event runs daily at exactly midnight, uses a 120-minute overlap lock, and uses Laravel's single-server scheduling control. In multi-server deployments, `onOneServer()` requires every scheduler node to use the same lock-capable `database`, `memcached`, `dynamodb`, or `redis` cache store.
+
 ## Host Application Contract
 
 ### Customer
