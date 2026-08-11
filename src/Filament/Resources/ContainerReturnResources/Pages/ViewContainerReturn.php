@@ -44,13 +44,8 @@ final class ViewContainerReturn extends ViewRecord
                 ->label('Return to Draft')
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('warning')
-                ->authorize(
-                    fn (ContainerReturn $record): bool => auth()->user()?->can('returnToDraft', $record) ?? false,
-                )
-                ->action(
-                    fn (ContainerReturn $record): ContainerReturn => app(ReturnContainerReturnToDraftAction::class)
-                        ->handle($record),
-                )
+                ->authorize(fn (ContainerReturn $record): bool => auth()->user()?->can('draft', $record) ?? false)
+                ->action(fn (ContainerReturn $record): ContainerReturn => app(ReturnContainerReturnToDraftAction::class)->handle($record))
                 ->successRedirectUrl(fn (ContainerReturn $record): string => $this->recordUrl($record))
                 ->requiresConfirmation(),
 
@@ -58,25 +53,16 @@ final class ViewContainerReturn extends ViewRecord
                 ->label('Approve')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
-                ->authorize(
-                    fn (ContainerReturn $record): bool => auth()->user()?->can('approve', $record) ?? false,
-                )
-                ->action(
-                    fn (ContainerReturn $record): ContainerReturn => app(ApproveContainerReturnAction::class)
-                        ->handle($record, $this->authenticatedUserId()),
-                )
+                ->authorize(fn (ContainerReturn $record): bool => auth()->user()?->can('approve', $record) ?? false)
+                ->action(fn (ContainerReturn $record): ContainerReturn => app(ApproveContainerReturnAction::class)->handle($record, $this->authenticatedUserId()))
                 ->successRedirectUrl(fn (ContainerReturn $record): string => $this->recordUrl($record))
                 ->requiresConfirmation(),
 
             ActionGroup::make([
                 EditAction::make()
-                    ->authorize(
-                        fn (ContainerReturn $record): bool => auth()->user()?->can('update', $record) ?? false,
-                    ),
+                    ->authorize(fn (ContainerReturn $record): bool => auth()->user()?->can('update', $record) ?? false),
                 DeleteAction::make()
-                    ->authorize(
-                        fn (ContainerReturn $record): bool => auth()->user()?->can('delete', $record) ?? false,
-                    )
+                    ->authorize(fn (ContainerReturn $record): bool => auth()->user()?->can('delete', $record) ?? false)
                     ->using(function (ContainerReturn $record): bool {
                         app(DeleteContainerReturnAction::class)->handle($record);
 

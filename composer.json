@@ -22,7 +22,8 @@
     "pestphp/pest-plugin-laravel": "^4.1",
     "pestphp/pest-plugin-type-coverage": "^4.0",
     "rector/rector": "^2.4",
-    "driftingly/rector-laravel": "^2.5"
+    "driftingly/rector-laravel": "^2.5",
+    "laravel/boost": "^2.5"
   },
   "autoload": {
     "psr-4": {
@@ -51,7 +52,7 @@
       "rector",
       "pint",
       "@analyse",
-      "pest --parallel --compact --tia",
+      "pest --parallel --compact",
       "pest --type-coverage --compact --min=95"
     ]
   },

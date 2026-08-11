@@ -62,9 +62,9 @@ final class ContainerReturnPolicy
             && (string) $this->userIdentifier($user) !== (string) $containerReturn->user_id;
     }
 
-    public function returnToDraft(mixed $user, ContainerReturn $containerReturn): bool
+    public function draft(mixed $user, ContainerReturn $containerReturn): bool
     {
-        return $this->allowed($user, 'returnToDraft.container-returns')
+        return $this->allowed($user, 'draft.container-returns')
             && $containerReturn->state->equals(ContainerReturnSubmittedState::class);
     }
 
