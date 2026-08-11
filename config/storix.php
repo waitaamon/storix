@@ -50,10 +50,7 @@ return [
     ],
 
     'cross_return_reconciliation' => [
-        'report_directory' => env(
-            'STORIX_CROSS_RETURN_RECONCILIATION_REPORT_DIRECTORY',
-            storage_path('logs/storix/cross-return-reconciliation'),
-        ),
+        'report_directory' => env('STORIX_CROSS_RETURN_RECONCILIATION_REPORT_DIRECTORY', storage_path('logs/storix')),
         'chunk_size' => (int) env('STORIX_CROSS_RETURN_RECONCILIATION_CHUNK_SIZE', 500),
         'deadlock_retries' => (int) env('STORIX_CROSS_RETURN_RECONCILIATION_DEADLOCK_RETRIES', 3),
         'schedule' => [

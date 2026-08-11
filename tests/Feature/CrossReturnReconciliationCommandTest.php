@@ -107,9 +107,9 @@ function reconciliationReturn(
 }
 
 /**
- * @return array<int, array<string, mixed>>
+ * @return list<string>
  */
-function reconciliationReportEntries(?string $path = null): array
+function reconciliationReportLines(?string $path = null): array
 {
     $directory = $path ?? Config::string('storix.cross_return_reconciliation.report_directory');
     $files = File::files($directory);
@@ -125,9 +125,31 @@ function reconciliationReportEntries(?string $path = null): array
         throw new RuntimeException('The reconciliation report could not be read.');
     }
 
+    return $lines;
+}
+
+/**
+ * @return array<int, array<string, mixed>>
+ */
+function reconciliationReportEntries(?string $path = null): array
+{
     return array_map(
         static function (string $line): array {
-            $entry = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
+            $contextOffset = mb_strpos($line, ' {"event":');
+
+            if ($contextOffset === false
+                || preg_match(
+                    '/^\[[^]]+\] .+\.[A-Z]+: Storix cross-return reconciliation .+\.$/',
+                    mb_substr($line, 0, $contextOffset),
+                ) !== 1) {
+                throw new RuntimeException('The reconciliation report entry is not in Laravel log format.');
+            }
+
+            $entry = json_decode(
+                mb_substr($line, $contextOffset + 1),
+                true,
+                flags: JSON_THROW_ON_ERROR,
+            );
 
             if (! is_array($entry)) {
                 throw new RuntimeException('The reconciliation report entry is not an object.');
@@ -135,7 +157,7 @@ function reconciliationReportEntries(?string $path = null): array
 
             return $entry;
         },
-        $lines,
+        reconciliationReportLines($path),
     );
 }
 
@@ -476,6 +498,7 @@ it('writes start, successful candidate, candidate failure, and completion entrie
 
     expect(Artisan::call('storix:reconcile-cross-returns'))->toBe(Command::FAILURE);
 
+    $lines = reconciliationReportLines();
     $entries = collect(reconciliationReportEntries());
     $start = $entries->firstWhere('event', 'start');
     $success = $entries->firstWhere('status', 'reconciled');
@@ -489,6 +512,12 @@ it('writes start, successful candidate, candidate failure, and completion entrie
     }
 
     expect($start['dry_run'] ?? null)->toBeFalse()
+        ->and($lines[0] ?? null)->toMatch(
+            '/^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] .+\.INFO: Storix cross-return reconciliation started\. \{.*\}(?: (?:\[.*\]|\{.*\}))?\s*$/',
+        )
+        ->and(implode("\n", $lines))->toContain(
+            '.ERROR: Storix cross-return reconciliation candidate failed.',
+        )
         ->and($start['run_id'] ?? null)->toBeString()
         ->and($success['event'] ?? null)->toBe('candidate')
         ->and($failure['event'] ?? null)->toBe('candidate')

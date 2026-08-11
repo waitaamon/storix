@@ -209,7 +209,7 @@ php artisan storix:reconcile-cross-returns
 php artisan storix:reconcile-cross-returns --dry-run
 ```
 
-Every run writes a unique JSON Lines report under `storage/logs/storix/cross-return-reconciliation/` by default. The report is file-only and contains the run configuration, one structured result per evaluated approved cross return, controlled discrepancies, exceptions, and completion totals. A dry run performs the same analysis without database corrections.
+Every run writes a unique Laravel-standard single-channel log under `storage/logs/storix/cross-return-reconciliation/` by default. The report is file-only and contains structured context for the run configuration, every evaluated approved cross return, controlled discrepancies, exceptions, and completion totals. These `.log` files are discoverable by Opcodes Laravel Log Viewer when its default recursive `**/*.log` include pattern is enabled. A dry run performs the same analysis without database corrections.
 
 | Key | Environment variable | Default |
 | --- | --- | --- |
