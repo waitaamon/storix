@@ -7,6 +7,7 @@ namespace Storix;
 use Filament\Contracts\Plugin;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
+use Storix\Filament\Pages\CustomerContainerBalances;
 use Storix\Filament\Resources\ContainerResources\ContainerResource;
 use Storix\Filament\Resources\ContainerReturnEntriesResources\ContainerReturnEntryResource;
 use Storix\Filament\Resources\ContainerReturnResources\ContainerReturnResource;
@@ -34,6 +35,9 @@ final class StorixPlugin implements Plugin
                 DispatchEntryResource::class,
                 ContainerReturnResource::class,
                 ContainerReturnEntryResource::class,
+            ])
+            ->pages([
+                CustomerContainerBalances::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make('Storix')

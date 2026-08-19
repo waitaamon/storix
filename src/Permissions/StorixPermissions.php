@@ -11,6 +11,8 @@ use Spatie\Permission\PermissionRegistrar;
 
 final class StorixPermissions
 {
+    public const string VIEW_ANY_CUSTOMER_CONTAINER_BALANCES = 'viewAny.customer-container-balances';
+
     public static function sync(?PermissionRegistrar $permissionRegistrar = null): void
     {
         $guardName = Config::string('storix.permissions.guard_name', 'web');
@@ -42,6 +44,7 @@ final class StorixPermissions
             ...self::dispatchEntryPermissions(),
             ...self::containerReturnPermissions(),
             ...self::containerReturnEntryPermissions(),
+            ...self::reportPermissions(),
         ];
     }
 
@@ -120,6 +123,14 @@ final class StorixPermissions
             'create.container-return-entries',
             'update.container-return-entries',
             'delete.container-return-entries',
+        ];
+    }
+
+    /** @return list<string> */
+    public static function reportPermissions(): array
+    {
+        return [
+            self::VIEW_ANY_CUSTOMER_CONTAINER_BALANCES,
         ];
     }
 }

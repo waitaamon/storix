@@ -39,6 +39,13 @@ return [
         'container_movement' => env('STORIX_CONTAINER_MOVEMENT_LABEL', 'container movement'),
     ],
 
+    'navigation' => [
+        'customer_container_balances_label' => env(
+            'STORIX_CUSTOMER_CONTAINER_BALANCES_NAVIGATION_LABEL',
+            'Customer Container Balances',
+        ),
+    ],
+
     'financial_year_service_class' => env('STORIX_FINANCIAL_YEAR_SERVICE_CLASS', 'App\\Services\\FinancialYearService'),
 
     'customer_query_modifier' => env('STORIX_CUSTOMER_QUERY_MODIFIER', DefaultCustomerQueryModifier::class),

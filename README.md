@@ -67,7 +67,7 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-The plugin registers containers, dispatches, dispatch entries, container returns, and container-return entries in the `Storix` navigation group.
+The plugin registers containers, dispatches, dispatch entries, container returns, container-return entries, and the customer container balance report in the `Storix` navigation group.
 
 ## Configuration
 
@@ -118,6 +118,14 @@ The customer and user tables must exist before Storix migrations run. The delive
 
 `storix_container_movements` is a live, non-materialized database view. Configure its name before migrations run, just like the package tables; it does not require a refresh job.
 
+### Navigation
+
+| Key | Environment variable | Default |
+| --- | --- | --- |
+| `storix.navigation.customer_container_balances_label` | `STORIX_CUSTOMER_CONTAINER_BALANCES_NAVIGATION_LABEL` | `Customer Container Balances` |
+
+The label controls the customer container balance report's item in the existing `Storix` navigation group.
+
 ### Financial year
 
 `STORIX_FINANCIAL_YEAR_SERVICE_CLASS` defaults to `App\Services\FinancialYearService`. If the class exposes `selectedFinancialYear()`, the returned `start_date` and `end_date` bound:
@@ -159,7 +167,7 @@ final class ActiveReceivableCustomerQueryModifier implements CustomerQueryModifi
 STORIX_CUSTOMER_QUERY_MODIFIER="App\\Storix\\ActiveReceivableCustomerQueryModifier"
 ```
 
-The modifier is applied to Filament's customer relationship query, including preloaded options, searching, and selected-record validation. A custom modifier replaces the default rather than extending it, so include every required customer constraint in the implementation.
+The modifier is applied to Filament's customer relationship query, including preloaded options, searching, selected-record validation, and the customer container balance report. A custom modifier replaces the default rather than extending it, so include every required customer constraint in the implementation.
 
 ### Delivery-note query
 
@@ -387,6 +395,17 @@ outstanding = dispatched - returned - lost
 
 This measures customer-attributed quantities. Physical serial custody is separately determined by exact dispatch-entry reconciliation. The distinction is essential for cross-return controls.
 
+The cumulative customer container balance report is available at `customer-container-balances`. It includes customers that have approved dispatch or return history, including settled zero-balance customers, and omits customers with no qualifying activity. Draft, submitted, voided, soft-deleted, and deleted-entry activity is excluded.
+
+The report presents `Customer`, `Dispatched`, `Returned`, `Lost`, and `Balance`, where:
+
+```text
+Returned = good returns + damaged returns
+Balance  = dispatched - returned - lost
+```
+
+A cross-return remains attributed to the return document's customer. This can intentionally produce positive and negative customer balances while preserving the exact-serial custody reconciliation.
+
 ## Filament Features
 
 ### Containers
@@ -441,6 +460,15 @@ The container resource includes a widget reporting:
 - Approved-return damage rate.
 - Average and oldest outstanding-custody age.
 - Lost replacement exposure separated by currency.
+
+### Customer container balances
+
+- Cumulative, activity-only customer quantity-control report.
+- Searchable and sortable customer and aggregate quantity columns.
+- Approved activity only, with good and damaged returns combined and lost containers shown separately.
+- Paginated row selection and bulk CSV/XLSX export using the same filtered aggregate query.
+- Spreadsheet-formula protection for exported customer names.
+- Navigation, direct page access, and export require `viewAny.customer-container-balances`.
 
 ## Programmatic Actions
 
@@ -542,8 +570,11 @@ Importing entries does not submit or approve the return, reconcile dispatch cust
 - `ContainerReturnExporter`: return document headers and audit data.
 - `ContainerReturnEntryExporter`: return serials, conditions, source dispatches, and cross-return controls.
 - `ContainerMovementExporter`: owner-scoped dispatch and return events with container identity, date, customer, document type, document code, and return-only cross-return control.
+- `CustomerContainerBalanceExporter`: selected rows from the filtered customer quantity-balance report.
 
 Export queries eager-load their relationships. Text beginning with spreadsheet formula-control characters is prefixed safely before export.
+
+Filament's published export, notification, job-batch, and queue prerequisites remain host-application responsibilities. The customer balance export supports CSV and XLSX and may be processed by the configured queue worker.
 
 ## Permissions And Policies
 
@@ -608,6 +639,12 @@ Dispatch entries are outbound movement records. The removed `receive.dispatch-en
 - `create.container-return-entries`
 - `update.container-return-entries`
 - `delete.container-return-entries`
+
+### Reports
+
+- `viewAny.customer-container-balances`
+
+This permission controls customer balance report navigation, direct access, and bulk export. Run `php artisan storix:sync-permissions` after upgrading so the permission is created for the configured guard.
 
 `manage.*` grants the corresponding permission family, but it does not bypass domain state immutability or maker-checker validation. Policies restrict draft editing and submitted lifecycle actions; transactional services repeat every critical rule.
 

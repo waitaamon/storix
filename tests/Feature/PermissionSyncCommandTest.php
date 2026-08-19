@@ -41,7 +41,7 @@ it('syncs all permissions after migrations and is idempotent', function (): void
     $exitCode = Artisan::call('storix:sync-permissions');
 
     expect($exitCode)->toBe(Command::SUCCESS)
-        ->and(Artisan::output())->toContain('Synced 43 Storix permissions for the [web] guard.')
+        ->and(Artisan::output())->toContain('Synced 44 Storix permissions for the [web] guard.')
         ->and(Artisan::call('storix:sync-permissions'))->toBe(Command::SUCCESS);
 
     expect(Permission::query()->orderBy('id')->pluck('name')->all())
