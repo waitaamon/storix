@@ -30,6 +30,9 @@ final class CustomerContainerBalances extends Page implements HasTable
     protected static string|UnitEnum|null $navigationGroup = 'Storix';
 
     #[Override]
+    protected static ?int $navigationSort = PHP_INT_MAX;
+
+    #[Override]
     public static function getNavigationLabel(): string
     {
         return Config::string(

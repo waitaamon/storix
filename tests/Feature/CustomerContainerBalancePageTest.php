@@ -68,6 +68,7 @@ it('registers the balance report page and supports a configurable navigation lab
         ->and(CustomerContainerBalances::getSlug(Filament::getPanel('test')))
         ->toBe('customer-container-balances')
         ->and(CustomerContainerBalances::getNavigationGroup())->toBe('Storix')
+        ->and(CustomerContainerBalances::getNavigationSort())->toBe(PHP_INT_MAX)
         ->and(CustomerContainerBalances::getNavigationLabel())->toBe('Customer Container Balances');
 
     Config::set(
