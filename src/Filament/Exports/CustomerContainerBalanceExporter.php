@@ -45,7 +45,8 @@ final class CustomerContainerBalanceExporter extends Exporter
             ExportColumn::make('lost')
                 ->label('Lost'),
             ExportColumn::make('balance')
-                ->label('Balance'),
+                ->label('Balance')
+                ->state(static fn (Model $record): int => (int) $record->getRawOriginal('balance')),
         ];
     }
 

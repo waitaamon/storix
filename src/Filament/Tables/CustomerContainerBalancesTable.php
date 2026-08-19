@@ -8,6 +8,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ExportBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Storix\Filament\Exports\CustomerContainerBalanceExporter;
 use Storix\Permissions\StorixPermissions;
 use Storix\Support\CustomerContainerBalanceQuery;
@@ -39,6 +40,7 @@ final class CustomerContainerBalancesTable
                     ->sortable(),
 
                 TextColumn::make('balance')
+                    ->state(static fn (Model $record): int => (int) $record->getRawOriginal('balance'))
                     ->numeric()
                     ->sortable(),
             ])

@@ -12,7 +12,9 @@ use Storix\Models\Container;
 use Storix\Models\Dispatch;
 use Storix\Models\DispatchEntry;
 use Storix\Permissions\StorixPermissions;
+use Storix\Support\CustomerContainerBalanceQuery;
 use Storix\Tests\Fixtures\Models\Customer;
+use Storix\Tests\Fixtures\Models\CustomerWithFinancialBalance;
 use Storix\Tests\Fixtures\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -137,6 +139,27 @@ it('renders searchable and sortable aggregate balance columns', function (): voi
         ->searchTable()
         ->sortTable('dispatched', 'desc')
         ->assertCanSeeTableRecords([$alpha, $beta], inOrder: true);
+});
+
+it('renders the projected container balance when the customer model has a financial balance accessor', function (): void {
+    Gate::before(static fn (mixed $user, string $ability): bool => true);
+
+    $user = balancePageUser('Accessor Collision Viewer', 'accessor-collision@example.com');
+    $customer = Customer::query()->create(['name' => 'Accessor Collision Customer']);
+    balancePageDispatch($customer, 2);
+
+    Config::set('storix.models.customer', CustomerWithFinancialBalance::class);
+    actingAs($user);
+
+    $reportCustomer = app(CustomerContainerBalanceQuery::class)->forReport()->sole();
+
+    expect($reportCustomer->getAttribute('balance'))->toBe(78_300.0)
+        ->and((int) $reportCustomer->getRawOriginal('balance'))->toBe(2);
+
+    $page = Livewire::test(CustomerContainerBalances::class);
+
+    $page->assertOk();
+    $page->assertTableColumnStateSet('balance', 2, $reportCustomer);
 });
 
 it('exposes the report permission through the permission registry', function (): void {

@@ -29,6 +29,7 @@ use Storix\Models\DispatchEntry;
 use Storix\Permissions\StorixPermissions;
 use Storix\Support\CustomerContainerBalanceQuery;
 use Storix\Tests\Fixtures\Models\Customer;
+use Storix\Tests\Fixtures\Models\CustomerWithFinancialBalance;
 use Storix\Tests\Fixtures\Models\User;
 
 use function Pest\Laravel\actingAs;
@@ -147,6 +148,8 @@ it('exports only selected filtered rows through the serializable aggregate query
     $unselected = Customer::query()->create(['name' => 'Unselected Customer']);
     balanceExportDispatch($selected, 2);
     balanceExportDispatch($unselected, 1);
+
+    Config::set('storix.models.customer', CustomerWithFinancialBalance::class);
 
     actingAs($user);
 
